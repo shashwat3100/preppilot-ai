@@ -214,13 +214,13 @@
         "DSA",
         "Operating Systems"
       ],
-      "total_xp": 140,
+      "total_xp": 170,
       "current_level": 1,
       "current_streak": 2,
       "longest_streak": 2,
       "last_active_date": "2026-10-13",
       "created_at": "2026-10-12T18:19:54.346Z",
-      "updated_at": "2026-10-13T04:19:52.924Z"
+      "updated_at": "2026-10-13T05:09:42.314Z"
     }
   ],
   "branches": [
@@ -1769,6 +1769,72 @@
       "time_spent_seconds": 2,
       "xp_gained": 0,
       "attempted_at": "2026-10-13T04:19:52.887Z"
+    },
+    {
+      "id": "att-4a72d383-7feb-4346-8635-fecc1f99bd74",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-dsa-1",
+      "session_id": "session-9b6ebffb-8899-4d45-938d-f5b2b58841a6",
+      "user_answer": "B",
+      "is_correct": false,
+      "time_spent_seconds": 9,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-13T05:08:48.340Z"
+    },
+    {
+      "id": "att-00ec2398-4b8a-441c-80e4-be11a0bb0a46",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-apt-1",
+      "session_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "user_answer": "C",
+      "is_correct": true,
+      "time_spent_seconds": 7,
+      "xp_gained": 30,
+      "attempted_at": "2026-10-13T05:09:42.253Z"
+    },
+    {
+      "id": "att-6af6bbbb-dd2a-43a2-89b4-0716da911549",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-ece-1",
+      "session_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "user_answer": "D",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-13T05:09:42.261Z"
+    },
+    {
+      "id": "att-b8935c60-c788-4658-9c2a-dafb2eb40607",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-dsa-2",
+      "session_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "user_answer": "C",
+      "is_correct": false,
+      "time_spent_seconds": 3,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-13T05:09:42.268Z"
+    },
+    {
+      "id": "att-ea5e45b0-9bce-45a5-a5d5-80dd75e5df9a",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-ee-1",
+      "session_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "user_answer": "C",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-13T05:09:42.275Z"
+    },
+    {
+      "id": "att-e24f097e-6f98-4bc4-a481-a6a14872a674",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-dbms-1",
+      "session_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "user_answer": "C",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-13T05:09:42.283Z"
     }
   ],
   "quizSessions": [
@@ -2325,6 +2391,110 @@
       "created_at": "2026-10-13T04:19:29.376Z",
       "completed_at": "2026-10-13T04:19:52.895Z",
       "updated_at": "2026-10-13T04:19:52.895Z"
+    },
+    {
+      "id": "session-c4152230-b299-44a8-bd27-8b65a9e00800",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 5,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Binary Trees & BSTs",
+          "Normalization (1NF to BCNF)",
+          "Normalization (1NF to BCNF)",
+          "8085 Instruction Set & Architecture",
+          "Logic Minimization & Flip Flops",
+          "Dynamic Programming",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "OSI vs TCP/IP Protocol Suite"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys"
+        ]
+      },
+      "created_at": "2026-10-13T05:07:53.523Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-93c4ee11-4141-41ff-9884-b623847f08ea",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 5,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Binary Trees & BSTs",
+          "Normalization (1NF to BCNF)",
+          "Normalization (1NF to BCNF)",
+          "8085 Instruction Set & Architecture",
+          "Logic Minimization & Flip Flops",
+          "Dynamic Programming",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "OSI vs TCP/IP Protocol Suite"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys"
+        ]
+      },
+      "created_at": "2026-10-13T05:08:10.292Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-9b6ebffb-8899-4d45-938d-f5b2b58841a6",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "mode": "CUSTOM_PRACTICE",
+      "status": "COMPLETED",
+      "total_questions": 1,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 12,
+      "config_params": {
+        "company_id": "comp-amazon",
+        "question_count": 5
+      },
+      "created_at": "2026-10-13T05:08:35.575Z",
+      "completed_at": "2026-10-13T05:08:48.351Z",
+      "updated_at": "2026-10-13T05:08:48.351Z"
+    },
+    {
+      "id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "mode": "CUSTOM_PRACTICE",
+      "status": "COMPLETED",
+      "total_questions": 5,
+      "correct_count": 1,
+      "score": 20,
+      "xp_earned": 30,
+      "time_taken_seconds": 32,
+      "config_params": {
+        "company_id": "comp-tcs",
+        "question_count": 5
+      },
+      "created_at": "2026-10-13T05:09:09.499Z",
+      "completed_at": "2026-10-13T05:09:42.291Z",
+      "updated_at": "2026-10-13T05:09:42.291Z"
     }
   ],
   "quizQuestions": [
@@ -2981,6 +3151,156 @@
       "is_correct": false,
       "time_spent_seconds": 2,
       "updated_at": "2026-10-13T04:19:52.891Z"
+    },
+    {
+      "id": "qq-session-c4152230-b299-44a8-bd27-8b65a9e00800-1",
+      "session_id": "session-c4152230-b299-44a8-bd27-8b65a9e00800",
+      "question_id": "q-dsa-2",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-c4152230-b299-44a8-bd27-8b65a9e00800-2",
+      "session_id": "session-c4152230-b299-44a8-bd27-8b65a9e00800",
+      "question_id": "q-dbms-2",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-c4152230-b299-44a8-bd27-8b65a9e00800-3",
+      "session_id": "session-c4152230-b299-44a8-bd27-8b65a9e00800",
+      "question_id": "q-dbms-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-c4152230-b299-44a8-bd27-8b65a9e00800-4",
+      "session_id": "session-c4152230-b299-44a8-bd27-8b65a9e00800",
+      "question_id": "q-ece-1",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-c4152230-b299-44a8-bd27-8b65a9e00800-5",
+      "session_id": "session-c4152230-b299-44a8-bd27-8b65a9e00800",
+      "question_id": "q-ece-2",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-93c4ee11-4141-41ff-9884-b623847f08ea-1",
+      "session_id": "session-93c4ee11-4141-41ff-9884-b623847f08ea",
+      "question_id": "q-dsa-2",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-93c4ee11-4141-41ff-9884-b623847f08ea-2",
+      "session_id": "session-93c4ee11-4141-41ff-9884-b623847f08ea",
+      "question_id": "q-dbms-2",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-93c4ee11-4141-41ff-9884-b623847f08ea-3",
+      "session_id": "session-93c4ee11-4141-41ff-9884-b623847f08ea",
+      "question_id": "q-dbms-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-93c4ee11-4141-41ff-9884-b623847f08ea-4",
+      "session_id": "session-93c4ee11-4141-41ff-9884-b623847f08ea",
+      "question_id": "q-ece-1",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-93c4ee11-4141-41ff-9884-b623847f08ea-5",
+      "session_id": "session-93c4ee11-4141-41ff-9884-b623847f08ea",
+      "question_id": "q-ece-2",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-9b6ebffb-8899-4d45-938d-f5b2b58841a6-1",
+      "session_id": "session-9b6ebffb-8899-4d45-938d-f5b2b58841a6",
+      "question_id": "q-dsa-1",
+      "sequence_order": 1,
+      "user_answer": "B",
+      "is_correct": false,
+      "time_spent_seconds": 9,
+      "updated_at": "2026-10-13T05:08:48.346Z"
+    },
+    {
+      "id": "qq-session-e4b92acb-6184-4004-aa16-fc620ff97390-1",
+      "session_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "question_id": "q-apt-1",
+      "sequence_order": 1,
+      "user_answer": "C",
+      "is_correct": true,
+      "time_spent_seconds": 7,
+      "updated_at": "2026-10-13T05:09:42.257Z"
+    },
+    {
+      "id": "qq-session-e4b92acb-6184-4004-aa16-fc620ff97390-2",
+      "session_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "question_id": "q-ece-1",
+      "sequence_order": 2,
+      "user_answer": "D",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "updated_at": "2026-10-13T05:09:42.264Z"
+    },
+    {
+      "id": "qq-session-e4b92acb-6184-4004-aa16-fc620ff97390-3",
+      "session_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "question_id": "q-dsa-2",
+      "sequence_order": 3,
+      "user_answer": "C",
+      "is_correct": false,
+      "time_spent_seconds": 3,
+      "updated_at": "2026-10-13T05:09:42.272Z"
+    },
+    {
+      "id": "qq-session-e4b92acb-6184-4004-aa16-fc620ff97390-4",
+      "session_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "question_id": "q-ee-1",
+      "sequence_order": 4,
+      "user_answer": "C",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "updated_at": "2026-10-13T05:09:42.280Z"
+    },
+    {
+      "id": "qq-session-e4b92acb-6184-4004-aa16-fc620ff97390-5",
+      "session_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "question_id": "q-dbms-1",
+      "sequence_order": 5,
+      "user_answer": "C",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "updated_at": "2026-10-13T05:09:42.287Z"
     }
   ],
   "studentPerformance": [
@@ -3115,44 +3435,70 @@
       "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
       "topic_id": "top-quant",
       "subject_id": "sub-aptitude",
-      "attempts_count": 1,
-      "correct_count": 1,
+      "attempts_count": 2,
+      "correct_count": 2,
       "accuracy_rate": 100,
       "weakness_score": 0,
-      "last_attempted_at": "2026-10-13T04:19:52.903Z"
+      "last_attempted_at": "2026-10-13T05:09:42.295Z",
+      "updated_at": "2026-10-13T05:09:42.295Z"
     },
     {
       "id": "perf-e3504266-0e3d-479a-9d2d-89e14738da1f",
       "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
       "topic_id": "top-trees",
       "subject_id": "sub-dsa",
-      "attempts_count": 1,
+      "attempts_count": 2,
       "correct_count": 0,
       "accuracy_rate": 0,
       "weakness_score": 1,
-      "last_attempted_at": "2026-10-13T04:19:52.907Z"
+      "last_attempted_at": "2026-10-13T05:09:42.302Z",
+      "updated_at": "2026-10-13T05:09:42.302Z"
     },
     {
       "id": "perf-abc5da8e-e8e5-4df6-848a-c201786d1bc6",
       "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
       "topic_id": "top-transformers",
       "subject_id": "sub-power-sys",
-      "attempts_count": 1,
+      "attempts_count": 2,
       "correct_count": 1,
-      "accuracy_rate": 100,
-      "weakness_score": 0,
-      "last_attempted_at": "2026-10-13T04:19:52.912Z"
+      "accuracy_rate": 50,
+      "weakness_score": 0.5,
+      "last_attempted_at": "2026-10-13T05:09:42.308Z",
+      "updated_at": "2026-10-13T05:09:42.308Z"
     },
     {
       "id": "perf-a19487b0-4266-4cde-ab22-5714e1137b2d",
       "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
       "topic_id": "top-normalization",
       "subject_id": "sub-dbms",
+      "attempts_count": 2,
+      "correct_count": 0,
+      "accuracy_rate": 0,
+      "weakness_score": 1,
+      "last_attempted_at": "2026-10-13T05:09:42.311Z",
+      "updated_at": "2026-10-13T05:09:42.311Z"
+    },
+    {
+      "id": "perf-7b4b034b-6c19-4689-af41-68fbdae734f1",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "topic_id": "top-dp",
+      "subject_id": "sub-dsa",
       "attempts_count": 1,
       "correct_count": 0,
       "accuracy_rate": 0,
       "weakness_score": 1,
-      "last_attempted_at": "2026-10-13T04:19:52.916Z"
+      "last_attempted_at": "2026-10-13T05:08:48.357Z"
+    },
+    {
+      "id": "perf-cc8458a2-d489-404b-a3a8-2d8d9b44a57b",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "topic_id": "top-8085",
+      "subject_id": "sub-microproc",
+      "attempts_count": 1,
+      "correct_count": 0,
+      "accuracy_rate": 0,
+      "weakness_score": 1,
+      "last_attempted_at": "2026-10-13T05:09:42.298Z"
     }
   ],
   "xpHistory": [
@@ -3245,6 +3591,22 @@
       "action_type": "CUSTOM_PRACTICE_QUIZ",
       "reference_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
       "created_at": "2026-10-13T04:19:52.928Z"
+    },
+    {
+      "id": "xph-31783a08-1f38-49a4-897c-e032c0f56f32",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "amount": 0,
+      "action_type": "CUSTOM_PRACTICE_QUIZ",
+      "reference_id": "session-9b6ebffb-8899-4d45-938d-f5b2b58841a6",
+      "created_at": "2026-10-13T05:08:48.367Z"
+    },
+    {
+      "id": "xph-1e31f07a-0fad-4ed3-ab89-74854619e9bc",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "amount": 30,
+      "action_type": "CUSTOM_PRACTICE_QUIZ",
+      "reference_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
+      "created_at": "2026-10-13T05:09:42.319Z"
     }
   ],
   "streaks": [
