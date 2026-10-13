@@ -212,6 +212,27 @@ export interface AnalyticsData {
   weekly_progress: Array<{ date: string; day: string; questionsAttempted: number; accuracy: number }>;
   weakest_topics: Array<{ topic: string; subject: string; accuracy: number; weakness: number }>;
   strongest_topics: Array<{ topic: string; subject: string; accuracy: number; strength: number }>;
+  coding?: {
+    total_submissions: number;
+    accepted_submissions: number;
+    problems_solved: number;
+    problems_attempted: number;
+    acceptance_rate: number;
+    language_breakdown: Record<string, number>;
+    difficulty_breakdown: {
+      Easy: { solved: number; total: number };
+      Medium: { solved: number; total: number };
+      Hard: { solved: number; total: number };
+    };
+    revision_recommendations: Array<{
+      problem_id: string;
+      title: string;
+      difficulty: string;
+      attempts_count: number;
+      last_status: string;
+      reason: string;
+    }>;
+  };
 }
 
 export interface PrepPilotChatMessage {

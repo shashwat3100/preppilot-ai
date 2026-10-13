@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -12,6 +12,15 @@ if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
 
+// Judge0 Language IDs
+const JUDGE0_LANGUAGE_IDS = {
+  c: 50,      // C (GCC 9.2.0)
+  cpp: 54,    // C++ (GCC 9.2.0)
+  python: 71, // Python (3.8.1)
+  java: 62    // Java (OpenJDK 13.0.1)
+};
+
+// Local runner configurations
 const LANGUAGE_CONFIG = {
   c: {
     extension: '.c',
@@ -49,12 +58,130 @@ const LANGUAGE_CONFIG = {
   }
 };
 
-const EXECUTION_LIMITS = {
-  timeout: 5000,
-  memoryLimit: 256 * 1024 * 1024,
-  outputLimit: 1024 * 1024
+// Strict Execution Safeguards
+export const EXECUTION_LIMITS = {
+  maxCodeLength: 64 * 1024,      // 64 KB
+  maxInputLength: 32 * 1024,     // 32 KB
+  timeoutMs: 5000,               // 5 seconds wall-clock
+  compileTimeoutMs: 10000,       // 10 seconds compilation limit
+  maxOutputBytes: 1024 * 1024,   // 1 MB output limit
+  maxConcurrentJobs: 3           // concurrency limit for local runner
 };
 
+// Concurrency queue for local runner
+let activeLocalJobs = 0;
+const localJobQueue = [];
+
+function acquireLocalSlot() {
+  return new Promise((resolve) => {
+    if (activeLocalJobs < EXECUTION_LIMITS.maxConcurrentJobs) {
+      activeLocalJobs++;
+      resolve();
+    } else {
+      localJobQueue.push(resolve);
+    }
+  });
+}
+
+function releaseLocalSlot() {
+  activeLocalJobs--;
+  if (localJobQueue.length > 0) {
+    const next = localJobQueue.shift();
+    activeLocalJobs++;
+    next();
+  }
+}
+
+// Kill process tree cleanly across platforms
+function killProcessTree(pid) {
+  try {
+    if (process.platform === 'win32') {
+      exec(`taskkill /PID ${pid} /T /F`, () => {});
+    } else {
+      process.kill(-pid, 'SIGKILL');
+    }
+  } catch (err) {
+    // Process may have already exited
+  }
+}
+
+function cleanupRunDir(runDir) {
+  try {
+    if (runDir && fs.existsSync(runDir)) {
+      fs.rmSync(runDir, { recursive: true, force: true });
+    }
+  } catch (err) {
+    console.warn('[CodeExecution] Cleanup warning:', err.message);
+  }
+}
+
+// --------------------------------------------------------------------
+// Judge0 Sandboxed Execution (if configured in environment)
+// --------------------------------------------------------------------
+async function runWithJudge0(code, language, input = '') {
+  const apiUrl = process.env.JUDGE0_API_URL.replace(/\/$/, '');
+  const apiKey = process.env.JUDGE0_API_KEY || '';
+  const langId = JUDGE0_LANGUAGE_IDS[language];
+
+  if (!langId) {
+    throw new Error(`Unsupported language for Judge0: ${language}`);
+  }
+
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  if (apiKey) {
+    headers['X-Auth-Token'] = apiKey;
+    headers['x-rapidapi-key'] = apiKey;
+  }
+
+  const payload = {
+    source_code: code,
+    language_id: langId,
+    stdin: input,
+    cpu_time_limit: EXECUTION_LIMITS.timeoutMs / 1000,
+    wall_time_limit: (EXECUTION_LIMITS.timeoutMs + 2000) / 1000,
+    max_file_size: 1024
+  };
+
+  const response = await fetch(`${apiUrl}/submissions?base64_encoded=false&wait=true`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Judge0 API error: HTTP ${response.status}`);
+  }
+
+  const result = await response.json();
+  const stdout = (result.stdout || '').trim();
+  const stderr = (result.stderr || result.compile_output || '').trim();
+  const statusId = result.status?.id;
+
+  // Status IDs: 3 = Accepted, 4 = Wrong Answer, 5 = Time Limit Exceeded, 6 = Compilation Error, 7-12 = Runtime Errors
+  const isTLE = statusId === 5;
+  const isCompileError = statusId === 6;
+  const isRuntimeError = statusId >= 7 && statusId <= 12;
+  const isSuccess = statusId === 3 || statusId === 4;
+
+  return {
+    success: isSuccess && !stderr,
+    output: stdout,
+    error: stderr,
+    timedOut: isTLE,
+    compileError: isCompileError,
+    runtimeError: isRuntimeError,
+    executionTimeMs: result.time ? Math.round(Number(result.time) * 1000) : 0,
+    memoryKb: result.memory || null,
+    isSandboxed: true,
+    engine: 'JUDGE0_SANDBOX'
+  };
+}
+
+// --------------------------------------------------------------------
+// Local Development Execution Engine (Safe Development Fallback)
+// --------------------------------------------------------------------
 function writeCodeFile(code, language) {
   const config = LANGUAGE_CONFIG[language];
   if (!config) throw new Error(`Unsupported language: ${language}`);
@@ -83,7 +210,7 @@ async function compileCode(filePath, config, language) {
       args = [filePath, '-o', exePath, '-O2'];
     } else if (language === 'cpp') {
       exePath = path.join(runDir, 'solution.exe');
-      command = 'g++',
+      command = 'g++';
       args = [filePath, '-o', exePath, '-std=c++17', '-O2'];
     } else if (language === 'java') {
       command = 'javac';
@@ -91,7 +218,7 @@ async function compileCode(filePath, config, language) {
       exePath = path.join(runDir, 'Main');
     }
 
-    const proc = spawn(command, args, { cwd: runDir, timeout: 10000 });
+    const proc = spawn(command, args, { cwd: runDir, timeout: EXECUTION_LIMITS.compileTimeoutMs });
 
     let stderr = '';
     proc.stderr.on('data', (data) => { stderr += data.toString(); });
@@ -110,7 +237,7 @@ async function compileCode(filePath, config, language) {
   });
 }
 
-async function executeCode(exePath, config, input, language, runDir) {
+async function executeCodeLocally(exePath, config, input, language, runDir) {
   return new Promise((resolve) => {
     const startTime = process.hrtime.bigint();
     let command, args;
@@ -128,8 +255,8 @@ async function executeCode(exePath, config, input, language, runDir) {
 
     const proc = spawn(command, args, {
       cwd: runDir,
-      timeout: EXECUTION_LIMITS.timeout,
-      maxBuffer: EXECUTION_LIMITS.outputLimit
+      timeout: EXECUTION_LIMITS.timeoutMs,
+      maxBuffer: EXECUTION_LIMITS.maxOutputBytes
     });
 
     let stdout = '';
@@ -138,20 +265,25 @@ async function executeCode(exePath, config, input, language, runDir) {
 
     const timeoutHandle = setTimeout(() => {
       timedOut = true;
-      try { proc.kill('SIGKILL'); } catch (e) {}
-    }, EXECUTION_LIMITS.timeout);
+      killProcessTree(proc.pid);
+    }, EXECUTION_LIMITS.timeoutMs);
 
     if (input) {
-      proc.stdin.write(input);
-      proc.stdin.end();
+      try {
+        proc.stdin.write(input);
+        proc.stdin.end();
+      } catch (err) {
+        // Stdin write error
+      }
     } else {
-      proc.stdin.end();
+      try { proc.stdin.end(); } catch (e) {}
     }
 
     proc.stdout.on('data', (data) => {
       stdout += data.toString();
-      if (stdout.length > EXECUTION_LIMITS.outputLimit) {
-        try { proc.kill('SIGKILL'); } catch (e) {}
+      if (stdout.length > EXECUTION_LIMITS.maxOutputBytes) {
+        timedOut = true;
+        killProcessTree(proc.pid);
       }
     });
 
@@ -163,33 +295,84 @@ async function executeCode(exePath, config, input, language, runDir) {
       clearTimeout(timeoutHandle);
       const executionTimeMs = Number((process.hrtime.bigint() - startTime) / 1000000n);
       if (timedOut) {
-        resolve({ success: false, output: '', error: 'Time Limit Exceeded (5s)', timedOut: true, executionTimeMs });
+        resolve({
+          success: false,
+          output: '',
+          error: 'Time Limit Exceeded (5s)',
+          timedOut: true,
+          executionTimeMs,
+          memoryKb: null,
+          isSandboxed: false,
+          engine: 'LOCAL_DEVELOPMENT_RUNNER'
+        });
       } else if (code !== 0 && stderr) {
-        resolve({ success: false, output: stdout, error: stderr.trim(), executionTimeMs });
+        resolve({
+          success: false,
+          output: stdout.trim(),
+          error: stderr.trim(),
+          executionTimeMs,
+          memoryKb: null,
+          isSandboxed: false,
+          engine: 'LOCAL_DEVELOPMENT_RUNNER'
+        });
       } else {
-        resolve({ success: true, output: stdout.trim(), error: '', executionTimeMs });
+        resolve({
+          success: true,
+          output: stdout.trim(),
+          error: '',
+          executionTimeMs,
+          memoryKb: null,
+          isSandboxed: false,
+          engine: 'LOCAL_DEVELOPMENT_RUNNER'
+        });
       }
     });
 
     proc.on('error', (err) => {
       clearTimeout(timeoutHandle);
       const executionTimeMs = Number((process.hrtime.bigint() - startTime) / 1000000n);
-      resolve({ success: false, output: '', error: `Execution error: ${err.message}`, executionTimeMs });
+      resolve({
+        success: false,
+        output: '',
+        error: `Execution error: ${err.message}`,
+        executionTimeMs,
+        memoryKb: null,
+        isSandboxed: false,
+        engine: 'LOCAL_DEVELOPMENT_RUNNER'
+      });
     });
   });
 }
 
-function cleanupRunDir(runDir) {
-  try {
-    if (runDir && fs.existsSync(runDir)) {
-      fs.rmSync(runDir, { recursive: true, force: true });
-    }
-  } catch (err) {
-    console.warn('[CodeExecution] Cleanup warning:', err.message);
-  }
-}
-
+// --------------------------------------------------------------------
+// Public Unified Execution API
+// --------------------------------------------------------------------
 export async function runCode(code, language, input = '') {
+  // Input validations
+  if (typeof code !== 'string' || typeof language !== 'string') {
+    return { success: false, output: '', error: 'Code and language must be strings', executionTimeMs: 0 };
+  }
+  if (code.length > EXECUTION_LIMITS.maxCodeLength) {
+    return { success: false, output: '', error: `Code exceeds maximum allowed size of ${EXECUTION_LIMITS.maxCodeLength / 1024} KB`, executionTimeMs: 0 };
+  }
+  if (input && input.length > EXECUTION_LIMITS.maxInputLength) {
+    return { success: false, output: '', error: `Input exceeds maximum allowed size of ${EXECUTION_LIMITS.maxInputLength / 1024} KB`, executionTimeMs: 0 };
+  }
+  if (!LANGUAGE_CONFIG[language]) {
+    return { success: false, output: '', error: `Unsupported language: ${language}`, executionTimeMs: 0 };
+  }
+
+  // 1. If Judge0 is configured in environment, dispatch to Judge0 sandbox
+  if (process.env.JUDGE0_API_URL) {
+    try {
+      return await runWithJudge0(code, language, input);
+    } catch (err) {
+      console.warn('[CodeExecution] Judge0 dispatch failed, falling back to local runner:', err.message);
+    }
+  }
+
+  // 2. Local isolated development runner with concurrency control
+  await acquireLocalSlot();
   let runDir = null;
   try {
     const fileInfo = writeCodeFile(code, language);
@@ -198,15 +381,32 @@ export async function runCode(code, language, input = '') {
     const compileResult = await compileCode(fileInfo.filePath, fileInfo.config, language);
     if (!compileResult.success) {
       cleanupRunDir(runDir);
-      return { success: false, output: '', error: compileResult.error, compileError: true, executionTimeMs: 0 };
+      return {
+        success: false,
+        output: '',
+        error: compileResult.error,
+        compileError: true,
+        executionTimeMs: 0,
+        isSandboxed: false,
+        engine: 'LOCAL_DEVELOPMENT_RUNNER'
+      };
     }
 
-    const execResult = await executeCode(compileResult.exePath, fileInfo.config, input, language, runDir);
+    const execResult = await executeCodeLocally(compileResult.exePath, fileInfo.config, input, language, runDir);
     cleanupRunDir(runDir);
     return execResult;
   } catch (err) {
     if (runDir) cleanupRunDir(runDir);
-    return { success: false, output: '', error: `Internal error: ${err.message}`, executionTimeMs: 0 };
+    return {
+      success: false,
+      output: '',
+      error: `Internal runner error: ${err.message}`,
+      executionTimeMs: 0,
+      isSandboxed: false,
+      engine: 'LOCAL_DEVELOPMENT_RUNNER'
+    };
+  } finally {
+    releaseLocalSlot();
   }
 }
 
@@ -230,8 +430,11 @@ export async function runTestCases(code, language, testCases) {
       timedOut: result.timedOut,
       compileError: result.compileError,
       executionTimeMs: result.executionTimeMs || 0,
+      memoryKb: result.memoryKb || null,
       isHidden: tc.isHidden
     });
+
+    // Short-circuit on first failure to conserve execution quota
     if (!passed) break;
   }
 

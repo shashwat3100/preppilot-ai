@@ -21,10 +21,17 @@ import {
   AlertTriangle,
   Award,
   Flame,
-  Layers
+  Layers,
+  Code2,
+  ArrowRight,
+  Terminal
 } from 'lucide-react';
 
-export const AnalyticsPage: React.FC = () => {
+interface AnalyticsPageProps {
+  onNavigateToCoding?: () => void;
+}
+
+export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding }) => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const { resolvedTheme } = useTheme();
@@ -271,6 +278,170 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Placement Coding Arena & Revision Recommendations */}
+      {data?.coding && (
+        <div className="space-y-6 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                <Code2 size={20} />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)]">
+                  Coding Arena & Technical Interview Diagnostics
+                </h2>
+                <p className="text-xs text-[var(--text-muted)]">
+                  LeetCode-style submission metrics, language adoption, and algorithmic revision cues.
+                </p>
+              </div>
+            </div>
+            {onNavigateToCoding && (
+              <button
+                onClick={onNavigateToCoding}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600/15 hover:bg-indigo-600/25 border border-indigo-500/30 text-indigo-400 hover:text-indigo-300 text-xs font-semibold transition-all cursor-pointer"
+              >
+                <span>Practice Arena</span>
+                <ArrowRight size={13} />
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] block mb-1">
+                Problems Solved
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-extrabold text-[var(--text-primary)]">
+                  {data.coding.problems_solved}
+                </span>
+                <span className="text-xs text-[var(--text-muted)]">
+                  / {data.coding.problems_attempted} attempted
+                </span>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] block mb-1">
+                Acceptance Rate
+              </span>
+              <span className="text-2xl font-extrabold text-emerald-400">
+                {data.coding.acceptance_rate}%
+              </span>
+              <span className="text-[11px] text-[var(--text-muted)] block mt-0.5">
+                {data.coding.accepted_submissions} of {data.coding.total_submissions} submissions
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] block mb-1">
+                Total Submissions
+              </span>
+              <span className="text-2xl font-extrabold text-purple-400">
+                {data.coding.total_submissions}
+              </span>
+              <span className="text-[11px] text-[var(--text-muted)] block mt-0.5">
+                Across C, C++, Java, Python
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] block mb-1">
+                Top Language
+              </span>
+              <div className="flex items-center gap-2 mt-1">
+                <Terminal size={18} className="text-indigo-400" />
+                <span className="text-lg font-bold text-[var(--text-primary)] capitalize">
+                  {Object.keys(data.coding.language_breakdown).length > 0
+                    ? Object.entries(data.coding.language_breakdown).sort((a, b) => b[1] - a[1])[0][0]
+                    : 'Python'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Difficulty breakdown & Revision Recommendations */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-5 p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm space-y-3">
+              <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] uppercase tracking-wider">
+                Difficulty Solved Distribution
+              </h3>
+              {(['Easy', 'Medium', 'Hard'] as const).map(diff => {
+                const diffData = data.coding?.difficulty_breakdown?.[diff] || { solved: 0, total: 0 };
+                const pct = diffData.total > 0 ? Math.round((diffData.solved / diffData.total) * 100) : 0;
+                return (
+                  <div key={diff} className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="font-semibold text-[var(--text-secondary)]">{diff}</span>
+                      <span className="text-[var(--text-muted)] font-mono">{diffData.solved} / {diffData.total} ({pct}%)</span>
+                    </div>
+                    <div className="w-full bg-[var(--surface-elevated)] h-2 rounded-full overflow-hidden border border-[var(--surface-border)]">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          diff === 'Easy' ? 'bg-emerald-500' : diff === 'Medium' ? 'bg-amber-500' : 'bg-rose-500'
+                        }`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="lg:col-span-7 p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-1.5">
+                  <AlertTriangle size={15} className="text-amber-400" />
+                  Coding Revision Recommendations
+                </h3>
+                <span className="text-[11px] text-[var(--text-muted)]">
+                  {data.coding.revision_recommendations?.length || 0} flagged problems
+                </span>
+              </div>
+
+              {data.coding.revision_recommendations && data.coding.revision_recommendations.length > 0 ? (
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {data.coding.revision_recommendations.map((rec) => (
+                    <div
+                      key={rec.problem_id}
+                      className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] flex items-center justify-between text-xs"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[var(--text-primary)]">{rec.title}</span>
+                          <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                            rec.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400' :
+                            rec.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-rose-500/10 text-rose-400'
+                          }`}>
+                            {rec.difficulty}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[var(--text-muted)]">{rec.reason}</p>
+                      </div>
+
+                      {onNavigateToCoding && (
+                        <button
+                          onClick={onNavigateToCoding}
+                          className="px-2.5 py-1 rounded bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-xs font-semibold border border-indigo-500/20 transition-all cursor-pointer flex items-center gap-1 shrink-0 ml-3"
+                        >
+                          <span>Solve</span>
+                          <ArrowRight size={11} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 text-center rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-xs text-[var(--text-muted)]">
+                  <CheckCircle2 size={24} className="mx-auto mb-2 text-emerald-400" />
+                  No problematic coding patterns identified. All attempted problems are passing cleanly!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

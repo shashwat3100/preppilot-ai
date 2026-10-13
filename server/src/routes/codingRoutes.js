@@ -2,7 +2,8 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database/db.js';
 import { authenticate } from '../middleware/auth.js';
-import { runCode, runTestCases, getSupportedLanguages } from '../services/codeExecutionService.js';
+import { runCode, runTestCases, getSupportedLanguages, EXECUTION_LIMITS } from '../services/codeExecutionService.js';
+import { codeExecutionLimiter, assessmentSubmissionLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
@@ -19,6 +20,9 @@ router.get('/bookmarks', authenticate, (req, res) => {
 
 // Toggle bookmark for a problem
 router.post('/problems/:id/bookmark', authenticate, (req, res) => {
+  const problem = db.get('codingProblems', req.params.id);
+  if (!problem) return res.status(404).json({ error: 'Problem not found' });
+
   const existing = db.find('codingBookmarks', b => b.user_id === req.user.id && b.problem_id === req.params.id);
   if (existing.length > 0) {
     existing.forEach(b => db.delete('codingBookmarks', b.id));
@@ -109,9 +113,13 @@ router.get('/problems/:id', authenticate, (req, res) => {
 
 // Create problem (Admin only)
 router.post('/problems', authenticate, (req, res) => {
-  if (req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Admin only' });
+  if (req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Admin privilege required.' });
 
   const { title, description, difficulty, branch_id, company_id, subject_id, topic_id, tags, constraints, starterCode, hints, editorial, timeLimit, memoryLimit } = req.body;
+
+  if (!title || !description || !difficulty) {
+    return res.status(400).json({ error: 'Title, description, and difficulty are required.' });
+  }
 
   const problem = {
     id: uuidv4(),
@@ -140,7 +148,7 @@ router.post('/problems', authenticate, (req, res) => {
 
 // Update problem (Admin only)
 router.put('/problems/:id', authenticate, (req, res) => {
-  if (req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Admin only' });
+  if (req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Admin privilege required.' });
 
   const problem = db.update('codingProblems', req.params.id, { ...req.body, updated_at: new Date().toISOString() });
   if (!problem) return res.status(404).json({ error: 'Problem not found' });
@@ -149,7 +157,7 @@ router.put('/problems/:id', authenticate, (req, res) => {
 
 // Delete problem (Admin only)
 router.delete('/problems/:id', authenticate, (req, res) => {
-  if (req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Admin only' });
+  if (req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Admin privilege required.' });
 
   db.delete('codingTestCases', { problem_id: req.params.id });
   db.delete('codingSubmissions', { problem_id: req.params.id });
@@ -161,15 +169,19 @@ router.delete('/problems/:id', authenticate, (req, res) => {
 
 // Add test case (Admin only)
 router.post('/problems/:id/testcases', authenticate, (req, res) => {
-  if (req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Admin only' });
+  if (req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Admin privilege required.' });
 
   const { input, expectedOutput, isHidden, explanation } = req.body;
+  if (input === undefined || expectedOutput === undefined) {
+    return res.status(400).json({ error: 'Input and expectedOutput are required.' });
+  }
+
   const testCase = {
     id: uuidv4(),
     problem_id: req.params.id,
-    input,
-    expectedOutput,
-    isHidden: isHidden || false,
+    input: String(input),
+    expectedOutput: String(expectedOutput),
+    isHidden: Boolean(isHidden),
     explanation: explanation || '',
     created_at: new Date().toISOString()
   };
@@ -177,25 +189,36 @@ router.post('/problems/:id/testcases', authenticate, (req, res) => {
   res.status(201).json({ testCase });
 });
 
-// Run arbitrary code with sample or custom input
-router.post('/run', authenticate, async (req, res) => {
+// Run arbitrary code with sample or custom input (Rate limited)
+router.post('/run', authenticate, codeExecutionLimiter, async (req, res) => {
   const { code, language, input } = req.body;
-  if (!code || !language) return res.status(400).json({ error: 'Code and language required' });
+  if (!code || !language) return res.status(400).json({ error: 'Code and language are required.' });
+
+  if (code.length > EXECUTION_LIMITS.maxCodeLength) {
+    return res.status(400).json({ error: `Code exceeds maximum allowed size of ${EXECUTION_LIMITS.maxCodeLength / 1024} KB.` });
+  }
+  if (input && input.length > EXECUTION_LIMITS.maxInputLength) {
+    return res.status(400).json({ error: `Input exceeds maximum allowed size of ${EXECUTION_LIMITS.maxInputLength / 1024} KB.` });
+  }
 
   const result = await runCode(code, language, input || '');
   res.json(result);
 });
 
-// Submit code against all test cases (both public and hidden)
-router.post('/submit', authenticate, async (req, res) => {
+// Submit code against all test cases (both public and hidden) (Rate limited)
+router.post('/submit', authenticate, codeExecutionLimiter, async (req, res) => {
   const { problemId, code, language } = req.body;
-  if (!problemId || !code || !language) return res.status(400).json({ error: 'Missing required fields' });
+  if (!problemId || !code || !language) return res.status(400).json({ error: 'Missing required fields.' });
+
+  if (code.length > EXECUTION_LIMITS.maxCodeLength) {
+    return res.status(400).json({ error: `Code exceeds maximum allowed size of ${EXECUTION_LIMITS.maxCodeLength / 1024} KB.` });
+  }
 
   const problem = db.get('codingProblems', problemId);
   if (!problem) return res.status(404).json({ error: 'Problem not found' });
 
   const allTestCases = db.find('codingTestCases', tc => tc.problem_id === problemId);
-  if (allTestCases.length === 0) return res.status(400).json({ error: 'No test cases configured for this problem' });
+  if (allTestCases.length === 0) return res.status(400).json({ error: 'No test cases configured for this problem.' });
 
   const { results, allPassed, passedCount, totalCount, totalExecutionTimeMs } = await runTestCases(code, language, allTestCases);
 
@@ -219,27 +242,37 @@ router.post('/submit', authenticate, async (req, res) => {
     passed_count: passedCount,
     total_count: totalCount,
     execution_time: totalExecutionTimeMs,
-    memory_used: 0,
+    memory_used: null,
     submitted_at: new Date().toISOString()
   };
 
   db.insert('codingSubmissions', submission);
 
+  // Award XP only if this problem was not previously solved by this user
   if (allPassed) {
-    const xpGain = problem.difficulty === 'Easy' ? 50 : problem.difficulty === 'Medium' ? 100 : 150;
-    const user = db.get('users', req.user.id);
-    if (user) {
-      db.update('users', req.user.id, {
-        total_xp: (user.total_xp || 0) + xpGain,
-        last_active_date: new Date().toISOString().split('T')[0]
-      });
-      db.insert('xpHistory', {
-        id: uuidv4(),
-        user_id: req.user.id,
-        amount: xpGain,
-        action_type: 'CODING_PROBLEM_SOLVED',
-        created_at: new Date().toISOString()
-      });
+    const priorSolved = db.find('codingSubmissions', s =>
+      s.user_id === req.user.id &&
+      s.problem_id === problemId &&
+      s.status === 'ACCEPTED' &&
+      s.id !== submission.id
+    );
+
+    if (priorSolved.length === 0) {
+      const xpGain = problem.difficulty === 'Easy' ? 50 : problem.difficulty === 'Medium' ? 100 : 150;
+      const user = db.get('users', req.user.id);
+      if (user) {
+        db.update('users', req.user.id, {
+          total_xp: (user.total_xp || 0) + xpGain,
+          last_active_date: new Date().toISOString().split('T')[0]
+        });
+        db.insert('xpHistory', {
+          id: uuidv4(),
+          user_id: req.user.id,
+          amount: xpGain,
+          action_type: 'CODING_PROBLEM_SOLVED',
+          created_at: new Date().toISOString()
+        });
+      }
     }
   }
 
@@ -262,10 +295,10 @@ router.get('/submissions', authenticate, (req, res) => {
   res.json({ submissions });
 });
 
-// Single submission details
+// Single submission details (ownership check)
 router.get('/submissions/:id', authenticate, (req, res) => {
   const submission = db.get('codingSubmissions', req.params.id);
-  if (!submission || submission.user_id !== req.user.id) return res.status(404).json({ error: 'Not found' });
+  if (!submission || submission.user_id !== req.user.id) return res.status(404).json({ error: 'Submission not found' });
   res.json({ submission });
 });
 
@@ -350,7 +383,7 @@ router.post('/assessments/:id/start', authenticate, (req, res) => {
   const assessment = db.get('codingAssessments', req.params.id);
   if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
 
-  const now = new Date();
+  const now = Date.now();
   const existingAttempts = db.find('codingAssessmentAttempts', a =>
     a.assessment_id === assessment.id &&
     a.user_id === req.user.id &&
@@ -358,8 +391,8 @@ router.post('/assessments/:id/start', authenticate, (req, res) => {
   );
 
   for (const att of existingAttempts) {
-    const startTime = new Date(att.start_time);
-    const expiryTime = new Date(startTime.getTime() + (att.duration_minutes * 60 * 1000) + 60000); // 1 min grace
+    const startTime = new Date(att.start_time).getTime();
+    const expiryTime = startTime + (att.duration_minutes * 60 * 1000) + 60000; // 1 min grace
     if (now < expiryTime) {
       return res.json({ attempt: att, isResumed: true });
     } else {
@@ -371,28 +404,60 @@ router.post('/assessments/:id/start', authenticate, (req, res) => {
     id: uuidv4(),
     assessment_id: assessment.id,
     user_id: req.user.id,
-    start_time: now.toISOString(),
+    start_time: new Date().toISOString(),
     duration_minutes: assessment.duration_minutes || 45,
     status: 'IN_PROGRESS',
     answers: {},
-    created_at: now.toISOString()
+    created_at: new Date().toISOString()
   };
 
   db.insert('codingAssessmentAttempts', attempt);
   res.status(201).json({ attempt, isResumed: false });
 });
 
-// Submit timed assessment
-router.post('/assessments/:id/submit', authenticate, async (req, res) => {
+// Submit timed assessment (SECURE & IDEMPOTENT)
+router.post('/assessments/:id/submit', authenticate, assessmentSubmissionLimiter, async (req, res) => {
   const { attemptId, answers } = req.body;
+  if (!attemptId) return res.status(400).json({ error: 'Attempt ID is required.' });
+
   const assessment = db.get('codingAssessments', req.params.id);
-  if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+  if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
 
   const attempt = db.get('codingAssessmentAttempts', attemptId);
-  if (!attempt || attempt.user_id !== req.user.id) {
-    return res.status(404).json({ error: 'Assessment attempt not found' });
+  if (!attempt || attempt.user_id !== req.user.id || attempt.assessment_id !== assessment.id) {
+    return res.status(404).json({ error: 'Valid assessment attempt not found.' });
   }
 
+  // 1. IDEMPOTENCY: If attempt was already finalized, return saved result without re-awarding XP
+  if (attempt.status === 'COMPLETED') {
+    return res.json({
+      attempt,
+      results: attempt.results || [],
+      score: attempt.score || 0,
+      maxScore: attempt.max_score || assessment.total_marks || 100,
+      percentage: attempt.percentage || 0,
+      recommendations: attempt.recommendations || [],
+      isAlreadyCompleted: true
+    });
+  }
+
+  // 2. SERVER-SIDE EXPIRATION: Enforce deadline strictly on the server
+  const startTime = new Date(attempt.start_time).getTime();
+  const expiryTime = startTime + (attempt.duration_minutes * 60 * 1000) + 60000; // 60s grace
+  const now = Date.now();
+
+  if (now > expiryTime) {
+    db.update('codingAssessmentAttempts', attemptId, {
+      status: 'TIMED_OUT',
+      submitted_at: new Date().toISOString()
+    });
+    return res.status(400).json({
+      error: 'Assessment deadline has expired. Submissions can no longer be accepted.',
+      timedOut: true
+    });
+  }
+
+  // 3. EXECUTE & JUDGE EACH PROBLEM
   const problemResults = [];
   let totalScore = 0;
   const pointsPerProblem = Math.floor((assessment.total_marks || 100) / (assessment.problem_ids.length || 1));
@@ -401,14 +466,14 @@ router.post('/assessments/:id/submit', authenticate, async (req, res) => {
 
   for (const pid of assessment.problem_ids) {
     const problem = db.get('codingProblems', pid);
-    const ans = (answers && answers[pid]) || { code: '', language: 'python' };
+    const ans = (answers && answers[pid]) || { code: '', language: 'c' };
     const testCases = db.find('codingTestCases', tc => tc.problem_id === pid);
 
     let probResult = {
       problem_id: pid,
       title: problem ? problem.title : 'Problem',
       difficulty: problem ? problem.difficulty : 'Medium',
-      language: ans.language || 'python',
+      language: ans.language || 'c',
       code: ans.code || '',
       allPassed: false,
       passedCount: 0,
@@ -419,7 +484,7 @@ router.post('/assessments/:id/submit', authenticate, async (req, res) => {
     };
 
     if (ans.code && ans.code.trim() && testCases.length > 0) {
-      const evalRes = await runTestCases(ans.code, ans.language || 'python', testCases);
+      const evalRes = await runTestCases(ans.code, ans.language || 'c', testCases);
       const passedRatio = evalRes.totalCount > 0 ? (evalRes.passedCount / evalRes.totalCount) : 0;
       const problemScore = Math.round(passedRatio * pointsPerProblem);
       totalScore += problemScore;
@@ -449,13 +514,13 @@ router.post('/assessments/:id/submit', authenticate, async (req, res) => {
         user_id: req.user.id,
         problem_id: pid,
         code: ans.code,
-        language: ans.language || 'python',
+        language: ans.language || 'c',
         status: verdict,
         results: evalRes.results,
         passed_count: evalRes.passedCount,
         total_count: evalRes.totalCount,
         execution_time: evalRes.totalExecutionTimeMs || 0,
-        memory_used: 0,
+        memory_used: null,
         assessment_id: assessment.id,
         submitted_at: new Date().toISOString()
       };
@@ -469,14 +534,15 @@ router.post('/assessments/:id/submit', authenticate, async (req, res) => {
     problemResults.push(probResult);
   }
 
-  // Recommendations based on weak topics
+  // 4. GENERATE WEAK-TOPIC RECOMMENDATIONS
   const recommendations = Array.from(weakTopics).slice(0, 3).map(topic => ({
     topic,
-    recommendation: `Strengthen your foundational patterns in ${topic}. Focus on edge case handling and asymptotic complexity constraints.`
+    recommendation: `Strengthen your foundational patterns in ${topic}. Focus on boundary conditions and asymptotic complexity.`
   }));
 
   const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
 
+  // 5. UPDATE ATTEMPT RECORD TO COMPLETED (ATOMICALLY)
   const updatedAttempt = db.update('codingAssessmentAttempts', attemptId, {
     status: 'COMPLETED',
     answers: answers || {},
@@ -488,7 +554,7 @@ router.post('/assessments/:id/submit', authenticate, async (req, res) => {
     recommendations
   });
 
-  // Reward XP
+  // 6. AWARD XP ONCE FOR VALID FIRST TIME ASSESSMENT COMPLETION
   if (totalScore > 0) {
     const user = db.get('users', req.user.id);
     if (user) {
@@ -512,7 +578,8 @@ router.post('/assessments/:id/submit', authenticate, async (req, res) => {
     score: totalScore,
     maxScore,
     percentage,
-    recommendations
+    recommendations,
+    isAlreadyCompleted: false
   });
 });
 

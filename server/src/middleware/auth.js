@@ -1,7 +1,20 @@
 import jwt from 'jsonwebtoken';
 import db from '../database/db.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'careerprep-ai-super-secret-key-2026';
+// Enforce strong JWT secret in production
+const isProduction = process.env.NODE_ENV === 'production';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (isProduction && (!JWT_SECRET || JWT_SECRET === 'careerprep-ai-super-secret-key-2026')) {
+  console.error('FATAL: A strong, unique JWT_SECRET environment variable is mandatory in production.');
+  process.exit(1);
+}
+
+const EFFECTIVE_JWT_SECRET = JWT_SECRET || 'careerprep-ai-super-secret-key-2026';
+
+if (!JWT_SECRET) {
+  console.warn('[Security Notice] No JWT_SECRET detected in environment. Using development fallback.');
+}
 
 export const generateToken = (user) => {
   return jwt.sign(
@@ -11,7 +24,7 @@ export const generateToken = (user) => {
       role: user.role,
       name: user.name
     },
-    JWT_SECRET,
+    EFFECTIVE_JWT_SECRET,
     { expiresIn: '7d' }
   );
 };
@@ -24,7 +37,7 @@ export const authenticate = (req, res, next) => {
 
   const token = authHeader.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, EFFECTIVE_JWT_SECRET);
     const user = db.get('users', decoded.id);
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid session or user not found.' });

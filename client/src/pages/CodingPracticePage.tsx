@@ -1,16 +1,14 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Code2,
   Play,
   Send,
-  ChevronLeft,
   ChevronRight,
   Search,
   Filter,
   CheckCircle2,
   XCircle,
   Clock,
-  Zap,
   Trophy,
   AlertTriangle,
   Terminal,
@@ -23,7 +21,6 @@ import {
   Star,
   Lightbulb,
   Check,
-  ChevronDown,
   Building2,
   Timer,
   Award,
@@ -31,7 +28,10 @@ import {
   Sparkles,
   RotateCcw,
   Eye,
-  BarChart3
+  BarChart3,
+  X,
+  Save,
+  HelpCircle
 } from 'lucide-react';
 import { CodeEditor } from '../components/CodeEditor';
 import api from '../services/api';
@@ -87,6 +87,7 @@ interface TestResult {
   timedOut?: boolean;
   compileError?: boolean;
   executionTimeMs?: number;
+  memoryKb?: number | null;
   isHidden?: boolean;
 }
 
@@ -127,7 +128,7 @@ interface CodingAssessment {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
+/*  Helpers & Constants                                                */
 /* ------------------------------------------------------------------ */
 
 const DIFFICULTY_STYLES: Record<string, { bg: string; text: string; border: string }> = {
@@ -147,36 +148,42 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 const COMPANIES = ['All', 'Amazon', 'TCS', 'Infosys', 'Wipro', 'Cognizant', 'Accenture', 'Microsoft'];
 
+const getDraftStorageKey = (problemId: string, lang: string) => `preppilot_draft_${problemId}_${lang}`;
+
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
 const CodingPracticePage: React.FC = () => {
-  // Top mode: 'practice' | 'assessment'
+  // Navigation mode: 'practice' | 'assessment'
   const [arenaMode, setArenaMode] = useState<'practice' | 'assessment'>('practice');
 
-  // Problems list & filtering
+  // Problem bank & filters
   const [problems, setProblems] = useState<CodingProblem[]>([]);
   const [selectedProblem, setSelectedProblem] = useState<CodingProblem | null>(null);
   const [sampleTestCases, setSampleTestCases] = useState<TestCase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // Filters state
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('');
   const [companyFilter, setCompanyFilter] = useState<string>('All');
   const [onlyBookmarked, setOnlyBookmarked] = useState<boolean>(false);
   const [stats, setStats] = useState<CodingStats | null>(null);
 
-  // Split-pane layout
-  const [splitWidth, setSplitWidth] = useState<number>(45); // percentage for left pane
+  // Split-pane layout (30% to 70%)
+  const [splitWidth, setSplitWidth] = useState<number>(45);
   const isDraggingRef = useRef(false);
 
-  // Problem Workspace left tabs: 'description' | 'hints' | 'editorial' | 'submissions'
+  // Workspace Tabs
   const [activeTab, setActiveTab] = useState<'description' | 'hints' | 'editorial' | 'submissions'>('description');
   const [revealedHints, setRevealedHints] = useState<number[]>([]);
   const [viewingSubmissionCode, setViewingSubmissionCode] = useState<Submission | null>(null);
 
-  // Editor state
-  const [language, setLanguage] = useState('python');
+  // Editor State
+  const [language, setLanguage] = useState('c');
   const [code, setCode] = useState('');
   const [running, setRunning] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -186,64 +193,57 @@ const CodingPracticePage: React.FC = () => {
   const [executionTimeMs, setExecutionTimeMs] = useState<number | undefined>(undefined);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
 
-  // Assessment state
+  // Draft Autosave & Reset Modal
+  const [draftSavedTimestamp, setDraftSavedTimestamp] = useState<string | null>(null);
+  const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
+
+  // Assessment Mode State
   const [assessments, setAssessments] = useState<CodingAssessment[]>([]);
   const [activeAssessment, setActiveAssessment] = useState<any | null>(null);
   const [assessmentProblems, setAssessmentProblems] = useState<CodingProblem[]>([]);
   const [activeAssessmentProblemIdx, setActiveAssessmentProblemIdx] = useState(0);
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, { code: string; language: string }>>({});
   const [assessmentAttemptId, setAssessmentAttemptId] = useState<string | null>(null);
-  const [assessmentTimeLeft, setAssessmentTimeLeft] = useState<number>(0); // in seconds
+  const [assessmentTimeLeft, setAssessmentTimeLeft] = useState<number>(0);
   const [assessmentScorecard, setAssessmentScorecard] = useState<any | null>(null);
   const [submittingAssessment, setSubmittingAssessment] = useState(false);
 
-  // ---- Dragging Splitter Logic -------------------------------------
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    isDraggingRef.current = true;
-    document.body.style.cursor = 'col-resize';
-  }, []);
-
+  // 1. Debounce search input (300ms)
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDraggingRef.current) return;
-      const totalWidth = window.innerWidth;
-      const newPct = Math.min(Math.max((e.clientX / totalWidth) * 100, 25), 75);
-      setSplitWidth(newPct);
-    };
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
-    const handleMouseUp = () => {
-      if (isDraggingRef.current) {
-        isDraggingRef.current = false;
-        document.body.style.cursor = 'default';
-      }
-    };
+  // 2. Fetch problems with AbortController to prevent stale responses
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, []);
-
-  // ---- Fetchers ----------------------------------------------------
   const fetchProblems = useCallback(async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     setLoading(true);
+    setFetchError(null);
     try {
       const params: Record<string, string> = {};
-      if (searchTerm) params.search = searchTerm;
+      if (debouncedSearch) params.search = debouncedSearch;
       if (difficultyFilter) params.difficulty = difficultyFilter;
       if (companyFilter !== 'All') params.tag = companyFilter;
       if (onlyBookmarked) params.bookmarked = 'true';
+
       const res = await api.getCodingProblems(params);
       setProblems(res.problems || []);
-    } catch (err) {
-      console.error('Error fetching problems:', err);
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        setFetchError('Failed to load coding problems. Please check server status.');
+      }
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, difficultyFilter, companyFilter, onlyBookmarked]);
+  }, [debouncedSearch, difficultyFilter, companyFilter, onlyBookmarked]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -269,7 +269,60 @@ const CodingPracticePage: React.FC = () => {
     fetchAssessments();
   }, [fetchProblems, fetchStats, fetchAssessments]);
 
-  // ---- Select Problem ----------------------------------------------
+  // 3. Dragging Splitter Logic (Bounded 30% to 70%)
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isDraggingRef.current = true;
+    document.body.style.cursor = 'col-resize';
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      const totalWidth = window.innerWidth;
+      const newPct = Math.min(Math.max((e.clientX / totalWidth) * 100, 30), 70);
+      setSplitWidth(newPct);
+    };
+
+    const handleMouseUp = () => {
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        document.body.style.cursor = 'default';
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  // 4. Code Draft Autosaving & Loading
+  const loadCodeForProblemAndLanguage = useCallback((prob: CodingProblem, lang: string) => {
+    const storageKey = getDraftStorageKey(prob.id, lang);
+    const savedDraft = localStorage.getItem(storageKey);
+    if (savedDraft !== null && savedDraft.trim() !== '') {
+      setCode(savedDraft);
+      setDraftSavedTimestamp('Restored Draft');
+    } else {
+      const initialStarter = prob.starterCode?.[lang] || prob.starterCode?.c || '';
+      setCode(initialStarter);
+      setDraftSavedTimestamp(null);
+    }
+  }, []);
+
+  const handleCodeChange = useCallback((newCode: string) => {
+    setCode(newCode);
+    if (selectedProblem) {
+      const storageKey = getDraftStorageKey(selectedProblem.id, language);
+      localStorage.setItem(storageKey, newCode);
+      setDraftSavedTimestamp('Autosaved');
+    }
+  }, [selectedProblem, language]);
+
+  // 5. Select Problem
   const selectProblem = useCallback(async (problem: CodingProblem) => {
     setSelectedProblem(problem);
     setActiveTab('description');
@@ -280,8 +333,7 @@ const CodingPracticePage: React.FC = () => {
     setTestResults([]);
     setExecutionTimeMs(undefined);
 
-    const initialStarter = problem.starterCode?.[language] || problem.starterCode?.python || '';
-    setCode(initialStarter);
+    loadCodeForProblemAndLanguage(problem, language);
 
     try {
       const res = await api.getCodingProblem(problem.id);
@@ -293,9 +345,28 @@ const CodingPracticePage: React.FC = () => {
     } catch (err) {
       console.error('Error fetching problem details:', err);
     }
-  }, [language]);
+  }, [language, loadCodeForProblemAndLanguage]);
 
-  // ---- Bookmark Toggle ---------------------------------------------
+  // 6. Language Switcher (Preserves Drafts)
+  const handleLanguageChange = useCallback((newLang: string) => {
+    setLanguage(newLang);
+    if (selectedProblem) {
+      loadCodeForProblemAndLanguage(selectedProblem, newLang);
+    }
+  }, [selectedProblem, loadCodeForProblemAndLanguage]);
+
+  // 7. Reset Code with Confirmation
+  const confirmResetCode = useCallback(() => {
+    if (!selectedProblem) return;
+    const storageKey = getDraftStorageKey(selectedProblem.id, language);
+    localStorage.removeItem(storageKey);
+    const starter = selectedProblem.starterCode?.[language] || selectedProblem.starterCode?.c || '';
+    setCode(starter);
+    setDraftSavedTimestamp('Reset to Default');
+    setShowResetConfirmModal(false);
+  }, [selectedProblem, language]);
+
+  // 8. Bookmark Toggle
   const handleToggleBookmark = useCallback(async (problemId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     try {
@@ -311,20 +382,7 @@ const CodingPracticePage: React.FC = () => {
     }
   }, [selectedProblem]);
 
-  // ---- Editor Handlers ---------------------------------------------
-  const handleLanguageChange = useCallback((lang: string) => {
-    setLanguage(lang);
-    if (selectedProblem?.starterCode?.[lang]) {
-      setCode(selectedProblem.starterCode[lang]);
-    }
-  }, [selectedProblem]);
-
-  const handleResetCode = useCallback(() => {
-    if (selectedProblem?.starterCode?.[language]) {
-      setCode(selectedProblem.starterCode[language]);
-    }
-  }, [selectedProblem, language]);
-
+  // 9. Run Code
   const handleRun = useCallback(async (codeValue: string, lang: string, customInput?: string) => {
     setRunning(true);
     setRunOutput('');
@@ -347,6 +405,7 @@ const CodingPracticePage: React.FC = () => {
     }
   }, []);
 
+  // 10. Submit Code
   const handleSubmit = useCallback(async (codeValue: string, lang: string) => {
     if (!selectedProblem) return;
     setSubmitting(true);
@@ -371,17 +430,7 @@ const CodingPracticePage: React.FC = () => {
     }
   }, [selectedProblem, fetchProblems, fetchStats]);
 
-  const handleBackToList = useCallback(() => {
-    setSelectedProblem(null);
-    setSampleTestCases([]);
-    setSubmissions([]);
-    setRunOutput('');
-    setRunError('');
-    setTestResults([]);
-    setViewingSubmissionCode(null);
-  }, []);
-
-  // ---- Assessment Handlers -----------------------------------------
+  // 11. Assessments Execution
   const startAssessment = useCallback(async (asmt: CodingAssessment) => {
     try {
       setLoading(true);
@@ -389,27 +438,24 @@ const CodingPracticePage: React.FC = () => {
       const attempt = res.attempt;
       setAssessmentAttemptId(attempt.id);
 
-      // Fetch assessment details and problems
       const details = await api.getCodingAssessment(asmt.id);
       setActiveAssessment(details.assessment);
       setAssessmentProblems(details.problems || []);
       setActiveAssessmentProblemIdx(0);
       setAssessmentScorecard(null);
 
-      // Calculate remaining time
       const startTime = new Date(attempt.start_time).getTime();
       const durationMs = attempt.duration_minutes * 60 * 1000;
       const elapsedMs = Date.now() - startTime;
       const remainSec = Math.max(0, Math.floor((durationMs - elapsedMs) / 1000));
       setAssessmentTimeLeft(remainSec);
 
-      // Prepopulate answers
       const currentAnswers = attempt.answers || {};
       (details.problems || []).forEach((p: CodingProblem) => {
         if (!currentAnswers[p.id]) {
           currentAnswers[p.id] = {
-            code: p.starterCode?.python || '',
-            language: 'python'
+            code: p.starterCode?.c || '',
+            language: 'c'
           };
         }
       });
@@ -421,14 +467,12 @@ const CodingPracticePage: React.FC = () => {
     }
   }, []);
 
-  // Assessment countdown timer
   useEffect(() => {
     if (!activeAssessment || assessmentScorecard) return;
     const interval = setInterval(() => {
       setAssessmentTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(interval);
-          // Auto submit when time expires
           submitAssessmentAttempt();
           return 0;
         }
@@ -464,12 +508,39 @@ const CodingPracticePage: React.FC = () => {
     fetchAssessments();
   }, [fetchAssessments]);
 
-  // Format seconds to MM:SS
+  const clearAllFilters = useCallback(() => {
+    setSearchTerm('');
+    setDebouncedSearch('');
+    setDifficultyFilter('');
+    setCompanyFilter('All');
+    setOnlyBookmarked(false);
+  }, []);
+
+  const hasActiveFilters = useMemo(() => {
+    return Boolean(searchTerm || difficultyFilter || companyFilter !== 'All' || onlyBookmarked);
+  }, [searchTerm, difficultyFilter, companyFilter, onlyBookmarked]);
+
   const formatTimer = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Keyboard shortcut listener (Ctrl/Cmd + Enter for Run)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleSubmit(code, language);
+        } else {
+          handleRun(code, language, '');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [code, language, handleRun, handleSubmit]);
 
   // ---- Render: Stats Bar -------------------------------------------
   const renderStatsBar = () => {
@@ -514,6 +585,42 @@ const CodingPracticePage: React.FC = () => {
     );
   };
 
+  // ---- Render: Reset Code Confirmation Modal -----------------------
+  const renderResetConfirmModal = () => {
+    if (!showResetConfirmModal) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+        <div className="max-w-md w-full p-6 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-2xl space-y-4">
+          <div className="flex items-center gap-3 text-amber-400">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <RotateCcw size={20} />
+            </div>
+            <h3 className="text-base font-bold text-[var(--text-primary)]">Reset Code to Default?</h3>
+          </div>
+
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+            Your current code draft for <strong>{selectedProblem?.title} ({language.toUpperCase()})</strong> will be discarded and replaced with the initial boilerplate template. This action cannot be undone.
+          </p>
+
+          <div className="flex items-center justify-end gap-2.5 pt-2">
+            <button
+              onClick={() => setShowResetConfirmModal(false)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmResetCode}
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition-all shadow-md active:scale-95 cursor-pointer"
+            >
+              Reset Code
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // ---- Render: Assessment Scorecard --------------------------------
   const renderAssessmentScorecard = () => {
     if (!assessmentScorecard) return null;
@@ -537,7 +644,6 @@ const CodingPracticePage: React.FC = () => {
             </p>
           </div>
 
-          {/* Performance Summary Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-4 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-center">
               <span className="text-xs text-[var(--text-muted)] font-semibold uppercase">Total Score</span>
@@ -559,7 +665,6 @@ const CodingPracticePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Problem-by-problem results */}
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wider">
               Problem Evaluation Breakdown
@@ -574,7 +679,7 @@ const CodingPracticePage: React.FC = () => {
                         <span className="text-xs font-bold text-[var(--text-muted)]">Q{idx + 1}</span>
                         <h4 className="text-sm font-bold text-[var(--text-primary)] truncate">{res.title}</h4>
                         <span className="text-[11px] px-2 py-0.5 rounded bg-[var(--surface-card)] text-[var(--text-secondary)] border border-[var(--surface-border)]">
-                          {res.language}
+                          {res.language?.toUpperCase()}
                         </span>
                       </div>
                       <div className="text-xs text-[var(--text-secondary)] mt-1">
@@ -591,7 +696,6 @@ const CodingPracticePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Weak topic recommendations */}
           {recommendations && recommendations.length > 0 && (
             <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 space-y-3">
               <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm">
@@ -638,13 +742,12 @@ const CodingPracticePage: React.FC = () => {
     }
 
     const currentAns = assessmentAnswers[currentProblem.id] || {
-      code: currentProblem.starterCode?.python || '',
-      language: 'python'
+      code: currentProblem.starterCode?.c || '',
+      language: 'c'
     };
 
     return (
       <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-[var(--surface-card)]">
-        {/* Timed Assessment Top Navigation Bar */}
         <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--surface-elevated)] border-b border-[var(--surface-border)] gap-4 select-none">
           <div className="flex items-center gap-3 min-w-0">
             <div className="p-1.5 rounded-lg bg-indigo-600/20 text-indigo-400">
@@ -652,11 +755,10 @@ const CodingPracticePage: React.FC = () => {
             </div>
             <div className="min-w-0">
               <h2 className="text-sm font-extrabold text-[var(--text-primary)] truncate">{activeAssessment?.title}</h2>
-              <span className="text-[11px] text-[var(--text-muted)] font-medium">Company Mock Assessment Mode</span>
+              <span className="text-[11px] text-[var(--text-muted)] font-medium">Placement Assessment Simulation</span>
             </div>
           </div>
 
-          {/* Problem Selector Switcher */}
           <div className="flex items-center gap-1.5 bg-[var(--surface-card)] p-1 rounded-xl border border-[var(--surface-border)]">
             {assessmentProblems.map((prob, idx) => (
               <button
@@ -673,7 +775,6 @@ const CodingPracticePage: React.FC = () => {
             ))}
           </div>
 
-          {/* Countdown Clock & Submit Assessment Button */}
           <div className="flex items-center gap-3">
             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-mono text-xs font-bold ${
               assessmentTimeLeft <= 300
@@ -701,9 +802,7 @@ const CodingPracticePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Assessment Split Pane */}
         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
-          {/* Left: Problem statement */}
           <div style={{ width: `${splitWidth}%` }} className="h-full overflow-y-auto p-5 border-r border-[var(--surface-border)] space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[var(--text-muted)] uppercase">
@@ -753,14 +852,12 @@ const CodingPracticePage: React.FC = () => {
             )}
           </div>
 
-          {/* Resizable Divider */}
           <div
             onMouseDown={handleMouseDown}
             className="w-1.5 hover:w-2 bg-[var(--surface-border)] hover:bg-indigo-500 cursor-col-resize transition-all hidden lg:block z-20"
             title="Drag to resize panes"
           />
 
-          {/* Right: Code Editor */}
           <div style={{ width: `${100 - splitWidth}%` }} className="h-full flex flex-col min-w-0 min-h-0">
             <CodeEditor
               language={currentAns.language}
@@ -876,10 +973,9 @@ const CodingPracticePage: React.FC = () => {
     </div>
   );
 
-  // ---- Render: Problem List ----------------------------------------
+  // ---- Render: Problem Bank View -----------------------------------
   const renderProblemList = () => (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] flex items-center gap-3">
@@ -893,7 +989,6 @@ const CodingPracticePage: React.FC = () => {
           </p>
         </div>
 
-        {/* Mode Switcher */}
         <div className="flex items-center p-1 bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl shadow-sm">
           <button
             onClick={() => setArenaMode('practice')}
@@ -924,10 +1019,8 @@ const CodingPracticePage: React.FC = () => {
         renderAssessmentsList()
       ) : (
         <>
-          {/* Stats Bar */}
           {renderStatsBar()}
 
-          {/* Search & Filters */}
           <div className="space-y-3 mb-6">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
@@ -939,9 +1032,16 @@ const CodingPracticePage: React.FC = () => {
                   placeholder="Search problems by title, tags, or patterns..."
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[var(--surface-card)] border border-[var(--surface-border)] text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm"
                 />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 cursor-pointer"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
 
-              {/* Bookmarked Filter Toggle */}
               <button
                 onClick={() => setOnlyBookmarked(!onlyBookmarked)}
                 className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -955,7 +1055,6 @@ const CodingPracticePage: React.FC = () => {
                 <span>Bookmarked</span>
               </button>
 
-              {/* Difficulty selector */}
               <div className="flex gap-1.5">
                 {['', 'Easy', 'Medium', 'Hard'].map((d) => (
                   <button
@@ -974,7 +1073,6 @@ const CodingPracticePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Company Filter Pills */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
               <span className="text-[var(--text-muted)] font-medium flex items-center gap-1 flex-shrink-0">
                 <Building2 size={12} />
@@ -994,18 +1092,81 @@ const CodingPracticePage: React.FC = () => {
                 </button>
               ))}
             </div>
+
+            {/* Active Filters Bar with One-Click Reset */}
+            {hasActiveFilters && (
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                <span className="text-[var(--text-muted)] font-medium">Active Filters:</span>
+                {debouncedSearch && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[var(--surface-card)] text-[var(--text-primary)] border border-[var(--surface-border)]">
+                    Query: "{debouncedSearch}"
+                    <button onClick={() => setSearchTerm('')} className="hover:text-rose-400 cursor-pointer ml-1">
+                      <X size={11} />
+                    </button>
+                  </span>
+                )}
+                {difficultyFilter && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[var(--surface-card)] text-[var(--text-primary)] border border-[var(--surface-border)]">
+                    Difficulty: {difficultyFilter}
+                    <button onClick={() => setDifficultyFilter('')} className="hover:text-rose-400 cursor-pointer ml-1">
+                      <X size={11} />
+                    </button>
+                  </span>
+                )}
+                {companyFilter !== 'All' && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[var(--surface-card)] text-[var(--text-primary)] border border-[var(--surface-border)]">
+                    Company: {companyFilter}
+                    <button onClick={() => setCompanyFilter('All')} className="hover:text-rose-400 cursor-pointer ml-1">
+                      <X size={11} />
+                    </button>
+                  </span>
+                )}
+                {onlyBookmarked && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                    Bookmarked Only
+                    <button onClick={() => setOnlyBookmarked(false)} className="hover:text-rose-400 cursor-pointer ml-1">
+                      <X size={11} />
+                    </button>
+                  </span>
+                )}
+                <button
+                  onClick={clearAllFilters}
+                  className="text-xs text-rose-400 hover:text-rose-300 underline font-semibold ml-auto cursor-pointer"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Problem Cards */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 size={32} className="animate-spin text-indigo-400" />
+            </div>
+          ) : fetchError ? (
+            <div className="text-center py-16 p-8 rounded-3xl bg-[var(--surface-card)] border border-rose-500/30 space-y-3">
+              <AlertTriangle size={36} className="mx-auto text-rose-400" />
+              <h3 className="text-base font-bold text-[var(--text-primary)]">{fetchError}</h3>
+              <button
+                onClick={fetchProblems}
+                className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold cursor-pointer"
+              >
+                Retry
+              </button>
             </div>
           ) : problems.length === 0 ? (
             <div className="text-center py-16 p-8 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)]">
               <Code2 size={36} className="mx-auto text-indigo-400 mb-3 opacity-60" />
               <h3 className="text-base font-bold text-[var(--text-primary)]">No matching problems found</h3>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">Try clearing your search terms or filters.</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Try adjusting your active filters.</p>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearAllFilters}
+                  className="mt-3 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold cursor-pointer"
+                >
+                  Reset All Filters
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -1056,7 +1217,6 @@ const CodingPracticePage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Bookmark button */}
                       <button
                         onClick={(e) => handleToggleBookmark(problem.id, e)}
                         className={`p-2 rounded-xl border transition-all cursor-pointer ${
@@ -1085,40 +1245,47 @@ const CodingPracticePage: React.FC = () => {
     </div>
   );
 
-  // ---- Render: Problem Workspace (LeetCode Split-Pane) -------------
+  // ---- Render: Problem Workspace -----------------------------------
   const renderProblemWorkspace = () => {
     if (!selectedProblem) return null;
     const diffStyle = DIFFICULTY_STYLES[selectedProblem.difficulty] || DIFFICULTY_STYLES.Easy;
 
     return (
       <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] overflow-hidden bg-[var(--surface-card)]">
-        {/* Left Pane: Problem Description, Hints, Editorial & Submissions */}
+        {/* Left Pane */}
         <div
-          style={{ width: `${splitWidth}%` }}
+          style={{ width: window.innerWidth >= 1024 ? `${splitWidth}%` : '100%' }}
           className="h-full flex flex-col border-r border-[var(--surface-border)] overflow-hidden bg-[var(--surface-card)]"
         >
-          {/* Header Bar */}
           <div className="p-4 border-b border-[var(--surface-border)] bg-[var(--surface-card)]/95 backdrop-blur-md">
             <div className="flex items-center justify-between mb-2">
               <button
-                onClick={handleBackToList}
+                onClick={() => setSelectedProblem(null)}
                 className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-indigo-400 transition-colors cursor-pointer font-semibold"
               >
                 <ArrowLeft size={14} />
                 <span>Problem Bank</span>
               </button>
 
-              <button
-                onClick={(e) => handleToggleBookmark(selectedProblem.id, e)}
-                className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                  selectedProblem.isBookmarked
-                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                    : 'text-[var(--text-secondary)] hover:text-amber-400 border-[var(--surface-border)]'
-                }`}
-              >
-                <Star size={13} className={selectedProblem.isBookmarked ? 'fill-current' : ''} />
-                <span>{selectedProblem.isBookmarked ? 'Saved' : 'Bookmark'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {draftSavedTimestamp && (
+                  <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 font-mono">
+                    <Save size={10} className="text-emerald-400" />
+                    {draftSavedTimestamp}
+                  </span>
+                )}
+                <button
+                  onClick={(e) => handleToggleBookmark(selectedProblem.id, e)}
+                  className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                    selectedProblem.isBookmarked
+                      ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                      : 'text-[var(--text-secondary)] hover:text-amber-400 border-[var(--surface-border)]'
+                  }`}
+                >
+                  <Star size={13} className={selectedProblem.isBookmarked ? 'fill-current' : ''} />
+                  <span>{selectedProblem.isBookmarked ? 'Saved' : 'Bookmark'}</span>
+                </button>
+              </div>
             </div>
 
             <h2 className="text-lg font-extrabold text-[var(--text-primary)] leading-tight">
@@ -1144,7 +1311,6 @@ const CodingPracticePage: React.FC = () => {
               )}
             </div>
 
-            {/* Navigation Tabs */}
             <div className="flex gap-1.5 mt-3 pt-3 border-t border-[var(--surface-border)]">
               <button
                 onClick={() => setActiveTab('description')}
@@ -1196,7 +1362,6 @@ const CodingPracticePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Tab Body */}
           <div className="flex-1 p-5 overflow-y-auto space-y-5">
             {activeTab === 'description' && (
               <div className="space-y-5">
@@ -1216,7 +1381,6 @@ const CodingPracticePage: React.FC = () => {
                   </div>
                 )}
 
-                {/* Sample Test Cases Showcase */}
                 {sampleTestCases.length > 0 && (
                   <div>
                     <h4 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -1383,7 +1547,7 @@ const CodingPracticePage: React.FC = () => {
                         <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
                           <div className="flex items-center gap-2">
                             <span className="px-1.5 py-0.5 rounded bg-[var(--surface-card)] text-[10px] font-mono">
-                              {sub.language}
+                              {sub.language.toUpperCase()}
                             </span>
                             <span>•</span>
                             <span>{sub.passed_count}/{sub.total_count} tests passed</span>
@@ -1422,24 +1586,24 @@ const CodingPracticePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Resizable Divider Handle */}
+        {/* Resizable Divider Handle (Hidden on mobile) */}
         <div
           onMouseDown={handleMouseDown}
           className="w-1.5 hover:w-2 bg-[var(--surface-border)] hover:bg-indigo-500 cursor-col-resize transition-all hidden lg:block z-20"
           title="Drag to resize panes"
         />
 
-        {/* Right Pane: Code Editor + Drawer */}
+        {/* Right Pane: Code Editor */}
         <div
-          style={{ width: `${100 - splitWidth}%` }}
+          style={{ width: window.innerWidth >= 1024 ? `${100 - splitWidth}%` : '100%' }}
           className="h-full flex flex-col min-w-0 min-h-0 bg-[var(--surface-card)]"
         >
           <CodeEditor
             language={language}
             onLanguageChange={handleLanguageChange}
             code={code}
-            onCodeChange={(val: string) => setCode(val)}
-            onReset={handleResetCode}
+            onCodeChange={handleCodeChange}
+            onReset={() => setShowResetConfirmModal(true)}
             onRun={handleRun}
             onSubmit={handleSubmit}
             running={running}
@@ -1452,11 +1616,13 @@ const CodingPracticePage: React.FC = () => {
             height="100%"
           />
         </div>
+
+        {renderResetConfirmModal()}
       </div>
     );
   };
 
-  // ---- Main Render Flow --------------------------------------------
+  // ---- Main Return -------------------------------------------------
   if (activeAssessment) {
     return renderActiveAssessment();
   }

@@ -157,7 +157,7 @@ const MainApp: React.FC = () => {
       ) : currentTab === 'companies' ? (
         <CompanyPrepPage onStartCompanyQuiz={handleLaunchCompanyQuiz} />
       ) : currentTab === 'analytics' ? (
-        <AnalyticsPage />
+        <AnalyticsPage onNavigateToCoding={() => setCurrentTab('coding-practice')} />
       ) : currentTab === 'preppilot-studio' ? (
         <PrepPilotPage />
       ) : currentTab === 'admin' ? (

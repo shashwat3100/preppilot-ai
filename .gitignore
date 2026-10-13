@@ -38,6 +38,9 @@ pnpm-debug.log*
 # System & IDE files
 .DS_Store
 Thumbs.db
+*.backup-*.json
+migration_dump.sql
+
 .vscode/*
 !.vscode/extensions.json
 .idea/

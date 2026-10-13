@@ -167,6 +167,71 @@ router.get('/', authenticate, (req, res) => {
       })
       .sort((a, b) => b.strength - a.strength);
 
+    // Coding Arena Analytics
+    const codingSubmissions = db.find('codingSubmissions', s => s.user_id === userId) || [];
+    const allCodingProblems = db.getAll('codingProblems') || [];
+
+    const totalSubmissions = codingSubmissions.length;
+    const acceptedSubmissions = codingSubmissions.filter(s => s.status === 'ACCEPTED').length;
+    const codingAcceptanceRate = totalSubmissions > 0 ? Math.round((acceptedSubmissions / totalSubmissions) * 100) : 0;
+
+    const solvedProblemIds = new Set(codingSubmissions.filter(s => s.status === 'ACCEPTED').map(s => s.problem_id));
+    const attemptedProblemIds = new Set(codingSubmissions.map(s => s.problem_id));
+
+    const languageBreakdown = {};
+    codingSubmissions.forEach(s => {
+      const lang = s.language || 'unknown';
+      languageBreakdown[lang] = (languageBreakdown[lang] || 0) + 1;
+    });
+
+    const difficultyBreakdown = {
+      Easy: { solved: 0, total: allCodingProblems.filter(p => p.difficulty === 'Easy').length },
+      Medium: { solved: 0, total: allCodingProblems.filter(p => p.difficulty === 'Medium').length },
+      Hard: { solved: 0, total: allCodingProblems.filter(p => p.difficulty === 'Hard').length }
+    };
+
+    solvedProblemIds.forEach(id => {
+      const prob = allCodingProblems.find(p => p.id === id);
+      if (prob && difficultyBreakdown[prob.difficulty]) {
+        difficultyBreakdown[prob.difficulty].solved += 1;
+      }
+    });
+
+    const problemAttemptsMap = new Map();
+    codingSubmissions.forEach(s => {
+      if (!problemAttemptsMap.has(s.problem_id)) {
+        problemAttemptsMap.set(s.problem_id, []);
+      }
+      problemAttemptsMap.get(s.problem_id).push(s);
+    });
+
+    const revisionRecommendations = [];
+    problemAttemptsMap.forEach((subs, probId) => {
+      const isSolved = subs.some(s => s.status === 'ACCEPTED');
+      const prob = allCodingProblems.find(p => p.id === probId);
+      if (prob) {
+        if (!isSolved) {
+          revisionRecommendations.push({
+            problem_id: prob.id,
+            title: prob.title,
+            difficulty: prob.difficulty,
+            attempts_count: subs.length,
+            last_status: subs[subs.length - 1].status,
+            reason: `Attempted ${subs.length} time${subs.length > 1 ? 's' : ''} without passing all test cases.`
+          });
+        } else if (subs.length >= 3) {
+          revisionRecommendations.push({
+            problem_id: prob.id,
+            title: prob.title,
+            difficulty: prob.difficulty,
+            attempts_count: subs.length,
+            last_status: 'ACCEPTED',
+            reason: `Required ${subs.length} attempts to pass; review time & space complexity for optimal pattern.`
+          });
+        }
+      }
+    });
+
     return res.json({
       success: true,
       analytics: {
@@ -185,7 +250,17 @@ router.get('/', authenticate, (req, res) => {
         difficulty_accuracy: difficultyAccuracy,
         weekly_progress: weeklyProgress,
         weakest_topics: weakList,
-        strongest_topics: strongList
+        strongest_topics: strongList,
+        coding: {
+          total_submissions: totalSubmissions,
+          accepted_submissions: acceptedSubmissions,
+          problems_solved: solvedProblemIds.size,
+          problems_attempted: attemptedProblemIds.size,
+          acceptance_rate: codingAcceptanceRate,
+          language_breakdown: languageBreakdown,
+          difficulty_breakdown: difficultyBreakdown,
+          revision_recommendations: revisionRecommendations
+        }
       }
     });
   } catch (err) {

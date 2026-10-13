@@ -234,3 +234,102 @@ CREATE INDEX IF NOT EXISTS idx_student_performance_weakness ON student_performan
 CREATE INDEX IF NOT EXISTS idx_quiz_sessions_user ON quiz_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_knowledge_subject ON knowledge_documents(subject_id);
 CREATE INDEX IF NOT EXISTS idx_knowledge_company ON knowledge_documents(company_id);
+
+-- 17. CODING PROBLEMS
+CREATE TABLE IF NOT EXISTS coding_problems (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    difficulty VARCHAR(20) NOT NULL CHECK (difficulty IN ('Easy', 'Medium', 'Hard')),
+    branch_id VARCHAR(50) REFERENCES branches(id) ON DELETE SET NULL,
+    company_id VARCHAR(50) REFERENCES companies(id) ON DELETE SET NULL,
+    subject_id VARCHAR(50) REFERENCES subjects(id) ON DELETE SET NULL,
+    topic_id VARCHAR(50) REFERENCES topics(id) ON DELETE SET NULL,
+    tags JSONB DEFAULT '[]'::jsonb,
+    description TEXT NOT NULL,
+    constraints TEXT,
+    time_limit_ms INT DEFAULT 2000,
+    memory_limit_mb INT DEFAULT 256,
+    starter_code JSONB DEFAULT '{}'::jsonb,
+    hints JSONB DEFAULT '[]'::jsonb,
+    editorial JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 18. CODING TEST CASES
+CREATE TABLE IF NOT EXISTS coding_test_cases (
+    id VARCHAR(50) PRIMARY KEY,
+    problem_id VARCHAR(50) NOT NULL REFERENCES coding_problems(id) ON DELETE CASCADE,
+    input TEXT NOT NULL,
+    expected_output TEXT NOT NULL,
+    is_hidden BOOLEAN DEFAULT FALSE,
+    explanation TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 19. CODING SUBMISSIONS
+CREATE TABLE IF NOT EXISTS coding_submissions (
+    id VARCHAR(50) PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    problem_id VARCHAR(50) NOT NULL REFERENCES coding_problems(id) ON DELETE CASCADE,
+    language VARCHAR(20) NOT NULL,
+    code TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL, -- 'ACCEPTED', 'WRONG_ANSWER', 'TIME_LIMIT_EXCEEDED', 'COMPILATION_ERROR', 'RUNTIME_ERROR'
+    passed_cases INT DEFAULT 0,
+    total_cases INT DEFAULT 0,
+    runtime_ms INT DEFAULT 0,
+    memory_kb INT DEFAULT 0,
+    assessment_id VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 20. CODING BOOKMARKS
+CREATE TABLE IF NOT EXISTS coding_bookmarks (
+    id VARCHAR(50) PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    problem_id VARCHAR(50) NOT NULL REFERENCES coding_problems(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_problem_bookmark UNIQUE (user_id, problem_id)
+);
+
+-- 21. CODING ASSESSMENTS
+CREATE TABLE IF NOT EXISTS coding_assessments (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    company VARCHAR(100),
+    duration_minutes INT NOT NULL DEFAULT 45,
+    difficulty VARCHAR(20) NOT NULL DEFAULT 'Medium',
+    total_marks INT DEFAULT 100,
+    problem_ids JSONB DEFAULT '[]'::jsonb,
+    tags JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 22. CODING ASSESSMENT ATTEMPTS
+CREATE TABLE IF NOT EXISTS coding_assessment_attempts (
+    id VARCHAR(50) PRIMARY KEY,
+    assessment_id VARCHAR(50) NOT NULL REFERENCES coding_assessments(id) ON DELETE CASCADE,
+    user_id VARCHAR(50) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    start_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    duration_minutes INT NOT NULL,
+    status VARCHAR(30) DEFAULT 'IN_PROGRESS' CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'TIMED_OUT', 'ABANDONED')),
+    score DECIMAL(5,2) DEFAULT 0.0,
+    answers JSONB DEFAULT '{}'::jsonb,
+    results JSONB DEFAULT '{}'::jsonb,
+    submitted_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- INDEXES FOR CODING PLATFORM
+CREATE INDEX IF NOT EXISTS idx_coding_problems_difficulty ON coding_problems(difficulty);
+CREATE INDEX IF NOT EXISTS idx_coding_problems_topic ON coding_problems(topic_id);
+CREATE INDEX IF NOT EXISTS idx_coding_test_cases_problem ON coding_test_cases(problem_id);
+CREATE INDEX IF NOT EXISTS idx_coding_submissions_user_problem ON coding_submissions(user_id, problem_id);
+CREATE INDEX IF NOT EXISTS idx_coding_bookmarks_user ON coding_bookmarks(user_id);
+CREATE INDEX IF NOT EXISTS idx_coding_assessment_attempts_user ON coding_assessment_attempts(user_id);
+CREATE INDEX IF NOT EXISTS idx_coding_assessment_attempts_assessment ON coding_assessment_attempts(assessment_id);
+

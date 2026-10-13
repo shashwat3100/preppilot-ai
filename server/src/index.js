@@ -13,32 +13,50 @@ import branchRoutes from './routes/branchRoutes.js';
 import preppilotRoutes from './routes/preppilotRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import codingRoutes from './routes/codingRoutes.js';
+import { authLimiter } from './middleware/rateLimiter.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Explicit CORS Origin Allowlist
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000'
+].filter(Boolean);
+
 app.use(cors({
-  origin: '*',
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow non-browser requests or allowed origins
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS policy: Access denied for origin ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Body Parser with strict payload limits (prevents payload-based memory exhaustion)
+app.use(express.json({ limit: '256kb' }));
+app.use(express.urlencoded({ extended: true, limit: '256kb' }));
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ONLINE',
-    service: 'CareerPrep AI Engine',
-    assistant: 'PrepPilot Voice AI',
+    service: 'PrepPilot AI Backend & Coding Arena Engine',
     timestamp: new Date().toISOString()
   });
 });
 
-// Mount Routes
-app.use('/api/auth', authRoutes);
+// Mount Routes with specialized rate limits
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/analytics', analyticsRoutes);
@@ -65,9 +83,10 @@ const startServer = async () => {
 
     app.listen(PORT, () => {
       console.log(`==================================================================`);
-      console.log(`🚀 CareerPrep AI Server running on http://localhost:${PORT}`);
+      console.log(`🚀 PrepPilot AI Server running on http://localhost:${PORT}`);
       console.log(`🎙️ PrepPilot Voice Assistant RAG Engine initialized`);
-      console.log(`📊 Recommendation Engine & Adaptive Quiz System active`);
+      console.log(`💻 Coding Arena & Compiler Sandboxing active`);
+      console.log(`📊 Adaptive Analytics & Recommendation Engine online`);
       console.log(`==================================================================`);
     });
   } catch (err) {
@@ -77,6 +96,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-// restart timestamp: 
-639274147737499863
