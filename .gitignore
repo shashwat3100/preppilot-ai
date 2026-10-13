@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+**/node_modules/
+server/node_modules/
+client/node_modules/
+
+# Temporary code execution sandbox
+temp_code/
+**/temp_code/
+
+# Build outputs
+dist/
+**/dist/
+client/dist/
+client/dist-ssr/
+*.tsbuildinfo
+
+# AI & Workspace artifacts
+.agent/
+.agents/
+.gemini/
+.gsd/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.sw?

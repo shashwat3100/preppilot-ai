@@ -1,0 +1,459 @@
+const API_BASE = '/api';
+
+const safeJson = async (res: Response) => {
+  try {
+    const text = await res.text();
+    return JSON.parse(text);
+  } catch {
+    return {
+      success: false,
+      message: res.status === 404
+        ? 'Service endpoint not found (404). Please ensure the backend server is active.'
+        : `Server communication error (HTTP ${res.status}).`
+    };
+  }
+};
+
+const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem('careerprep_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+};
+
+export const api = {
+  // Auth
+  register: async (userData: any) => {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
+    return safeJson(res);
+  },
+
+  login: async (credentials: any) => {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials)
+    });
+    return safeJson(res);
+  },
+
+  getMe: async () => {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  // Dashboard
+  getDashboardStats: async () => {
+    const res = await fetch(`${API_BASE}/dashboard/stats`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  // Quiz
+  startAdaptiveDailyQuiz: async (count = 5) => {
+    const res = await fetch(`${API_BASE}/quiz/adaptive-daily`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ count })
+    });
+    return res.json();
+  },
+
+  startCustomQuiz: async (filters: any) => {
+    const res = await fetch(`${API_BASE}/quiz/custom`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(filters)
+    });
+    return res.json();
+  },
+
+  submitQuiz: async (sessionId: string, answers: any[], totalTimeTaken: number) => {
+    const res = await fetch(`${API_BASE}/quiz/${sessionId}/submit`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ answers, total_time_taken: totalTimeTaken })
+    });
+    return res.json();
+  },
+
+  getRecommendations: async (params: any = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${API_BASE}/quiz/recommendations?${query}`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  // Analytics
+  getAnalytics: async () => {
+    const res = await fetch(`${API_BASE}/analytics`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  // Companies
+  getCompanies: async () => {
+    const res = await fetch(`${API_BASE}/companies`);
+    return res.json();
+  },
+
+  getCompanyDetails: async (id: string) => {
+    const res = await fetch(`${API_BASE}/companies/${id}`);
+    return res.json();
+  },
+
+  // Branches & Subjects
+  getBranches: async () => {
+    const res = await fetch(`${API_BASE}/branches/branches`);
+    return res.json();
+  },
+
+  getSubjects: async (branchId?: string) => {
+    const url = branchId ? `${API_BASE}/branches/subjects?branch_id=${branchId}` : `${API_BASE}/branches/subjects`;
+    const res = await fetch(url);
+    return res.json();
+  },
+
+  getTopics: async (subjectId?: string) => {
+    const url = subjectId ? `${API_BASE}/branches/topics?subject_id=${subjectId}` : `${API_BASE}/branches/topics`;
+    const res = await fetch(url);
+    return res.json();
+  },
+
+  getJobRoles: async () => {
+    const res = await fetch(`${API_BASE}/branches/roles`);
+    return res.json();
+  },
+
+  // PrepPilot Voice AI
+  askPrepPilot: async (message: string, model: string = 'gemini-2.5-flash', apiKey?: string) => {
+    const res = await fetch(`${API_BASE}/preppilot/chat`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ message, model, apiKey })
+    });
+    return res.json();
+  },
+
+  getPrepPilotModels: async () => {
+    const res = await fetch(`${API_BASE}/preppilot/models`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  getPrepPilotKnowledge: async () => {
+    const res = await fetch(`${API_BASE}/preppilot/knowledge`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  diagnoseMistakes: async (payload: {
+    type?: 'quiz' | 'coding';
+    gradedQuestions?: any[];
+    weak_topics?: string[];
+    accuracy_rate?: number;
+    codingMistake?: any;
+  }) => {
+    const res = await fetch(`${API_BASE}/preppilot/diagnose-mistakes`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return safeJson(res);
+  },
+
+  explainSingleMistake: async (payload: {
+    question: string;
+    chosen_answer: string;
+    correct_answer: string;
+    explanation: string;
+    topic_name?: string;
+  }) => {
+    const res = await fetch(`${API_BASE}/preppilot/explain-single-mistake`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return safeJson(res);
+  },
+
+  // Admin
+  getAdminOverview: async () => {
+    const res = await fetch(`${API_BASE}/admin/overview`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  getAdminQuestions: async () => {
+    const res = await fetch(`${API_BASE}/admin/questions`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  createQuestion: async (questionData: any) => {
+    const res = await fetch(`${API_BASE}/admin/questions`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(questionData)
+    });
+    return res.json();
+  },
+
+  deleteQuestion: async (id: string) => {
+    const res = await fetch(`${API_BASE}/admin/questions/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  getAdminStudents: async (params: { filter?: string; search?: string; sort?: string } = {}) => {
+    const query = new URLSearchParams();
+    if (params.filter) query.append('filter', params.filter);
+    if (params.search) query.append('search', params.search);
+    if (params.sort) query.append('sort', params.sort);
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+
+    const res = await fetch(`${API_BASE}/admin/students${queryString}`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  getStudentProgress: async (studentId: string) => {
+    const res = await fetch(`${API_BASE}/admin/students/${studentId}/progress`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  updateStudentStatus: async (studentId: string, is_blocked: boolean, reason?: string) => {
+    const res = await fetch(`${API_BASE}/admin/students/${studentId}/status`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ is_blocked, reason })
+    });
+    return res.json();
+  },
+
+  deleteStudent: async (studentId: string) => {
+    const res = await fetch(`${API_BASE}/admin/students/${studentId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  getAdminKnowledge: async () => {
+    const res = await fetch(`${API_BASE}/admin/knowledge`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  addKnowledgeDocument: async (docData: any) => {
+    const res = await fetch(`${API_BASE}/admin/knowledge`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(docData)
+    });
+    return res.json();
+  },
+
+  deleteKnowledgeDocument: async (id: string) => {
+    const res = await fetch(`${API_BASE}/admin/knowledge/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  getAnnouncements: async () => {
+    const res = await fetch(`${API_BASE}/admin/announcements`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  createAnnouncement: async (data: any) => {
+    const res = await fetch(`${API_BASE}/admin/announcements`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  deleteAnnouncement: async (id: string) => {
+    const res = await fetch(`${API_BASE}/admin/announcements/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  // Dean Registration & Password Recovery
+  registerDean: async (deanData: any) => {
+    const res = await fetch(`${API_BASE}/auth/register-dean`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(deanData)
+    });
+    return safeJson(res);
+  },
+
+  forgotPassword: async (email: string) => {
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    return safeJson(res);
+  },
+
+  resetPassword: async (data: { email: string; verification_pin: string; new_password: string }) => {
+    const res = await fetch(`${API_BASE}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return safeJson(res);
+  },
+
+  // Faculty & Dean Governance
+  getFaculty: async () => {
+    const res = await fetch(`${API_BASE}/admin/faculty`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  appointFaculty: async (facultyData: any) => {
+    const res = await fetch(`${API_BASE}/admin/faculty/appoint`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(facultyData)
+    });
+    return safeJson(res);
+  },
+
+  revokeFaculty: async (id: string) => {
+    const res = await fetch(`${API_BASE}/admin/faculty/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  // Coding Practice
+  getCodingProblems: async (params: { branch_id?: string; company_id?: string; subject_id?: string; difficulty?: string; search?: string } = {}) => {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => { if (val) query.append(key, val); });
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    const res = await fetch(`${API_BASE}/coding/problems${queryString}`, { headers: getAuthHeaders() });
+    return res.json();
+  },
+
+  getCodingProblem: async (id: string) => {
+    const res = await fetch(`${API_BASE}/coding/problems/${id}`, { headers: getAuthHeaders() });
+    return res.json();
+  },
+
+  getCodingLanguages: async () => {
+    const res = await fetch(`${API_BASE}/coding/languages`, { headers: getAuthHeaders() });
+    return res.json();
+  },
+
+  runCode: async (code: string, language: string, input?: string) => {
+    const res = await fetch(`${API_BASE}/coding/run`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ code, language, input: input || '' })
+    });
+    return res.json();
+  },
+
+  submitCode: async (problemId: string, code: string, language: string) => {
+    const res = await fetch(`${API_BASE}/coding/submit`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ problemId, code, language })
+    });
+    return res.json();
+  },
+
+  getCodingStats: async () => {
+    const res = await fetch(`${API_BASE}/coding/stats`, { headers: getAuthHeaders() });
+    return res.json();
+  },
+
+  getCodingSubmissions: async (problemId?: string) => {
+    const query = problemId ? `?problem_id=${problemId}` : '';
+    const res = await fetch(`${API_BASE}/coding/submissions${query}`, { headers: getAuthHeaders() });
+    return res.json();
+  },
+
+  toggleCodingBookmark: async (problemId: string) => {
+    const res = await fetch(`${API_BASE}/coding/problems/${problemId}/bookmark`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  getCodingBookmarks: async () => {
+    const res = await fetch(`${API_BASE}/coding/bookmarks`, { headers: getAuthHeaders() });
+    return res.json();
+  },
+
+  getCodingAssessments: async () => {
+    const res = await fetch(`${API_BASE}/coding/assessments`, { headers: getAuthHeaders() });
+    return res.json();
+  },
+
+  getCodingAssessment: async (id: string) => {
+    const res = await fetch(`${API_BASE}/coding/assessments/${id}`, { headers: getAuthHeaders() });
+    return res.json();
+  },
+
+  startCodingAssessment: async (id: string) => {
+    const res = await fetch(`${API_BASE}/coding/assessments/${id}/start`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  submitCodingAssessment: async (id: string, data: { attemptId: string; answers: any }) => {
+    const res = await fetch(`${API_BASE}/coding/assessments/${id}/submit`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  getCodingAssessmentAttempt: async (id: string, attemptId: string) => {
+    const res = await fetch(`${API_BASE}/coding/assessments/${id}/attempt/${attemptId}`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  }
+};
+
+export default api;
+

@@ -1,0 +1,4459 @@
+{
+  "users": [
+    {
+      "id": "user-student-demo",
+      "name": "Aditya Sharma",
+      "email": "student@careerprep.ai",
+      "password_hash": "$2b$10$QIa6KVNq66ZllJAJJBYtL..hmP6QLFAbGtUQwnB5D.lq.6TC13J4e",
+      "role": "STUDENT",
+      "branch_id": "branch-it",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys",
+        "comp-amazon"
+      ],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [
+        "DBMS",
+        "DSA",
+        "Operating Systems",
+        "System Design"
+      ],
+      "total_xp": 605,
+      "current_level": 3,
+      "current_streak": 1,
+      "longest_streak": 9,
+      "last_active_date": "2026-10-12",
+      "updated_at": "2026-10-12T09:43:48.635Z",
+      "is_blocked": false,
+      "status": "ACTIVE",
+      "blocked_at": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "user-admin-demo",
+      "name": "Dr. Ramesh Kulkarni (Placement Dean)",
+      "email": "admin@careerprep.ai",
+      "password_hash": "$2b$10$QIa6KVNq66ZllJAJJBYtL.5lJcD/zUtGT8P2pAEi6SmMLzSD/5ZV2",
+      "role": "ADMIN",
+      "branch_id": "branch-cse",
+      "year": "Faculty / Admin",
+      "graduation_year": 2020,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys",
+        "comp-wipro",
+        "comp-accenture"
+      ],
+      "skill_level": "Advanced",
+      "areas_of_interest": [
+        "Campus Placement Drives",
+        "Assessment Evaluation",
+        "Curriculum Mapping"
+      ],
+      "total_xp": 2500,
+      "current_level": 10,
+      "current_streak": 30,
+      "longest_streak": 45,
+      "last_active_date": "2026-10-01"
+    },
+    {
+      "id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "name": "Varun Thakare",
+      "email": "varunthakare21@gmail.com",
+      "password_hash": "$2b$10$J44AXYmzYvjHp9rkXGIw3eAUHGblsde.2X8Xsea7cYyXSTqeq62VS",
+      "role": "ADMIN",
+      "branch_id": "branch-it",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys",
+        "comp-wipro",
+        "comp-capgemini",
+        "comp-cognizant",
+        "comp-deloitte",
+        "comp-accenture"
+      ],
+      "skill_level": "Beginner",
+      "areas_of_interest": [
+        "DBMS",
+        "DSA",
+        "Operating Systems"
+      ],
+      "total_xp": 90,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-01",
+      "created_at": "2026-10-01T06:29:44.73Z",
+      "updated_at": "2026-10-08T07:28:32.368Z",
+      "designation": "Associate Placement Dean",
+      "department": "Training & Placement Cell",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-dean-bfe90237-9d79-4307-b9a7-ee9aa1aa2076",
+      "name": "Test Dean",
+      "email": "testdean@example.com",
+      "password_hash": "$2b$10$ukGflKiz/oS1A0ePec4yRevAEXs./OypkvwvawSYeFOr1X/PZ8Ed2",
+      "role": "ADMIN",
+      "designation": "Placement Dean & Officer",
+      "department": "Training & Placement Cell",
+      "branch_id": "branch-cse",
+      "year": "Faculty / Admin",
+      "graduation_year": 2018,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys",
+        "comp-wipro",
+        "comp-accenture"
+      ],
+      "skill_level": "Advanced",
+      "areas_of_interest": [
+        "Campus Placement Drives",
+        "Assessment Evaluation",
+        "Curriculum Mapping"
+      ],
+      "total_xp": 2500,
+      "current_level": 10,
+      "current_streak": 30,
+      "longest_streak": 45,
+      "last_active_date": "2026-10-08",
+      "created_at": "2026-10-08T07:24:49.505Z",
+      "updated_at": "2026-10-08T07:24:49.505Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-dean-741767f0-ee3a-4671-95dc-198c5cd3c666",
+      "name": "Prof. Anjali Mehta",
+      "email": "dean_1791444680811@college.edu",
+      "password_hash": "$2b$10$Ry9pKERyeb6HlaswuNyKD.DjB3XxbyBda1k3sr4xAOnTaeDT5Qn52",
+      "role": "ADMIN",
+      "designation": "Head of Placements",
+      "department": "Placement Cell",
+      "branch_id": "branch-cse",
+      "year": "Faculty / Admin",
+      "graduation_year": 2018,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys",
+        "comp-wipro",
+        "comp-accenture"
+      ],
+      "skill_level": "Advanced",
+      "areas_of_interest": [
+        "Campus Placement Drives",
+        "Assessment Evaluation",
+        "Curriculum Mapping"
+      ],
+      "total_xp": 2500,
+      "current_level": 10,
+      "current_streak": 30,
+      "longest_streak": 45,
+      "last_active_date": "2026-10-08",
+      "created_at": "2026-10-08T07:31:20.898Z",
+      "updated_at": "2026-10-08T07:31:20.898Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-91246806-8f55-4c24-9063-bd373eb83f28",
+      "name": "gg",
+      "email": "admin@dsaprep.com",
+      "password_hash": "$2b$10$.Utcjbmrum5iYggPa5WGNOEPXUY5JK.E01YONJV0PP89r0sJfHxia",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys"
+      ],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [
+        "DBMS",
+        "DSA",
+        "Operating Systems"
+      ],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-10",
+      "created_at": "2026-10-10T17:33:38.529Z",
+      "updated_at": "2026-10-10T17:33:38.529Z"
+    },
+    {
+      "id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "name": "Shashwat ",
+      "email": "shashwat3100@gmail.com",
+      "password_hash": "$2b$10$E.bTQc/KhBI2H2qH39IgKOmnaX/fxarqPbn6kPWpXhrEXqs8yrsh.",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys"
+      ],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [
+        "DBMS",
+        "DSA",
+        "Operating Systems"
+      ],
+      "total_xp": 140,
+      "current_level": 1,
+      "current_streak": 2,
+      "longest_streak": 2,
+      "last_active_date": "2026-10-13",
+      "created_at": "2026-10-12T18:19:54.346Z",
+      "updated_at": "2026-10-13T04:19:52.924Z"
+    }
+  ],
+  "branches": [
+    {
+      "id": "branch-cse",
+      "name": "Computer Science Engineering (CSE)",
+      "code": "CSE",
+      "description": "Core Computing, Algorithms, Systems & Software"
+    },
+    {
+      "id": "branch-it",
+      "name": "Information Technology (IT)",
+      "code": "IT",
+      "description": "Enterprise Software, Networks, Web & Database Systems"
+    },
+    {
+      "id": "branch-ece",
+      "name": "Electronics & Telecommunication (ENTC/ECE)",
+      "code": "ECE",
+      "description": "Digital/Analog Circuits, VLSI, Embedded & Signals"
+    },
+    {
+      "id": "branch-ee",
+      "name": "Electrical Engineering (EE)",
+      "code": "EE",
+      "description": "Power Systems, Control Systems, Machines & Power Electronics"
+    },
+    {
+      "id": "branch-me",
+      "name": "Mechanical Engineering (ME)",
+      "code": "ME",
+      "description": "Thermodynamics, Fluid Mechanics, Design & Manufacturing"
+    },
+    {
+      "id": "branch-ce",
+      "name": "Civil Engineering (CE)",
+      "code": "CE",
+      "description": "Structural Engineering, Geotechnical, Transportation & Concrete"
+    },
+    {
+      "id": "branch-che",
+      "name": "Chemical Engineering (CHE)",
+      "code": "CHE",
+      "description": "Reaction Engineering, Mass Transfer & Process Operations"
+    },
+    {
+      "id": "branch-aids",
+      "name": "AI & Data Science (AIDS)",
+      "code": "AIDS",
+      "description": "Machine Learning, Deep Learning, Big Data & Analytics"
+    },
+    {
+      "id": "branch-aiml",
+      "name": "AI & Machine Learning (AIML)",
+      "code": "AIML",
+      "description": "Applied AI, Neural Networks, Computer Vision & NLP"
+    }
+  ],
+  "companies": [
+    {
+      "id": "comp-tcs",
+      "name": "TCS",
+      "tier": "Service/IT Services",
+      "pattern_description": "TCS NQT: Foundation Section (Cognitive), Advanced Section (Coding + Tech MCQs), Technical & Managerial Interview.",
+      "website": "https://www.tcs.com",
+      "logo_icon": "Building2",
+      "hiring_rounds": [
+        "Online NQT Cognitive",
+        "Technical MCQ + Coding",
+        "Technical Interview",
+        "HR / MR Interview"
+      ]
+    },
+    {
+      "id": "comp-infosys",
+      "name": "Infosys",
+      "tier": "Service/IT Services",
+      "pattern_description": "InfyTQ / HackWithInfy: Pseudocode, Mathematical Ability, Hands-on DSA Coding, Core CS Interview.",
+      "website": "https://www.infosys.com",
+      "logo_icon": "Laptop",
+      "hiring_rounds": [
+        "Online Assessment (Pseudocode & Logic)",
+        "Hands-on Coding Assessment",
+        "Technical Viva & Interview",
+        "HR Interview"
+      ]
+    },
+    {
+      "id": "comp-wipro",
+      "name": "Wipro",
+      "tier": "Service/IT Services",
+      "pattern_description": "Wipro Elite NTH: Aptitude, Written Communication, Coding (2 questions), Technical Interview.",
+      "website": "https://www.wipro.com",
+      "logo_icon": "Cpu",
+      "hiring_rounds": [
+        "National Talent Hunt Online Test",
+        "Coding Round",
+        "Technical Interview",
+        "HR Discussion"
+      ]
+    },
+    {
+      "id": "comp-accenture",
+      "name": "Accenture",
+      "tier": "Consulting & IT Services",
+      "pattern_description": "Cognitive & Technical Assessment, Pseudo-code, Cloud & Security basics, Coding round, Interview.",
+      "website": "https://www.accenture.com",
+      "logo_icon": "Zap",
+      "hiring_rounds": [
+        "Cognitive & Technical MCQ",
+        "Coding Assessment",
+        "Communication Assessment",
+        "Virtual Interview"
+      ]
+    },
+    {
+      "id": "comp-capgemini",
+      "name": "Capgemini",
+      "tier": "Consulting & IT Services",
+      "pattern_description": "Pseudocode, English Communication, Game-based Aptitude, Technical and HR interview.",
+      "website": "https://www.capgemini.com",
+      "logo_icon": "Layers",
+      "hiring_rounds": [
+        "Pseudocode Round",
+        "Game-based Aptitude Test",
+        "Technical Interview",
+        "HR Interview"
+      ]
+    },
+    {
+      "id": "comp-cognizant",
+      "name": "Cognizant",
+      "tier": "IT Services",
+      "pattern_description": "GenC & GenC Next: Programming Logic, Coding, CS Fundamentals, Solution Design.",
+      "website": "https://www.cognizant.com",
+      "logo_icon": "Briefcase",
+      "hiring_rounds": [
+        "Aptitude & Technical Logic",
+        "Coding Assessment (GenC Next)",
+        "Technical Interview",
+        "HR Discussion"
+      ]
+    },
+    {
+      "id": "comp-deloitte",
+      "name": "Deloitte",
+      "tier": "Consulting / Product",
+      "pattern_description": "Quantitative, Logical, Verbal, Computer Programming MCQs, Case Study & Technical Interview.",
+      "website": "https://www.deloitte.com",
+      "logo_icon": "Shield",
+      "hiring_rounds": [
+        "Online Aptitude & Tech MCQs",
+        "Case Study Assessment",
+        "Technical Interview",
+        "Partner / Director Round"
+      ]
+    },
+    {
+      "id": "comp-amazon",
+      "name": "Amazon",
+      "tier": "Product (FAANG / Tier-1)",
+      "pattern_description": "Online Assessment (DSA Coding + Work Style Assessment / Leadership Principles), 3-4 Rounds of System Design & DSA.",
+      "website": "https://amazon.jobs",
+      "logo_icon": "Globe",
+      "hiring_rounds": [
+        "Online Coding OA (2 DSA questions)",
+        "Work Style Simulation",
+        "Technical Round 1 (DSA)",
+        "Technical Round 2 (System Design)",
+        "Bar Raiser"
+      ]
+    },
+    {
+      "id": "comp-microsoft",
+      "name": "Microsoft",
+      "tier": "Product (Tier-1)",
+      "pattern_description": "Codility OA, Multiple Technical Rounds focusing on Problem Solving, Architecture, Operating Systems & Data Structures.",
+      "website": "https://careers.microsoft.com",
+      "logo_icon": "Monitor",
+      "hiring_rounds": [
+        "Online Codility Test",
+        "Technical Round 1 (DSA & Problem Solving)",
+        "Technical Round 2 (CS Fundamentals & Design)",
+        "Managerial Round / AA"
+      ]
+    },
+    {
+      "id": "comp-google",
+      "name": "Google",
+      "tier": "Product (FAANG / Tier-1)",
+      "pattern_description": "Google Online Challenge, 45-min Phone Screen, 4-5 Onsite Technical Interviews assessing Googleyness, DSA & Complexity.",
+      "website": "https://careers.google.com",
+      "logo_icon": "Sparkles",
+      "hiring_rounds": [
+        "Google Online Challenge",
+        "Phone Technical Screen",
+        "3x Onsite Technical DSA Interviews",
+        "Googliness & Leadership Round"
+      ]
+    }
+  ],
+  "jobRoles": [
+    {
+      "id": "role-sde",
+      "title": "Software Development Engineer (SDE)",
+      "branch_id": "branch-cse",
+      "description": "Design, develop and maintain core software applications, algorithms and services."
+    },
+    {
+      "id": "role-systems",
+      "title": "Systems Engineer",
+      "branch_id": "branch-it",
+      "description": "Enterprise systems configuration, infrastructure support, and software integration."
+    },
+    {
+      "id": "role-data-eng",
+      "title": "Data Engineer / Analyst",
+      "branch_id": "branch-aids",
+      "description": "Data pipelines, SQL data warehouses, ETL processes and analytical dashboards."
+    },
+    {
+      "id": "role-embedded",
+      "title": "Embedded Systems Engineer",
+      "branch_id": "branch-ece",
+      "description": "Firmware development, microcontroller programming and hardware-software interfacing."
+    },
+    {
+      "id": "role-get",
+      "title": "Graduate Engineer Trainee (GET)",
+      "branch_id": "branch-me",
+      "description": "Rotational technical engineering training across operations, manufacturing, and design."
+    },
+    {
+      "id": "role-cloud",
+      "title": "Cloud & DevOps Associate",
+      "branch_id": "branch-it",
+      "description": "Cloud infrastructure (AWS/Azure), CI/CD automation and container orchestration."
+    },
+    {
+      "id": "role-ai-engineer",
+      "title": "AI/ML Engineer",
+      "branch_id": "branch-aiml",
+      "description": "Model training, neural network deployment, feature engineering and evaluation."
+    }
+  ],
+  "subjects": [
+    {
+      "id": "sub-dsa",
+      "name": "Data Structures & Algorithms",
+      "code": "CS-DSA",
+      "branch_id": "branch-cse",
+      "icon": "Code2",
+      "description": "Arrays, Trees, Graphs, Sorting, Hashing, Dynamic Programming"
+    },
+    {
+      "id": "sub-dbms",
+      "name": "Database Management Systems (DBMS)",
+      "code": "CS-DBMS",
+      "branch_id": "branch-it",
+      "icon": "Database",
+      "description": "Relational Model, SQL, Normalization, ACID Transactions, Indexing"
+    },
+    {
+      "id": "sub-os",
+      "name": "Operating Systems",
+      "code": "CS-OS",
+      "branch_id": "branch-cse",
+      "icon": "Cpu",
+      "description": "Processes, CPU Scheduling, Memory Management, Deadlocks, Paging"
+    },
+    {
+      "id": "sub-cn",
+      "name": "Computer Networks",
+      "code": "CS-CN",
+      "branch_id": "branch-it",
+      "icon": "Network",
+      "description": "OSI 7 Layers, TCP/IP, Routing Algorithms, DNS, HTTP/HTTPS, Subnetting"
+    },
+    {
+      "id": "sub-oop",
+      "name": "Object Oriented Programming",
+      "code": "CS-OOP",
+      "branch_id": "branch-cse",
+      "icon": "Box",
+      "description": "Classes, Objects, Polymorphism, Inheritance, Encapsulation, SOLID"
+    },
+    {
+      "id": "sub-aptitude",
+      "name": "General Aptitude & Reasoning",
+      "code": "GEN-APT",
+      "branch_id": "branch-cse",
+      "icon": "Calculator",
+      "description": "Quantitative Aptitude, Logical Reasoning, Verbal Ability"
+    },
+    {
+      "id": "sub-digital-elec",
+      "name": "Digital Electronics",
+      "code": "EC-DE",
+      "branch_id": "branch-ece",
+      "icon": "Binary",
+      "description": "Logic Gates, Flip-Flops, Combinational & Sequential Circuits, Karnaugh Maps"
+    },
+    {
+      "id": "sub-microproc",
+      "name": "Microprocessors & Embedded Systems",
+      "code": "EC-MP",
+      "branch_id": "branch-ece",
+      "icon": "Microchip",
+      "description": "8085/8086 Architecture, Interrupts, Timers, Embedded C"
+    },
+    {
+      "id": "sub-power-sys",
+      "name": "Power Systems & Machines",
+      "code": "EE-PS",
+      "branch_id": "branch-ee",
+      "icon": "Zap",
+      "description": "Transformers, Synchronous Motors, Transmission Lines, Fault Analysis"
+    },
+    {
+      "id": "sub-ctrl-sys",
+      "name": "Control Systems",
+      "code": "EE-CS",
+      "branch_id": "branch-ee",
+      "icon": "Sliders",
+      "description": "Transfer Functions, Bode Plots, Nyquist Stability, State Space"
+    },
+    {
+      "id": "sub-thermo",
+      "name": "Thermodynamics & Heat Transfer",
+      "code": "ME-TH",
+      "branch_id": "branch-me",
+      "icon": "Flame",
+      "description": "Laws of Thermodynamics, Carnot Cycle, Entropy, Conduction & Convection"
+    },
+    {
+      "id": "sub-som",
+      "name": "Strength of Materials",
+      "code": "ME-SOM",
+      "branch_id": "branch-me",
+      "icon": "ShieldAlert",
+      "description": "Stress, Strain, Bending Moment, Shear Force, Torsion"
+    },
+    {
+      "id": "sub-structural",
+      "name": "Structural Engineering",
+      "code": "CE-SE",
+      "branch_id": "branch-ce",
+      "icon": "Building",
+      "description": "Concrete Technology, Trusses, RCC Design, Soil Mechanics"
+    }
+  ],
+  "topics": [
+    {
+      "id": "top-arrays",
+      "subject_id": "sub-dsa",
+      "name": "Arrays & Two Pointers",
+      "importance_weight": 1
+    },
+    {
+      "id": "top-linked-lists",
+      "subject_id": "sub-dsa",
+      "name": "Linked Lists & Pointers",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-trees",
+      "subject_id": "sub-dsa",
+      "name": "Binary Trees & BSTs",
+      "importance_weight": 1
+    },
+    {
+      "id": "top-dp",
+      "subject_id": "sub-dsa",
+      "name": "Dynamic Programming",
+      "importance_weight": 1
+    },
+    {
+      "id": "top-graphs",
+      "subject_id": "sub-dsa",
+      "name": "Graphs & BFS/DFS",
+      "importance_weight": 0.95
+    },
+    {
+      "id": "top-normalization",
+      "subject_id": "sub-dbms",
+      "name": "Normalization (1NF to BCNF)",
+      "importance_weight": 1
+    },
+    {
+      "id": "top-sql-queries",
+      "subject_id": "sub-dbms",
+      "name": "SQL Queries & Joins",
+      "importance_weight": 1
+    },
+    {
+      "id": "top-acid",
+      "subject_id": "sub-dbms",
+      "name": "Transactions & ACID Properties",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-indexing",
+      "subject_id": "sub-dbms",
+      "name": "B-Trees & Database Indexing",
+      "importance_weight": 0.85
+    },
+    {
+      "id": "top-cpu-sched",
+      "subject_id": "sub-os",
+      "name": "CPU Scheduling Algorithms",
+      "importance_weight": 0.95
+    },
+    {
+      "id": "top-memory-mgmt",
+      "subject_id": "sub-os",
+      "name": "Virtual Memory & Paging",
+      "importance_weight": 0.95
+    },
+    {
+      "id": "top-deadlocks",
+      "subject_id": "sub-os",
+      "name": "Deadlock Detection & Prevention",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-osi-tcp",
+      "subject_id": "sub-cn",
+      "name": "OSI vs TCP/IP Protocol Suite",
+      "importance_weight": 1
+    },
+    {
+      "id": "top-routing",
+      "subject_id": "sub-cn",
+      "name": "IP Addressing & Subnetting",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-pillars",
+      "subject_id": "sub-oop",
+      "name": "Core Pillars (Polymorphism & Abstraction)",
+      "importance_weight": 1
+    },
+    {
+      "id": "top-design-pat",
+      "subject_id": "sub-oop",
+      "name": "Creational & Structural Patterns",
+      "importance_weight": 0.85
+    },
+    {
+      "id": "top-quant",
+      "subject_id": "sub-aptitude",
+      "name": "Quantitative & Speed Math",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-logic",
+      "subject_id": "sub-aptitude",
+      "name": "Logical Deduction & Puzzles",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-logic-gates",
+      "subject_id": "sub-digital-elec",
+      "name": "Logic Minimization & Flip Flops",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-8085",
+      "subject_id": "sub-microproc",
+      "name": "8085 Instruction Set & Architecture",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-transformers",
+      "subject_id": "sub-power-sys",
+      "name": "Transformers & Induction Motors",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-thermo-laws",
+      "subject_id": "sub-thermo",
+      "name": "First & Second Laws of Thermodynamics",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-stress-strain",
+      "subject_id": "sub-som",
+      "name": "Stress-Strain Diagrams & Hooke Law",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-concrete",
+      "subject_id": "sub-structural",
+      "name": "RCC Beam Design & Concrete Curing",
+      "importance_weight": 0.9
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-dbms-1",
+      "question": "Which normal form is specifically designed to eliminate transitive functional dependencies (i.e., non-prime attribute determining another non-prime attribute)?",
+      "question_type": "MCQ",
+      "branch_id": "branch-it",
+      "company_id": "comp-tcs",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-dbms",
+      "topic_id": "top-normalization",
+      "difficulty": "Medium",
+      "correct_answer": "B",
+      "explanation": "Third Normal Form (3NF) requires the relation to already be in 2NF, and no non-prime attribute is transitively dependent on any candidate key (X -> A where X is a superkey or A is a prime attribute).",
+      "tags": [
+        "Normalization",
+        "DBMS",
+        "TCS Pattern",
+        "Candidate Keys"
+      ],
+      "expected_time": 45,
+      "xp_value": 25
+    },
+    {
+      "id": "q-dbms-2",
+      "question": "In a relation R(A, B, C, D) with functional dependencies {A -> B, B -> C, C -> D}, what is the highest normal form satisfied by R, given candidate key is {A}?",
+      "question_type": "MCQ",
+      "branch_id": "branch-it",
+      "company_id": "comp-infosys",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-dbms",
+      "topic_id": "top-normalization",
+      "difficulty": "Hard",
+      "correct_answer": "B",
+      "explanation": "Since A is the candidate key and every non-prime attribute depends on the whole key, it is in 2NF. However, B -> C and C -> D are transitive dependencies between non-primes, so it violates 3NF. Thus, the highest normal form is 2NF.",
+      "tags": [
+        "Normalization",
+        "Functional Dependencies",
+        "Infosys Pattern"
+      ],
+      "expected_time": 60,
+      "xp_value": 35
+    },
+    {
+      "id": "q-dbms-3",
+      "question": "Which ACID property guarantees that multiple transactions executing concurrently will leave the database in the same state as if they were executed sequentially?",
+      "question_type": "MCQ",
+      "branch_id": "branch-it",
+      "company_id": "comp-accenture",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-dbms",
+      "topic_id": "top-acid",
+      "difficulty": "Easy",
+      "correct_answer": "C",
+      "explanation": "Isolation ensures that concurrent transactions do not interfere with each other, preventing dirty reads, non-repeatable reads, and phantom reads depending on the isolation level.",
+      "tags": [
+        "ACID",
+        "Transactions",
+        "Accenture Pattern",
+        "Concurrency"
+      ],
+      "expected_time": 30,
+      "xp_value": 20
+    },
+    {
+      "id": "q-dbms-4",
+      "question": "Given an SQL table `Employees(id, name, department_id, salary)`. Which query accurately retrieves the second highest salary without using LIMIT or TOP?",
+      "question_type": "MCQ",
+      "branch_id": "branch-it",
+      "company_id": "comp-cognizant",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-dbms",
+      "topic_id": "top-sql-queries",
+      "difficulty": "Medium",
+      "correct_answer": "A",
+      "explanation": "SELECT MAX(salary) FROM Employees WHERE salary < (SELECT MAX(salary) FROM Employees) accurately filters out the top salary and selects the maximum from the remaining values.",
+      "tags": [
+        "SQL",
+        "Subqueries",
+        "Cognizant GenC Next",
+        "High Frequency"
+      ],
+      "expected_time": 60,
+      "xp_value": 30
+    },
+    {
+      "id": "q-dsa-1",
+      "question": "What is the optimal time and auxiliary space complexity for finding the Longest Common Subsequence (LCS) of two strings of lengths m and n using standard bottom-up Tabulation DP?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-amazon",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-dp",
+      "difficulty": "Medium",
+      "correct_answer": "C",
+      "explanation": "Standard 2D DP matrix requires O(m * n) time to compute subproblems and O(m * n) space. Note that space can be optimized to O(min(m, n)) by keeping only two rows.",
+      "tags": [
+        "DSA",
+        "Dynamic Programming",
+        "Amazon OA",
+        "Strings"
+      ],
+      "expected_time": 50,
+      "xp_value": 30
+    },
+    {
+      "id": "q-dsa-2",
+      "question": "In an In-Order traversal of a strictly valid Binary Search Tree (BST), the nodes will ALWAYS be visited in which sequence?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-tcs",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-trees",
+      "difficulty": "Easy",
+      "correct_answer": "A",
+      "explanation": "By BST definition: Left Subtree < Root < Right Subtree. In-Order visits Left, Root, then Right, always yielding monotonically ascending (sorted) order.",
+      "tags": [
+        "BST",
+        "Trees",
+        "TCS NQT",
+        "CS Fundamentals"
+      ],
+      "expected_time": 30,
+      "xp_value": 20
+    },
+    {
+      "id": "q-dsa-3",
+      "question": "Which cycle detection algorithm detects a cycle in a singly linked list in O(N) time and O(1) auxiliary space without modifying the list structure?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-microsoft",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-linked-lists",
+      "difficulty": "Easy",
+      "correct_answer": "D",
+      "explanation": "Floyd's Tortoise and Hare Cycle-Finding Algorithm uses two pointers moving at speeds 1x and 2x. If a cycle exists, fast meets slow in at most one full loop with O(1) space.",
+      "tags": [
+        "Linked Lists",
+        "Two Pointers",
+        "Microsoft OA",
+        "Pointers"
+      ],
+      "expected_time": 40,
+      "xp_value": 25
+    },
+    {
+      "id": "q-os-1",
+      "question": "Which of the following is NOT one of the four necessary Coffman conditions required for a Deadlock to occur in an operating system?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-wipro",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-os",
+      "topic_id": "top-deadlocks",
+      "difficulty": "Medium",
+      "correct_answer": "B",
+      "explanation": "The four Coffman conditions are: 1. Mutual Exclusion, 2. Hold and Wait, 3. No Preemption, 4. Circular Wait. Preemptive Allocation is a technique to PREVENT deadlocks, not cause them.",
+      "tags": [
+        "Operating Systems",
+        "Deadlocks",
+        "Wipro Elite",
+        "Coffman"
+      ],
+      "expected_time": 45,
+      "xp_value": 25
+    },
+    {
+      "id": "q-os-2",
+      "question": "When a page fault occurs, what component of the CPU / OS transfers execution to the page fault handler routine?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-google",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-os",
+      "topic_id": "top-memory-mgmt",
+      "difficulty": "Hard",
+      "correct_answer": "A",
+      "explanation": "When the MMU (Memory Management Unit) looks up a virtual address and finds the valid bit is 0, it raises a hardware interrupt (page fault exception trap), causing context switch to the OS kernel trap table.",
+      "tags": [
+        "OS",
+        "Virtual Memory",
+        "Google SDE",
+        "Hardware Interface"
+      ],
+      "expected_time": 60,
+      "xp_value": 35
+    },
+    {
+      "id": "q-cn-1",
+      "question": "What is the exact sequence of flag packets exchanged during the standard TCP 3-Way Handshake connection establishment?",
+      "question_type": "MCQ",
+      "branch_id": "branch-it",
+      "company_id": "comp-capgemini",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-cn",
+      "topic_id": "top-osi-tcp",
+      "difficulty": "Easy",
+      "correct_answer": "C",
+      "explanation": "The 3-way handshake process is: Client sends [SYN], Server responds with [SYN-ACK], and Client confirms with [ACK]. Connection is then ESTABLISHED.",
+      "tags": [
+        "Computer Networks",
+        "TCP Handshake",
+        "Capgemini Pattern",
+        "OSI"
+      ],
+      "expected_time": 30,
+      "xp_value": 20
+    },
+    {
+      "id": "q-oop-1",
+      "question": "In C++ and Java, which OOP mechanism allows a subclass to provide a specific implementation of a method that is already declared in its superclass, resolved at runtime?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-deloitte",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-oop",
+      "topic_id": "top-pillars",
+      "difficulty": "Easy",
+      "correct_answer": "B",
+      "explanation": "Method Overriding (Dynamic Polymorphism) resolved at runtime via Virtual Method Table (vtable), whereas Method Overloading is resolved at compile time (Static Polymorphism).",
+      "tags": [
+        "OOP",
+        "Polymorphism",
+        "Deloitte Tech Round",
+        "VTable"
+      ],
+      "expected_time": 35,
+      "xp_value": 20
+    },
+    {
+      "id": "q-ece-1",
+      "question": "In an 8085 microprocessor, which pin is used to demultiplex the lower order address bus and data bus (AD0 - AD7)?",
+      "question_type": "MCQ",
+      "branch_id": "branch-ece",
+      "company_id": "comp-tcs",
+      "job_role_id": "role-embedded",
+      "subject_id": "sub-microproc",
+      "topic_id": "top-8085",
+      "difficulty": "Medium",
+      "correct_answer": "C",
+      "explanation": "The ALE (Address Latch Enable) signal goes high during the first clock cycle (T1 state) of a machine cycle, indicating that AD0-AD7 lines hold the lower 8 bits of the memory address, which are latched via IC 74LS373.",
+      "tags": [
+        "8085",
+        "Microprocessors",
+        "ECE Core",
+        "ALE Pin"
+      ],
+      "expected_time": 40,
+      "xp_value": 25
+    },
+    {
+      "id": "q-ece-2",
+      "question": "How many select lines are required for a 32-to-1 Multiplexer (MUX)?",
+      "question_type": "MCQ",
+      "branch_id": "branch-ece",
+      "company_id": "comp-infosys",
+      "job_role_id": "role-embedded",
+      "subject_id": "sub-digital-elec",
+      "topic_id": "top-logic-gates",
+      "difficulty": "Easy",
+      "correct_answer": "B",
+      "explanation": "For a 2^n to 1 MUX, n select lines are required. Since 32 = 2^5, exactly 5 select lines are needed.",
+      "tags": [
+        "Digital Electronics",
+        "MUX",
+        "Logic Minimization",
+        "ECE"
+      ],
+      "expected_time": 25,
+      "xp_value": 20
+    },
+    {
+      "id": "q-me-1",
+      "question": "The efficiency of a Carnot heat engine operating between absolute temperatures T_hot and T_cold depends ONLY on:",
+      "question_type": "MCQ",
+      "branch_id": "branch-me",
+      "company_id": "comp-tcs",
+      "job_role_id": "role-get",
+      "subject_id": "sub-thermo",
+      "topic_id": "top-thermo-laws",
+      "difficulty": "Easy",
+      "correct_answer": "A",
+      "explanation": "Carnot efficiency is defined as eta = 1 - (T_cold / T_hot), which depends exclusively on the source and sink temperatures and is independent of the working fluid.",
+      "tags": [
+        "Thermodynamics",
+        "Mechanical Core",
+        "Carnot Cycle",
+        "Efficiency"
+      ],
+      "expected_time": 30,
+      "xp_value": 20
+    },
+    {
+      "id": "q-ee-1",
+      "question": "In an ideal electrical transformer with primary turns N1 and secondary turns N2, what happens to the secondary voltage V2 if N2 is double N1?",
+      "question_type": "MCQ",
+      "branch_id": "branch-ee",
+      "company_id": "comp-tcs",
+      "job_role_id": "role-get",
+      "subject_id": "sub-power-sys",
+      "topic_id": "top-transformers",
+      "difficulty": "Easy",
+      "correct_answer": "B",
+      "explanation": "From the transformer turn ratio V2/V1 = N2/N1, if N2 = 2 * N1, then V2 = 2 * V1 (step-up transformer doubles secondary voltage).",
+      "tags": [
+        "Transformers",
+        "Electrical Core",
+        "Turn Ratio",
+        "Power Systems"
+      ],
+      "expected_time": 30,
+      "xp_value": 20
+    },
+    {
+      "id": "q-apt-1",
+      "question": "A train 180 meters long is running at a uniform speed of 54 km/hr. How many seconds will it take to pass a stationary telegraph post?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-tcs",
+      "job_role_id": "role-sde",
+      "subject_id": "sub-aptitude",
+      "topic_id": "top-quant",
+      "difficulty": "Easy",
+      "correct_answer": "C",
+      "explanation": "Speed in m/s = 54 * (5/18) = 15 m/s. Time to cross post = Distance / Speed = 180 m / 15 m/s = 12 seconds.",
+      "tags": [
+        "Aptitude",
+        "Speed Time Distance",
+        "TCS NQT",
+        "Wipro NTH"
+      ],
+      "expected_time": 45,
+      "xp_value": 20
+    }
+  ],
+  "questionOptions": [
+    {
+      "id": "opt-q-dbms-1-A",
+      "question_id": "q-dbms-1",
+      "option_key": "A",
+      "option_text": "First Normal Form (1NF)",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-1-B",
+      "question_id": "q-dbms-1",
+      "option_key": "B",
+      "option_text": "Third Normal Form (3NF)",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-dbms-1-C",
+      "question_id": "q-dbms-1",
+      "option_key": "C",
+      "option_text": "Second Normal Form (2NF)",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-1-D",
+      "question_id": "q-dbms-1",
+      "option_key": "D",
+      "option_text": "Boyce-Codd Normal Form (BCNF)",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-2-A",
+      "question_id": "q-dbms-2",
+      "option_key": "A",
+      "option_text": "1NF",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-2-B",
+      "question_id": "q-dbms-2",
+      "option_key": "B",
+      "option_text": "2NF",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-dbms-2-C",
+      "question_id": "q-dbms-2",
+      "option_key": "C",
+      "option_text": "3NF",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-2-D",
+      "question_id": "q-dbms-2",
+      "option_key": "D",
+      "option_text": "BCNF",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-3-A",
+      "question_id": "q-dbms-3",
+      "option_key": "A",
+      "option_text": "Atomicity",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-3-B",
+      "question_id": "q-dbms-3",
+      "option_key": "B",
+      "option_text": "Consistency",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-3-C",
+      "question_id": "q-dbms-3",
+      "option_key": "C",
+      "option_text": "Isolation",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-dbms-3-D",
+      "question_id": "q-dbms-3",
+      "option_key": "D",
+      "option_text": "Durability",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-4-A",
+      "question_id": "q-dbms-4",
+      "option_key": "A",
+      "option_text": "SELECT MAX(salary) FROM Employees WHERE salary < (SELECT MAX(salary) FROM Employees);",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-dbms-4-B",
+      "question_id": "q-dbms-4",
+      "option_key": "B",
+      "option_text": "SELECT salary FROM Employees ORDER BY salary DESC OFFSET 1;",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-4-C",
+      "question_id": "q-dbms-4",
+      "option_key": "C",
+      "option_text": "SELECT MIN(salary) FROM Employees WHERE salary > (SELECT MIN(salary) FROM Employees);",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dbms-4-D",
+      "question_id": "q-dbms-4",
+      "option_key": "D",
+      "option_text": "SELECT salary FROM Employees WHERE ROWNUM = 2;",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dsa-1-A",
+      "question_id": "q-dsa-1",
+      "option_key": "A",
+      "option_text": "Time: O(2^(m+n)), Space: O(m+n)",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dsa-1-B",
+      "question_id": "q-dsa-1",
+      "option_key": "B",
+      "option_text": "Time: O(m + n), Space: O(1)",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dsa-1-C",
+      "question_id": "q-dsa-1",
+      "option_key": "C",
+      "option_text": "Time: O(m * n), Space: O(m * n)",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-dsa-1-D",
+      "question_id": "q-dsa-1",
+      "option_key": "D",
+      "option_text": "Time: O(n log m), Space: O(log n)",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dsa-2-A",
+      "question_id": "q-dsa-2",
+      "option_key": "A",
+      "option_text": "Strictly ascending (sorted) order",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-dsa-2-B",
+      "question_id": "q-dsa-2",
+      "option_key": "B",
+      "option_text": "Strictly descending order",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dsa-2-C",
+      "question_id": "q-dsa-2",
+      "option_key": "C",
+      "option_text": "Level by level from root to leaf",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dsa-2-D",
+      "question_id": "q-dsa-2",
+      "option_key": "D",
+      "option_text": "Reverse chronological order",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dsa-3-A",
+      "question_id": "q-dsa-3",
+      "option_key": "A",
+      "option_text": "Dijkstra Shortest Path",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dsa-3-B",
+      "question_id": "q-dsa-3",
+      "option_key": "B",
+      "option_text": "Kruskal Algorithm with Disjoint Sets",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dsa-3-C",
+      "question_id": "q-dsa-3",
+      "option_key": "C",
+      "option_text": "Kadane Dynamic Subarray Scan",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-dsa-3-D",
+      "question_id": "q-dsa-3",
+      "option_key": "D",
+      "option_text": "Floyd's Cycle Finding (Tortoise and Hare)",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-os-1-A",
+      "question_id": "q-os-1",
+      "option_key": "A",
+      "option_text": "Mutual Exclusion",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-os-1-B",
+      "question_id": "q-os-1",
+      "option_key": "B",
+      "option_text": "Preemptive Resource Allocation",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-os-1-C",
+      "question_id": "q-os-1",
+      "option_key": "C",
+      "option_text": "Hold and Wait",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-os-1-D",
+      "question_id": "q-os-1",
+      "option_key": "D",
+      "option_text": "Circular Wait",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-os-2-A",
+      "question_id": "q-os-2",
+      "option_key": "A",
+      "option_text": "Memory Management Unit (MMU) generates a hardware trap/interrupt",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-os-2-B",
+      "question_id": "q-os-2",
+      "option_key": "B",
+      "option_text": "The DMA Controller pauses all bus traffic",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-os-2-C",
+      "question_id": "q-os-2",
+      "option_key": "C",
+      "option_text": "The Compiler injects a fallback subroutine",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-os-2-D",
+      "question_id": "q-os-2",
+      "option_key": "D",
+      "option_text": "The Application Thread restarts from entry point",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-cn-1-A",
+      "question_id": "q-cn-1",
+      "option_key": "A",
+      "option_text": "ACK -> SYN -> SYN-ACK",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-cn-1-B",
+      "question_id": "q-cn-1",
+      "option_key": "B",
+      "option_text": "FIN -> ACK -> FIN-ACK",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-cn-1-C",
+      "question_id": "q-cn-1",
+      "option_key": "C",
+      "option_text": "SYN -> SYN-ACK -> ACK",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-cn-1-D",
+      "question_id": "q-cn-1",
+      "option_key": "D",
+      "option_text": "RST -> PSH -> SYN",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-oop-1-A",
+      "question_id": "q-oop-1",
+      "option_key": "A",
+      "option_text": "Method Overloading (Compile-Time)",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-oop-1-B",
+      "question_id": "q-oop-1",
+      "option_key": "B",
+      "option_text": "Method Overriding (Runtime Dynamic Binding)",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-oop-1-C",
+      "question_id": "q-oop-1",
+      "option_key": "C",
+      "option_text": "Operator Overloading",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-oop-1-D",
+      "question_id": "q-oop-1",
+      "option_key": "D",
+      "option_text": "Encapsulation Wrapping",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-ece-1-A",
+      "question_id": "q-ece-1",
+      "option_key": "A",
+      "option_text": "READY",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-ece-1-B",
+      "question_id": "q-ece-1",
+      "option_key": "B",
+      "option_text": "HOLD",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-ece-1-C",
+      "question_id": "q-ece-1",
+      "option_key": "C",
+      "option_text": "ALE (Address Latch Enable)",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-ece-1-D",
+      "question_id": "q-ece-1",
+      "option_key": "D",
+      "option_text": "RESET IN",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-ece-2-A",
+      "question_id": "q-ece-2",
+      "option_key": "A",
+      "option_text": "4 select lines",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-ece-2-B",
+      "question_id": "q-ece-2",
+      "option_key": "B",
+      "option_text": "5 select lines",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-ece-2-C",
+      "question_id": "q-ece-2",
+      "option_key": "C",
+      "option_text": "6 select lines",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-ece-2-D",
+      "question_id": "q-ece-2",
+      "option_key": "D",
+      "option_text": "8 select lines",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-me-1-A",
+      "question_id": "q-me-1",
+      "option_key": "A",
+      "option_text": "The temperatures of the source and the sink",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-me-1-B",
+      "question_id": "q-me-1",
+      "option_key": "B",
+      "option_text": "The specific heat capacity of the working fluid",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-me-1-C",
+      "question_id": "q-me-1",
+      "option_key": "C",
+      "option_text": "The volume expansion coefficient of the cylinder",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-me-1-D",
+      "question_id": "q-me-1",
+      "option_key": "D",
+      "option_text": "The mass flow rate of fuel",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-ee-1-A",
+      "question_id": "q-ee-1",
+      "option_key": "A",
+      "option_text": "Secondary voltage is halved",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-ee-1-B",
+      "question_id": "q-ee-1",
+      "option_key": "B",
+      "option_text": "Secondary voltage is doubled",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-ee-1-C",
+      "question_id": "q-ee-1",
+      "option_key": "C",
+      "option_text": "Secondary voltage remains identical",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-ee-1-D",
+      "question_id": "q-ee-1",
+      "option_key": "D",
+      "option_text": "Secondary voltage drops to zero",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-apt-1-A",
+      "question_id": "q-apt-1",
+      "option_key": "A",
+      "option_text": "9 seconds",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-apt-1-B",
+      "question_id": "q-apt-1",
+      "option_key": "B",
+      "option_text": "10 seconds",
+      "is_correct": false
+    },
+    {
+      "id": "opt-q-apt-1-C",
+      "question_id": "q-apt-1",
+      "option_key": "C",
+      "option_text": "12 seconds",
+      "is_correct": true
+    },
+    {
+      "id": "opt-q-apt-1-D",
+      "question_id": "q-apt-1",
+      "option_key": "D",
+      "option_text": "15 seconds",
+      "is_correct": false
+    }
+  ],
+  "attempts": [
+    {
+      "id": "att-0490bbe1-2035-42ed-b58d-6b4debd7d908",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-1",
+      "session_id": "session-372b1def-3a78-4523-99ff-c17c4a372d4d",
+      "user_answer": "B",
+      "is_correct": true,
+      "time_spent_seconds": 20,
+      "xp_gained": 35,
+      "attempted_at": "2026-10-01T06:23:39.047Z"
+    },
+    {
+      "id": "att-0c53b3a8-c45f-40d3-ba3a-8ff11d6ab0ce",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-2",
+      "session_id": "session-372b1def-3a78-4523-99ff-c17c4a372d4d",
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 25,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-01T06:23:39.05Z"
+    },
+    {
+      "id": "att-b779c19d-760b-403c-98bc-bf063f7dfcbc",
+      "user_id": "user-student-demo",
+      "question_id": "q-dsa-1",
+      "session_id": "session-372b1def-3a78-4523-99ff-c17c4a372d4d",
+      "user_answer": "C",
+      "is_correct": true,
+      "time_spent_seconds": 15,
+      "xp_gained": 40,
+      "attempted_at": "2026-10-01T06:23:39.052Z"
+    },
+    {
+      "id": "att-be0a70f5-91d9-4bd6-adad-82fe63453b57",
+      "user_id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "question_id": "q-dsa-1",
+      "session_id": "session-0004d6c4-cbe4-43ec-a872-5c6cf59d4ad5",
+      "user_answer": "C",
+      "is_correct": true,
+      "time_spent_seconds": 3,
+      "xp_gained": 40,
+      "attempted_at": "2026-10-01T06:31:15.324Z"
+    },
+    {
+      "id": "att-4ada5af2-2356-4f43-8100-acaf73c16fae",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-2",
+      "session_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-01T07:09:25.325Z"
+    },
+    {
+      "id": "att-b68541c6-f64b-4a01-bc03-8d16dfce8215",
+      "user_id": "user-student-demo",
+      "question_id": "q-ece-1",
+      "session_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-01T07:09:25.328Z"
+    },
+    {
+      "id": "att-659dd9e4-7d75-4fc6-bd0f-68ebde36b04d",
+      "user_id": "user-student-demo",
+      "question_id": "q-ece-2",
+      "session_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-01T07:09:25.329Z"
+    },
+    {
+      "id": "att-2799b0c2-4434-4a3d-b601-46e5b51ff4c1",
+      "user_id": "user-student-demo",
+      "question_id": "q-me-1",
+      "session_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-01T07:09:25.33Z"
+    },
+    {
+      "id": "att-3dceaa17-dd38-43f4-9687-1a3e635b382e",
+      "user_id": "user-student-demo",
+      "question_id": "q-ee-1",
+      "session_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-01T07:09:25.331Z"
+    },
+    {
+      "id": "att-b4a4a3e9-40ba-42fe-9119-cbceefa439df",
+      "user_id": "user-student-demo",
+      "question_id": "q-ece-1",
+      "session_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 12,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-01T07:09:58.359Z"
+    },
+    {
+      "id": "att-07f68a2a-872f-42d8-b310-5c64e8a113f7",
+      "user_id": "user-student-demo",
+      "question_id": "q-ece-2",
+      "session_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 12,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-01T07:09:58.361Z"
+    },
+    {
+      "id": "att-a2f0e4f1-8485-46b8-b000-f4caabceccbc",
+      "user_id": "user-student-demo",
+      "question_id": "q-me-1",
+      "session_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "user_answer": "A",
+      "is_correct": true,
+      "time_spent_seconds": 12,
+      "xp_gained": 30,
+      "attempted_at": "2026-10-01T07:09:58.363Z"
+    },
+    {
+      "id": "att-b1fbe22d-7f74-433a-bd54-b2ebfa39b761",
+      "user_id": "user-student-demo",
+      "question_id": "q-ee-1",
+      "session_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 12,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-01T07:09:58.364Z"
+    },
+    {
+      "id": "att-63ca8a06-fea0-4ae6-8f43-87d03ccc7307",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-2",
+      "session_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 12,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-01T07:09:58.365Z"
+    },
+    {
+      "id": "att-2d339ff2-d261-49bd-998f-ac86c7532694",
+      "user_id": "user-student-demo",
+      "question_id": "q-ece-1",
+      "session_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-10T18:27:44.751Z"
+    },
+    {
+      "id": "att-69b89808-3472-4c04-bbe2-de2a85b395bd",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-2",
+      "session_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "user_answer": "C",
+      "is_correct": false,
+      "time_spent_seconds": 1,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-10T18:27:44.754Z"
+    },
+    {
+      "id": "att-4b85869a-328c-4e76-8047-dd33d62c1565",
+      "user_id": "user-student-demo",
+      "question_id": "q-ece-2",
+      "session_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "user_answer": "D",
+      "is_correct": false,
+      "time_spent_seconds": 1,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-10T18:27:44.756Z"
+    },
+    {
+      "id": "att-eaa0bfc8-c2c2-41a3-981a-3ee8a6645b30",
+      "user_id": "user-student-demo",
+      "question_id": "q-ee-1",
+      "session_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "user_answer": "B",
+      "is_correct": true,
+      "time_spent_seconds": 1,
+      "xp_gained": 30,
+      "attempted_at": "2026-10-10T18:27:44.759Z"
+    },
+    {
+      "id": "att-a60d7582-e95e-49b9-a74e-cd7f93c85641",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-1",
+      "session_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "user_answer": "C",
+      "is_correct": false,
+      "time_spent_seconds": 1,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-10T18:27:44.760Z"
+    },
+    {
+      "id": "att-5f0860c9-a2d2-426a-a9e8-07e03c84a0b3",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-me-1",
+      "session_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "user_answer": "A",
+      "is_correct": true,
+      "time_spent_seconds": 3,
+      "xp_gained": 30,
+      "attempted_at": "2026-10-13T04:19:52.851Z"
+    },
+    {
+      "id": "att-b4a4fe4c-bbb9-49f9-81dc-fc0e13af5a02",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-apt-1",
+      "session_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "user_answer": "C",
+      "is_correct": true,
+      "time_spent_seconds": 2,
+      "xp_gained": 30,
+      "attempted_at": "2026-10-13T04:19:52.862Z"
+    },
+    {
+      "id": "att-40a8a231-4c7d-4a6f-8374-5a92944a4631",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-dsa-2",
+      "session_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "user_answer": "D",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-13T04:19:52.871Z"
+    },
+    {
+      "id": "att-8207bfb7-9093-47cd-841f-ec2943471793",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-ee-1",
+      "session_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "user_answer": "B",
+      "is_correct": true,
+      "time_spent_seconds": 2,
+      "xp_gained": 30,
+      "attempted_at": "2026-10-13T04:19:52.879Z"
+    },
+    {
+      "id": "att-6a644030-d99a-4d3b-952c-1f3eeae9270c",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "question_id": "q-dbms-1",
+      "session_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-13T04:19:52.887Z"
+    }
+  ],
+  "quizSessions": [
+    {
+      "id": "session-372b1def-3a78-4523-99ff-c17c4a372d4d",
+      "user_id": "user-student-demo",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "COMPLETED",
+      "total_questions": 3,
+      "correct_count": 2,
+      "score": 66.66666666666666,
+      "xp_earned": 75,
+      "time_taken_seconds": 60,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Normalization (1NF to BCNF)",
+          "Normalization (1NF to BCNF)",
+          "Dynamic Programming",
+          "8085 Instruction Set & Architecture",
+          "Logic Minimization & Flip Flops",
+          "First & Second Laws of Thermodynamics",
+          "Transformers & Induction Motors",
+          "Quantitative & Speed Math",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-amazon"
+        ]
+      },
+      "created_at": "2026-10-01T06:23:39.013Z",
+      "completed_at": "2026-10-01T06:23:39.055Z",
+      "updated_at": "2026-10-01T06:23:39.055Z"
+    },
+    {
+      "id": "session-0004d6c4-cbe4-43ec-a872-5c6cf59d4ad5",
+      "user_id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "mode": "CUSTOM_PRACTICE",
+      "status": "COMPLETED",
+      "total_questions": 1,
+      "correct_count": 1,
+      "score": 100,
+      "xp_earned": 40,
+      "time_taken_seconds": 7,
+      "config_params": {
+        "company_id": "comp-amazon",
+        "question_count": 5
+      },
+      "created_at": "2026-10-01T06:31:07.332Z",
+      "completed_at": "2026-10-01T06:31:15.328Z",
+      "updated_at": "2026-10-01T06:31:15.328Z"
+    },
+    {
+      "id": "session-610963a1-0ffc-4b9d-949d-584b0d26f490",
+      "user_id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 5,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Transactions & ACID Properties",
+          "OSI vs TCP/IP Protocol Suite",
+          "Normalization (1NF to BCNF)",
+          "SQL Queries & Joins",
+          "Normalization (1NF to BCNF)",
+          "Binary Trees & BSTs",
+          "Core Pillars (Polymorphism & Abstraction)",
+          "Logic Minimization & Flip Flops",
+          "First & Second Laws of Thermodynamics",
+          "Transformers & Induction Motors",
+          "Quantitative & Speed Math",
+          "Deadlock Detection & Prevention",
+          "8085 Instruction Set & Architecture",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-wipro",
+          "comp-capgemini",
+          "comp-cognizant",
+          "comp-deloitte",
+          "comp-accenture"
+        ]
+      },
+      "created_at": "2026-10-01T06:31:20.331Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "user_id": "user-student-demo",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "COMPLETED",
+      "total_questions": 5,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 70,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Normalization (1NF to BCNF)",
+          "8085 Instruction Set & Architecture",
+          "Logic Minimization & Flip Flops",
+          "First & Second Laws of Thermodynamics",
+          "Transformers & Induction Motors",
+          "Quantitative & Speed Math",
+          "Normalization (1NF to BCNF)",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-amazon"
+        ]
+      },
+      "created_at": "2026-10-01T07:09:25.312Z",
+      "completed_at": "2026-10-01T07:09:25.333Z",
+      "updated_at": "2026-10-01T07:09:25.333Z"
+    },
+    {
+      "id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "user_id": "user-student-demo",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "COMPLETED",
+      "total_questions": 5,
+      "correct_count": 1,
+      "score": 20,
+      "xp_earned": 30,
+      "time_taken_seconds": 60,
+      "config_params": {
+        "weak_topics_targeted": [
+          "8085 Instruction Set & Architecture",
+          "Logic Minimization & Flip Flops",
+          "First & Second Laws of Thermodynamics",
+          "Transformers & Induction Motors",
+          "Normalization (1NF to BCNF)",
+          "Normalization (1NF to BCNF)",
+          "Quantitative & Speed Math",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-amazon"
+        ]
+      },
+      "created_at": "2026-10-01T07:09:58.341Z",
+      "completed_at": "2026-10-01T07:09:58.367Z",
+      "updated_at": "2026-10-01T07:09:58.367Z"
+    },
+    {
+      "id": "session-a581686a-70b2-4211-b994-5133023a424e",
+      "user_id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 5,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Transactions & ACID Properties",
+          "OSI vs TCP/IP Protocol Suite",
+          "Normalization (1NF to BCNF)",
+          "SQL Queries & Joins",
+          "Normalization (1NF to BCNF)",
+          "Binary Trees & BSTs",
+          "Core Pillars (Polymorphism & Abstraction)",
+          "Logic Minimization & Flip Flops",
+          "First & Second Laws of Thermodynamics",
+          "Transformers & Induction Motors",
+          "Quantitative & Speed Math",
+          "Deadlock Detection & Prevention",
+          "8085 Instruction Set & Architecture",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-wipro",
+          "comp-capgemini",
+          "comp-cognizant",
+          "comp-deloitte",
+          "comp-accenture"
+        ]
+      },
+      "created_at": "2026-10-01T07:16:54.551Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376",
+      "user_id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 5,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Transactions & ACID Properties",
+          "OSI vs TCP/IP Protocol Suite",
+          "Normalization (1NF to BCNF)",
+          "SQL Queries & Joins",
+          "Normalization (1NF to BCNF)",
+          "Binary Trees & BSTs",
+          "Core Pillars (Polymorphism & Abstraction)",
+          "Logic Minimization & Flip Flops",
+          "First & Second Laws of Thermodynamics",
+          "Transformers & Induction Motors",
+          "Quantitative & Speed Math",
+          "Deadlock Detection & Prevention",
+          "8085 Instruction Set & Architecture",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-wipro",
+          "comp-capgemini",
+          "comp-cognizant",
+          "comp-deloitte",
+          "comp-accenture"
+        ]
+      },
+      "created_at": "2026-10-01T07:17:09.816Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-fc75311f-b540-48e8-84b9-245bf731e3de",
+      "user_id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 5,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Transactions & ACID Properties",
+          "OSI vs TCP/IP Protocol Suite",
+          "Normalization (1NF to BCNF)",
+          "SQL Queries & Joins",
+          "Normalization (1NF to BCNF)",
+          "Binary Trees & BSTs",
+          "Core Pillars (Polymorphism & Abstraction)",
+          "Logic Minimization & Flip Flops",
+          "First & Second Laws of Thermodynamics",
+          "Transformers & Induction Motors",
+          "Quantitative & Speed Math",
+          "Deadlock Detection & Prevention",
+          "8085 Instruction Set & Architecture",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-wipro",
+          "comp-capgemini",
+          "comp-cognizant",
+          "comp-deloitte",
+          "comp-accenture"
+        ]
+      },
+      "created_at": "2026-10-08T06:27:34.936Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-5b2902cc-0142-4039-95ea-5bd2605a52a1",
+      "user_id": "user-student-demo",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 5,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "8085 Instruction Set & Architecture",
+          "Normalization (1NF to BCNF)",
+          "Logic Minimization & Flip Flops",
+          "Transformers & Induction Motors",
+          "Normalization (1NF to BCNF)",
+          "Quantitative & Speed Math",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-amazon"
+        ]
+      },
+      "created_at": "2026-10-08T19:34:31.857Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "user_id": "user-student-demo",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "COMPLETED",
+      "total_questions": 5,
+      "correct_count": 1,
+      "score": 20,
+      "xp_earned": 30,
+      "time_taken_seconds": 13,
+      "config_params": {
+        "weak_topics_targeted": [
+          "8085 Instruction Set & Architecture",
+          "Normalization (1NF to BCNF)",
+          "Logic Minimization & Flip Flops",
+          "Transformers & Induction Motors",
+          "Normalization (1NF to BCNF)",
+          "Quantitative & Speed Math",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-amazon"
+        ]
+      },
+      "created_at": "2026-10-10T18:27:31.034Z",
+      "completed_at": "2026-10-10T18:27:44.763Z",
+      "updated_at": "2026-10-10T18:27:44.763Z"
+    },
+    {
+      "id": "session-48dc6f1e-a71b-4360-be69-1194d3fa3218",
+      "user_id": "user-student-demo",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 5,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Normalization (1NF to BCNF)",
+          "Normalization (1NF to BCNF)",
+          "8085 Instruction Set & Architecture",
+          "Logic Minimization & Flip Flops",
+          "Quantitative & Speed Math",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "Transformers & Induction Motors",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-amazon"
+        ]
+      },
+      "created_at": "2026-10-11T14:49:52.097Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-929384f8-9b5b-4e5e-b19e-43790d2f9507",
+      "user_id": "user-student-demo",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 4,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Normalization (1NF to BCNF)",
+          "Normalization (1NF to BCNF)",
+          "8085 Instruction Set & Architecture",
+          "Logic Minimization & Flip Flops",
+          "Quantitative & Speed Math",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "Transformers & Induction Motors",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-amazon"
+        ]
+      },
+      "created_at": "2026-10-12T09:58:13.246Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-36718a7e-a336-4044-ac39-b249046e74d4",
+      "user_id": "user-student-demo",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 4,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Normalization (1NF to BCNF)",
+          "Normalization (1NF to BCNF)",
+          "8085 Instruction Set & Architecture",
+          "Logic Minimization & Flip Flops",
+          "Quantitative & Speed Math",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "Transformers & Induction Motors",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys",
+          "comp-amazon"
+        ]
+      },
+      "created_at": "2026-10-12T10:06:31.936Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-ae95a042-3816-4437-af83-90dc0c932607",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 4,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Binary Trees & BSTs",
+          "Quantitative & Speed Math",
+          "Normalization (1NF to BCNF)",
+          "8085 Instruction Set & Architecture",
+          "Normalization (1NF to BCNF)",
+          "Logic Minimization & Flip Flops",
+          "First & Second Laws of Thermodynamics",
+          "Transformers & Induction Motors",
+          "Dynamic Programming",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "OSI vs TCP/IP Protocol Suite"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys"
+        ]
+      },
+      "created_at": "2026-10-12T18:20:16.585Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-282b2893-0eac-4cb6-84d1-697771137397",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "mode": "ADAPTIVE_DAILY",
+      "status": "IN_PROGRESS",
+      "total_questions": 4,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "config_params": {
+        "weak_topics_targeted": [
+          "Binary Trees & BSTs",
+          "Quantitative & Speed Math",
+          "Normalization (1NF to BCNF)",
+          "8085 Instruction Set & Architecture",
+          "Normalization (1NF to BCNF)",
+          "Logic Minimization & Flip Flops",
+          "First & Second Laws of Thermodynamics",
+          "Transformers & Induction Motors",
+          "Dynamic Programming",
+          "Deadlock Detection & Prevention",
+          "Linked Lists & Pointers",
+          "Virtual Memory & Paging",
+          "Core Pillars (Polymorphism & Abstraction)",
+          "SQL Queries & Joins",
+          "Transactions & ACID Properties",
+          "OSI vs TCP/IP Protocol Suite"
+        ],
+        "companies_targeted": [
+          "comp-tcs",
+          "comp-infosys"
+        ]
+      },
+      "created_at": "2026-10-12T18:20:59.697Z",
+      "completed_at": null
+    },
+    {
+      "id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "mode": "CUSTOM_PRACTICE",
+      "status": "COMPLETED",
+      "total_questions": 5,
+      "correct_count": 3,
+      "score": 60,
+      "xp_earned": 90,
+      "time_taken_seconds": 23,
+      "config_params": {
+        "company_id": "comp-tcs",
+        "question_count": 5
+      },
+      "created_at": "2026-10-13T04:19:29.376Z",
+      "completed_at": "2026-10-13T04:19:52.895Z",
+      "updated_at": "2026-10-13T04:19:52.895Z"
+    }
+  ],
+  "quizQuestions": [
+    {
+      "id": "qq-session-372b1def-3a78-4523-99ff-c17c4a372d4d-1",
+      "session_id": "session-372b1def-3a78-4523-99ff-c17c4a372d4d",
+      "question_id": "q-dbms-1",
+      "sequence_order": 1,
+      "user_answer": "B",
+      "is_correct": true,
+      "time_spent_seconds": 20,
+      "updated_at": "2026-10-01T06:23:39.049Z"
+    },
+    {
+      "id": "qq-session-372b1def-3a78-4523-99ff-c17c4a372d4d-2",
+      "session_id": "session-372b1def-3a78-4523-99ff-c17c4a372d4d",
+      "question_id": "q-dbms-2",
+      "sequence_order": 2,
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 25,
+      "updated_at": "2026-10-01T06:23:39.051Z"
+    },
+    {
+      "id": "qq-session-372b1def-3a78-4523-99ff-c17c4a372d4d-3",
+      "session_id": "session-372b1def-3a78-4523-99ff-c17c4a372d4d",
+      "question_id": "q-dsa-1",
+      "sequence_order": 3,
+      "user_answer": "C",
+      "is_correct": true,
+      "time_spent_seconds": 15,
+      "updated_at": "2026-10-01T06:23:39.053Z"
+    },
+    {
+      "id": "qq-session-0004d6c4-cbe4-43ec-a872-5c6cf59d4ad5-1",
+      "session_id": "session-0004d6c4-cbe4-43ec-a872-5c6cf59d4ad5",
+      "question_id": "q-dsa-1",
+      "sequence_order": 1,
+      "user_answer": "C",
+      "is_correct": true,
+      "time_spent_seconds": 3,
+      "updated_at": "2026-10-01T06:31:15.327Z"
+    },
+    {
+      "id": "qq-session-610963a1-0ffc-4b9d-949d-584b0d26f490-1",
+      "session_id": "session-610963a1-0ffc-4b9d-949d-584b0d26f490",
+      "question_id": "q-dbms-3",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-610963a1-0ffc-4b9d-949d-584b0d26f490-2",
+      "session_id": "session-610963a1-0ffc-4b9d-949d-584b0d26f490",
+      "question_id": "q-cn-1",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-610963a1-0ffc-4b9d-949d-584b0d26f490-3",
+      "session_id": "session-610963a1-0ffc-4b9d-949d-584b0d26f490",
+      "question_id": "q-dbms-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-610963a1-0ffc-4b9d-949d-584b0d26f490-4",
+      "session_id": "session-610963a1-0ffc-4b9d-949d-584b0d26f490",
+      "question_id": "q-dbms-4",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-610963a1-0ffc-4b9d-949d-584b0d26f490-5",
+      "session_id": "session-610963a1-0ffc-4b9d-949d-584b0d26f490",
+      "question_id": "q-dbms-2",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0-1",
+      "session_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "question_id": "q-dbms-2",
+      "sequence_order": 1,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-01T07:09:25.326Z"
+    },
+    {
+      "id": "qq-session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0-2",
+      "session_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "question_id": "q-ece-1",
+      "sequence_order": 2,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-01T07:09:25.328Z"
+    },
+    {
+      "id": "qq-session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0-3",
+      "session_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "question_id": "q-ece-2",
+      "sequence_order": 3,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-01T07:09:25.329Z"
+    },
+    {
+      "id": "qq-session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0-4",
+      "session_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "question_id": "q-me-1",
+      "sequence_order": 4,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-01T07:09:25.33Z"
+    },
+    {
+      "id": "qq-session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0-5",
+      "session_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "question_id": "q-ee-1",
+      "sequence_order": 5,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-01T07:09:25.332Z"
+    },
+    {
+      "id": "qq-session-d28acd1e-a6bf-4de5-8914-104fb1d2558c-1",
+      "session_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "question_id": "q-ece-1",
+      "sequence_order": 1,
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 12,
+      "updated_at": "2026-10-01T07:09:58.36Z"
+    },
+    {
+      "id": "qq-session-d28acd1e-a6bf-4de5-8914-104fb1d2558c-2",
+      "session_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "question_id": "q-ece-2",
+      "sequence_order": 2,
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 12,
+      "updated_at": "2026-10-01T07:09:58.362Z"
+    },
+    {
+      "id": "qq-session-d28acd1e-a6bf-4de5-8914-104fb1d2558c-3",
+      "session_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "question_id": "q-me-1",
+      "sequence_order": 3,
+      "user_answer": "A",
+      "is_correct": true,
+      "time_spent_seconds": 12,
+      "updated_at": "2026-10-01T07:09:58.364Z"
+    },
+    {
+      "id": "qq-session-d28acd1e-a6bf-4de5-8914-104fb1d2558c-4",
+      "session_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "question_id": "q-ee-1",
+      "sequence_order": 4,
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 12,
+      "updated_at": "2026-10-01T07:09:58.365Z"
+    },
+    {
+      "id": "qq-session-d28acd1e-a6bf-4de5-8914-104fb1d2558c-5",
+      "session_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "question_id": "q-dbms-2",
+      "sequence_order": 5,
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 12,
+      "updated_at": "2026-10-01T07:09:58.366Z"
+    },
+    {
+      "id": "qq-session-a581686a-70b2-4211-b994-5133023a424e-1",
+      "session_id": "session-a581686a-70b2-4211-b994-5133023a424e",
+      "question_id": "q-dbms-3",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-a581686a-70b2-4211-b994-5133023a424e-2",
+      "session_id": "session-a581686a-70b2-4211-b994-5133023a424e",
+      "question_id": "q-cn-1",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-a581686a-70b2-4211-b994-5133023a424e-3",
+      "session_id": "session-a581686a-70b2-4211-b994-5133023a424e",
+      "question_id": "q-dbms-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-a581686a-70b2-4211-b994-5133023a424e-4",
+      "session_id": "session-a581686a-70b2-4211-b994-5133023a424e",
+      "question_id": "q-dbms-4",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-a581686a-70b2-4211-b994-5133023a424e-5",
+      "session_id": "session-a581686a-70b2-4211-b994-5133023a424e",
+      "question_id": "q-dbms-2",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376-1",
+      "session_id": "session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376",
+      "question_id": "q-dbms-3",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376-2",
+      "session_id": "session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376",
+      "question_id": "q-cn-1",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376-3",
+      "session_id": "session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376",
+      "question_id": "q-dbms-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376-4",
+      "session_id": "session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376",
+      "question_id": "q-dbms-4",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376-5",
+      "session_id": "session-2f0f8f7b-eb4f-45e5-9287-38e0da49a376",
+      "question_id": "q-dbms-2",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-fc75311f-b540-48e8-84b9-245bf731e3de-1",
+      "session_id": "session-fc75311f-b540-48e8-84b9-245bf731e3de",
+      "question_id": "q-dbms-3",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-fc75311f-b540-48e8-84b9-245bf731e3de-2",
+      "session_id": "session-fc75311f-b540-48e8-84b9-245bf731e3de",
+      "question_id": "q-cn-1",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-fc75311f-b540-48e8-84b9-245bf731e3de-3",
+      "session_id": "session-fc75311f-b540-48e8-84b9-245bf731e3de",
+      "question_id": "q-dbms-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-fc75311f-b540-48e8-84b9-245bf731e3de-4",
+      "session_id": "session-fc75311f-b540-48e8-84b9-245bf731e3de",
+      "question_id": "q-dbms-4",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-fc75311f-b540-48e8-84b9-245bf731e3de-5",
+      "session_id": "session-fc75311f-b540-48e8-84b9-245bf731e3de",
+      "question_id": "q-dbms-2",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-5b2902cc-0142-4039-95ea-5bd2605a52a1-1",
+      "session_id": "session-5b2902cc-0142-4039-95ea-5bd2605a52a1",
+      "question_id": "q-ece-1",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-5b2902cc-0142-4039-95ea-5bd2605a52a1-2",
+      "session_id": "session-5b2902cc-0142-4039-95ea-5bd2605a52a1",
+      "question_id": "q-dbms-2",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-5b2902cc-0142-4039-95ea-5bd2605a52a1-3",
+      "session_id": "session-5b2902cc-0142-4039-95ea-5bd2605a52a1",
+      "question_id": "q-ece-2",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-5b2902cc-0142-4039-95ea-5bd2605a52a1-4",
+      "session_id": "session-5b2902cc-0142-4039-95ea-5bd2605a52a1",
+      "question_id": "q-ee-1",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-5b2902cc-0142-4039-95ea-5bd2605a52a1-5",
+      "session_id": "session-5b2902cc-0142-4039-95ea-5bd2605a52a1",
+      "question_id": "q-dbms-1",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c-1",
+      "session_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "question_id": "q-ece-1",
+      "sequence_order": 1,
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "updated_at": "2026-10-10T18:27:44.753Z"
+    },
+    {
+      "id": "qq-session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c-2",
+      "session_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "question_id": "q-dbms-2",
+      "sequence_order": 2,
+      "user_answer": "C",
+      "is_correct": false,
+      "time_spent_seconds": 1,
+      "updated_at": "2026-10-10T18:27:44.755Z"
+    },
+    {
+      "id": "qq-session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c-3",
+      "session_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "question_id": "q-ece-2",
+      "sequence_order": 3,
+      "user_answer": "D",
+      "is_correct": false,
+      "time_spent_seconds": 1,
+      "updated_at": "2026-10-10T18:27:44.758Z"
+    },
+    {
+      "id": "qq-session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c-4",
+      "session_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "question_id": "q-ee-1",
+      "sequence_order": 4,
+      "user_answer": "B",
+      "is_correct": true,
+      "time_spent_seconds": 1,
+      "updated_at": "2026-10-10T18:27:44.760Z"
+    },
+    {
+      "id": "qq-session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c-5",
+      "session_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "question_id": "q-dbms-1",
+      "sequence_order": 5,
+      "user_answer": "C",
+      "is_correct": false,
+      "time_spent_seconds": 1,
+      "updated_at": "2026-10-10T18:27:44.761Z"
+    },
+    {
+      "id": "qq-session-48dc6f1e-a71b-4360-be69-1194d3fa3218-1",
+      "session_id": "session-48dc6f1e-a71b-4360-be69-1194d3fa3218",
+      "question_id": "q-dbms-1",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-48dc6f1e-a71b-4360-be69-1194d3fa3218-2",
+      "session_id": "session-48dc6f1e-a71b-4360-be69-1194d3fa3218",
+      "question_id": "q-dbms-2",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-48dc6f1e-a71b-4360-be69-1194d3fa3218-3",
+      "session_id": "session-48dc6f1e-a71b-4360-be69-1194d3fa3218",
+      "question_id": "q-ece-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-48dc6f1e-a71b-4360-be69-1194d3fa3218-4",
+      "session_id": "session-48dc6f1e-a71b-4360-be69-1194d3fa3218",
+      "question_id": "q-ece-2",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-48dc6f1e-a71b-4360-be69-1194d3fa3218-5",
+      "session_id": "session-48dc6f1e-a71b-4360-be69-1194d3fa3218",
+      "question_id": "q-apt-1",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-929384f8-9b5b-4e5e-b19e-43790d2f9507-1",
+      "session_id": "session-929384f8-9b5b-4e5e-b19e-43790d2f9507",
+      "question_id": "q-dbms-1",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-929384f8-9b5b-4e5e-b19e-43790d2f9507-2",
+      "session_id": "session-929384f8-9b5b-4e5e-b19e-43790d2f9507",
+      "question_id": "q-dbms-2",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-929384f8-9b5b-4e5e-b19e-43790d2f9507-3",
+      "session_id": "session-929384f8-9b5b-4e5e-b19e-43790d2f9507",
+      "question_id": "q-ece-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-929384f8-9b5b-4e5e-b19e-43790d2f9507-4",
+      "session_id": "session-929384f8-9b5b-4e5e-b19e-43790d2f9507",
+      "question_id": "q-ece-2",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-36718a7e-a336-4044-ac39-b249046e74d4-1",
+      "session_id": "session-36718a7e-a336-4044-ac39-b249046e74d4",
+      "question_id": "q-dbms-1",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-36718a7e-a336-4044-ac39-b249046e74d4-2",
+      "session_id": "session-36718a7e-a336-4044-ac39-b249046e74d4",
+      "question_id": "q-dbms-2",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-36718a7e-a336-4044-ac39-b249046e74d4-3",
+      "session_id": "session-36718a7e-a336-4044-ac39-b249046e74d4",
+      "question_id": "q-ece-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-36718a7e-a336-4044-ac39-b249046e74d4-4",
+      "session_id": "session-36718a7e-a336-4044-ac39-b249046e74d4",
+      "question_id": "q-ece-2",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-ae95a042-3816-4437-af83-90dc0c932607-1",
+      "session_id": "session-ae95a042-3816-4437-af83-90dc0c932607",
+      "question_id": "q-dsa-2",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-ae95a042-3816-4437-af83-90dc0c932607-2",
+      "session_id": "session-ae95a042-3816-4437-af83-90dc0c932607",
+      "question_id": "q-apt-1",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-ae95a042-3816-4437-af83-90dc0c932607-3",
+      "session_id": "session-ae95a042-3816-4437-af83-90dc0c932607",
+      "question_id": "q-dbms-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-ae95a042-3816-4437-af83-90dc0c932607-4",
+      "session_id": "session-ae95a042-3816-4437-af83-90dc0c932607",
+      "question_id": "q-ece-1",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-282b2893-0eac-4cb6-84d1-697771137397-1",
+      "session_id": "session-282b2893-0eac-4cb6-84d1-697771137397",
+      "question_id": "q-dsa-2",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-282b2893-0eac-4cb6-84d1-697771137397-2",
+      "session_id": "session-282b2893-0eac-4cb6-84d1-697771137397",
+      "question_id": "q-apt-1",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-282b2893-0eac-4cb6-84d1-697771137397-3",
+      "session_id": "session-282b2893-0eac-4cb6-84d1-697771137397",
+      "question_id": "q-dbms-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-282b2893-0eac-4cb6-84d1-697771137397-4",
+      "session_id": "session-282b2893-0eac-4cb6-84d1-697771137397",
+      "question_id": "q-ece-1",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-session-c649c9e6-86c3-4c4d-98d2-d2558e90631a-1",
+      "session_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "question_id": "q-me-1",
+      "sequence_order": 1,
+      "user_answer": "A",
+      "is_correct": true,
+      "time_spent_seconds": 3,
+      "updated_at": "2026-10-13T04:19:52.859Z"
+    },
+    {
+      "id": "qq-session-c649c9e6-86c3-4c4d-98d2-d2558e90631a-2",
+      "session_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "question_id": "q-apt-1",
+      "sequence_order": 2,
+      "user_answer": "C",
+      "is_correct": true,
+      "time_spent_seconds": 2,
+      "updated_at": "2026-10-13T04:19:52.866Z"
+    },
+    {
+      "id": "qq-session-c649c9e6-86c3-4c4d-98d2-d2558e90631a-3",
+      "session_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "question_id": "q-dsa-2",
+      "sequence_order": 3,
+      "user_answer": "D",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "updated_at": "2026-10-13T04:19:52.875Z"
+    },
+    {
+      "id": "qq-session-c649c9e6-86c3-4c4d-98d2-d2558e90631a-4",
+      "session_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "question_id": "q-ee-1",
+      "sequence_order": 4,
+      "user_answer": "B",
+      "is_correct": true,
+      "time_spent_seconds": 2,
+      "updated_at": "2026-10-13T04:19:52.883Z"
+    },
+    {
+      "id": "qq-session-c649c9e6-86c3-4c4d-98d2-d2558e90631a-5",
+      "session_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "question_id": "q-dbms-1",
+      "sequence_order": 5,
+      "user_answer": "A",
+      "is_correct": false,
+      "time_spent_seconds": 2,
+      "updated_at": "2026-10-13T04:19:52.891Z"
+    }
+  ],
+  "studentPerformance": [
+    {
+      "id": "perf-1",
+      "user_id": "user-student-demo",
+      "topic_id": "top-normalization",
+      "subject_id": "sub-dbms",
+      "attempts_count": 11,
+      "correct_count": 3,
+      "accuracy_rate": 27.27272727272727,
+      "weakness_score": 0.73,
+      "last_attempted_at": "2026-10-10T18:27:44.764Z",
+      "updated_at": "2026-10-10T18:27:44.764Z"
+    },
+    {
+      "id": "perf-2",
+      "user_id": "user-student-demo",
+      "topic_id": "top-trees",
+      "subject_id": "sub-dsa",
+      "attempts_count": 6,
+      "correct_count": 5,
+      "accuracy_rate": 83.3,
+      "weakness_score": 0.18,
+      "last_attempted_at": "2026-09-30T18:23:17.842Z"
+    },
+    {
+      "id": "perf-3",
+      "user_id": "user-student-demo",
+      "topic_id": "top-deadlocks",
+      "subject_id": "sub-os",
+      "attempts_count": 4,
+      "correct_count": 2,
+      "accuracy_rate": 50,
+      "weakness_score": 0.6,
+      "last_attempted_at": "2026-09-29T06:23:17.842Z"
+    },
+    {
+      "id": "perf-4",
+      "user_id": "user-student-demo",
+      "topic_id": "top-osi-tcp",
+      "subject_id": "sub-cn",
+      "attempts_count": 4,
+      "correct_count": 4,
+      "accuracy_rate": 100,
+      "weakness_score": 0.05,
+      "last_attempted_at": "2026-09-30T20:23:17.842Z"
+    },
+    {
+      "id": "perf-64fcc545-c531-46f0-93d7-203cc2653a65",
+      "user_id": "user-student-demo",
+      "topic_id": "top-dp",
+      "subject_id": "sub-dsa",
+      "attempts_count": 1,
+      "correct_count": 1,
+      "accuracy_rate": 100,
+      "weakness_score": 0,
+      "last_attempted_at": "2026-10-01T06:23:39.057Z"
+    },
+    {
+      "id": "perf-401ad3f1-0f0a-462e-b018-6343f8bb9cf0",
+      "user_id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "topic_id": "top-dp",
+      "subject_id": "sub-dsa",
+      "attempts_count": 1,
+      "correct_count": 1,
+      "accuracy_rate": 100,
+      "weakness_score": 0,
+      "last_attempted_at": "2026-10-01T06:31:15.329Z"
+    },
+    {
+      "id": "perf-2ab47701-c4fb-4e83-97e1-1b7c697dd775",
+      "user_id": "user-student-demo",
+      "topic_id": "top-8085",
+      "subject_id": "sub-microproc",
+      "attempts_count": 3,
+      "correct_count": 0,
+      "accuracy_rate": 0,
+      "weakness_score": 1,
+      "last_attempted_at": "2026-10-10T18:27:44.763Z",
+      "updated_at": "2026-10-10T18:27:44.763Z"
+    },
+    {
+      "id": "perf-69b1f54f-dccc-4d7a-b2c2-327b1f9a6ddb",
+      "user_id": "user-student-demo",
+      "topic_id": "top-logic-gates",
+      "subject_id": "sub-digital-elec",
+      "attempts_count": 3,
+      "correct_count": 0,
+      "accuracy_rate": 0,
+      "weakness_score": 1,
+      "last_attempted_at": "2026-10-10T18:27:44.765Z",
+      "updated_at": "2026-10-10T18:27:44.765Z"
+    },
+    {
+      "id": "perf-7497746e-7aac-40ea-99c5-d2fbff1dd7f9",
+      "user_id": "user-student-demo",
+      "topic_id": "top-thermo-laws",
+      "subject_id": "sub-thermo",
+      "attempts_count": 2,
+      "correct_count": 1,
+      "accuracy_rate": 50,
+      "weakness_score": 0.5,
+      "last_attempted_at": "2026-10-01T07:09:58.369Z",
+      "updated_at": "2026-10-01T07:09:58.369Z"
+    },
+    {
+      "id": "perf-100d937f-55e2-4749-bc12-40315aa2927f",
+      "user_id": "user-student-demo",
+      "topic_id": "top-transformers",
+      "subject_id": "sub-power-sys",
+      "attempts_count": 3,
+      "correct_count": 1,
+      "accuracy_rate": 33.33333333333333,
+      "weakness_score": 0.67,
+      "last_attempted_at": "2026-10-10T18:27:44.766Z",
+      "updated_at": "2026-10-10T18:27:44.766Z"
+    },
+    {
+      "id": "perf-811b2a42-139f-4297-8a85-a3e8c46520f4",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "topic_id": "top-thermo-laws",
+      "subject_id": "sub-thermo",
+      "attempts_count": 1,
+      "correct_count": 1,
+      "accuracy_rate": 100,
+      "weakness_score": 0,
+      "last_attempted_at": "2026-10-13T04:19:52.899Z"
+    },
+    {
+      "id": "perf-823a0829-1fe2-4bd1-bb99-81f858074d23",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "topic_id": "top-quant",
+      "subject_id": "sub-aptitude",
+      "attempts_count": 1,
+      "correct_count": 1,
+      "accuracy_rate": 100,
+      "weakness_score": 0,
+      "last_attempted_at": "2026-10-13T04:19:52.903Z"
+    },
+    {
+      "id": "perf-e3504266-0e3d-479a-9d2d-89e14738da1f",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "topic_id": "top-trees",
+      "subject_id": "sub-dsa",
+      "attempts_count": 1,
+      "correct_count": 0,
+      "accuracy_rate": 0,
+      "weakness_score": 1,
+      "last_attempted_at": "2026-10-13T04:19:52.907Z"
+    },
+    {
+      "id": "perf-abc5da8e-e8e5-4df6-848a-c201786d1bc6",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "topic_id": "top-transformers",
+      "subject_id": "sub-power-sys",
+      "attempts_count": 1,
+      "correct_count": 1,
+      "accuracy_rate": 100,
+      "weakness_score": 0,
+      "last_attempted_at": "2026-10-13T04:19:52.912Z"
+    },
+    {
+      "id": "perf-a19487b0-4266-4cde-ab22-5714e1137b2d",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "topic_id": "top-normalization",
+      "subject_id": "sub-dbms",
+      "attempts_count": 1,
+      "correct_count": 0,
+      "accuracy_rate": 0,
+      "weakness_score": 1,
+      "last_attempted_at": "2026-10-13T04:19:52.916Z"
+    }
+  ],
+  "xpHistory": [
+    {
+      "id": "xp-1",
+      "user_id": "user-student-demo",
+      "amount": 100,
+      "action_type": "DAILY_STREAK_BONUS",
+      "created_at": "2026-10-01T06:23:17.842Z"
+    },
+    {
+      "id": "xp-2",
+      "user_id": "user-student-demo",
+      "amount": 320,
+      "action_type": "ADAPTIVE_QUIZ_COMPLETED",
+      "created_at": "2026-10-01T06:23:17.842Z"
+    },
+    {
+      "id": "xph-1a3b0f77-09af-4f53-a9d3-696df6d00db4",
+      "user_id": "user-student-demo",
+      "amount": 75,
+      "action_type": "ADAPTIVE_DAILY_QUIZ",
+      "reference_id": "session-372b1def-3a78-4523-99ff-c17c4a372d4d",
+      "created_at": "2026-10-01T06:23:39.059Z"
+    },
+    {
+      "id": "xph-eddc3858-3450-4108-ae00-5b8e6ca20792",
+      "user_id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-01T06:29:44.733Z"
+    },
+    {
+      "id": "xph-7ba22418-1562-4ce2-b914-670b32a246a4",
+      "user_id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "amount": 40,
+      "action_type": "CUSTOM_PRACTICE_QUIZ",
+      "reference_id": "session-0004d6c4-cbe4-43ec-a872-5c6cf59d4ad5",
+      "created_at": "2026-10-01T06:31:15.332Z"
+    },
+    {
+      "id": "xph-30adde1e-15e9-4d98-bbf5-72004f1b79d6",
+      "user_id": "user-student-demo",
+      "amount": 0,
+      "action_type": "ADAPTIVE_DAILY_QUIZ",
+      "reference_id": "session-5eabc09d-da65-4d19-a4dd-7214ce4d2da0",
+      "created_at": "2026-10-01T07:09:25.337Z"
+    },
+    {
+      "id": "xph-09fc68fe-30be-46aa-a89c-1a7060c38321",
+      "user_id": "user-student-demo",
+      "amount": 30,
+      "action_type": "ADAPTIVE_DAILY_QUIZ",
+      "reference_id": "session-d28acd1e-a6bf-4de5-8914-104fb1d2558c",
+      "created_at": "2026-10-01T07:09:58.373Z"
+    },
+    {
+      "id": "xph-de8ec19b-e9dc-4d4b-b3ed-cbc4101e3e6f",
+      "user_id": "user-91246806-8f55-4c24-9063-bd373eb83f28",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-10T17:33:38.533Z"
+    },
+    {
+      "id": "xph-8b67059b-47ed-4d5e-b521-e5643882bde0",
+      "user_id": "user-student-demo",
+      "amount": 30,
+      "action_type": "ADAPTIVE_DAILY_QUIZ",
+      "reference_id": "session-012d8826-8d0c-4704-bc8a-5f0264bbfe2c",
+      "created_at": "2026-10-10T18:27:44.770Z"
+    },
+    {
+      "id": "4b7b0ac2-36fb-40dd-b53b-4148ced0df29",
+      "user_id": "user-student-demo",
+      "amount": 50,
+      "action_type": "CODING_PROBLEM_SOLVED",
+      "created_at": "2026-10-12T09:43:48.637Z"
+    },
+    {
+      "id": "xph-81009a46-6940-4651-bb76-2774c013cc01",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-12T18:19:54.353Z"
+    },
+    {
+      "id": "xph-45ce14ef-5515-4736-8e76-b03156f8f15c",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "amount": 90,
+      "action_type": "CUSTOM_PRACTICE_QUIZ",
+      "reference_id": "session-c649c9e6-86c3-4c4d-98d2-d2558e90631a",
+      "created_at": "2026-10-13T04:19:52.928Z"
+    }
+  ],
+  "streaks": [
+    {
+      "id": "streak-1",
+      "user_id": "user-student-demo",
+      "current_streak": 1,
+      "longest_streak": 9,
+      "last_activity_date": "2026-10-10",
+      "streak_freeze_count": 2,
+      "updated_at": "2026-10-10T18:27:44.768Z"
+    },
+    {
+      "id": "streak-user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "user_id": "user-abfb943e-d336-4187-ae9e-b75afa98d1a5",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-01",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-91246806-8f55-4c24-9063-bd373eb83f28",
+      "user_id": "user-91246806-8f55-4c24-9063-bd373eb83f28",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-10",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "current_streak": 2,
+      "longest_streak": 2,
+      "last_activity_date": "2026-10-13",
+      "streak_freeze_count": 2,
+      "updated_at": "2026-10-13T04:19:52.920Z"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "ach-first-step",
+      "title": "First Flight",
+      "description": "Complete your first practice quiz on CareerPrep AI.",
+      "badge_icon": "Rocket",
+      "category": "PRACTICE",
+      "xp_reward": 50,
+      "condition_type": "QUIZ_COUNT",
+      "threshold": 1
+    },
+    {
+      "id": "ach-streak-3",
+      "title": "Consistent Flyer",
+      "description": "Maintain an uninterrupted 3-day study streak.",
+      "badge_icon": "Flame",
+      "category": "STREAK",
+      "xp_reward": 100,
+      "condition_type": "STREAK",
+      "threshold": 3
+    },
+    {
+      "id": "ach-streak-7",
+      "title": "Week Warrior",
+      "description": "Keep a 7-day placement preparation streak alive.",
+      "badge_icon": "Award",
+      "category": "STREAK",
+      "xp_reward": 250,
+      "condition_type": "STREAK",
+      "threshold": 7
+    },
+    {
+      "id": "ach-dbms-ace",
+      "title": "Normalization Ninja",
+      "description": "Score above 80% accuracy in Database Normalization.",
+      "badge_icon": "Database",
+      "category": "SUBJECT",
+      "xp_reward": 150,
+      "condition_type": "TOPIC_ACCURACY",
+      "threshold": 80
+    },
+    {
+      "id": "ach-pilot-friend",
+      "title": "PrepPilot Navigator",
+      "description": "Ask PrepPilot 5 technical viva questions using Voice Assistant.",
+      "badge_icon": "Mic",
+      "category": "PREPPILOT",
+      "xp_reward": 120,
+      "condition_type": "VOICE_QUERIES",
+      "threshold": 5
+    },
+    {
+      "id": "ach-tcs-ready",
+      "title": "TCS NQT Ready",
+      "description": "Complete 3 company pattern quizzes with >= 75% accuracy.",
+      "badge_icon": "Briefcase",
+      "category": "COMPANY",
+      "xp_reward": 200,
+      "condition_type": "COMPANY_QUIZZES",
+      "threshold": 3
+    }
+  ],
+  "userAchievements": [
+    {
+      "id": "uach-1",
+      "user_id": "user-student-demo",
+      "achievement_id": "ach-first-step",
+      "unlocked_at": "2026-09-28T06:23:17.842Z"
+    },
+    {
+      "id": "uach-2",
+      "user_id": "user-student-demo",
+      "achievement_id": "ach-streak-3",
+      "unlocked_at": "2026-09-30T06:23:17.842Z"
+    }
+  ],
+  "knowledgeDocuments": [
+    {
+      "id": "doc-norm-guide",
+      "title": "Mastering Database Normalization (1NF, 2NF, 3NF, BCNF) for Placement Interviews",
+      "branch_id": "branch-it",
+      "subject_id": "sub-dbms",
+      "company_id": "comp-tcs",
+      "category": "CONCEPT",
+      "keywords": [
+        "normalization",
+        "1nf",
+        "2nf",
+        "3nf",
+        "bcnf",
+        "functional dependencies",
+        "redundancy",
+        "transitive",
+        "candidate key"
+      ],
+      "summary": "Comprehensive viva guide on eliminating anomalies (insertion, deletion, update) in relational schemas with clear interview examples.",
+      "content": "\nDatabase Normalization is the systematic technique of organizing data in a relational database to minimize redundancy and eliminate anomalous dependencies (Insertion, Update, and Deletion anomalies).\n\nKey Normal Forms for Technical Interviews:\n1. First Normal Form (1NF):\n   - Every column must hold atomic (indivisible) values.\n   - No repeating groups or arrays stored in a single attribute.\n   - A primary key must uniquely identify each record.\n\n2. Second Normal Form (2NF):\n   - Relation must be in 1NF.\n   - Eliminates Partial Dependency: Every non-prime attribute must be fully functionally dependent on the entire primary key, not a proper subset of it.\n   - Note: If the primary key consists of only a single attribute, the relation is automatically in 2NF if in 1NF!\n\n3. Third Normal Form (3NF):\n   - Relation must be in 2NF.\n   - Eliminates Transitive Dependency: For every functional dependency X -> A, either X is a Super Key or A is a prime attribute. Non-prime attributes cannot determine other non-prime attributes.\n   - Standard placement interview question: \"Why is 3NF preferred over BCNF in industry?\" Answer: 3NF guarantees dependency preservation while achieving lossless join decomposition.\n\n4. Boyce-Codd Normal Form (BCNF / 3.5NF):\n   - Stricter version of 3NF. For every functional dependency X -> A, X MUST be a Super Key without exception.\n\nCommon Interview Trap:\nCandidate key vs Super key: A superkey is any set of attributes that uniquely identifies a row; a candidate key is a minimal superkey containing no redundant attributes.\n      "
+    },
+    {
+      "id": "doc-acid-transactions",
+      "title": "ACID Properties, Isolation Levels and Deadlock Handling in Production DBMS",
+      "branch_id": "branch-it",
+      "subject_id": "sub-dbms",
+      "company_id": "comp-infosys",
+      "category": "CONCEPT",
+      "keywords": [
+        "acid",
+        "atomicity",
+        "consistency",
+        "isolation",
+        "durability",
+        "dirty read",
+        "phantom read",
+        "serializability",
+        "2pl"
+      ],
+      "summary": "Interview-ready breakdown of transaction management, isolation anomalies and Two-Phase Locking (2PL).",
+      "content": "\nA database transaction is a logical unit of work that must satisfy ACID properties:\n- Atomicity: \"All or nothing\" execution. Managed via Write-Ahead Logging (WAL) and Undo logs.\n- Consistency: The database must transition from one valid state to another, preserving all integrity constraints and foreign keys.\n- Isolation: Concurrent transactions must execute without mutual interference.\n- Durability: Once a transaction commits, its modifications are permanently recorded even in the event of power outage or system crash (via Redo logs and checkpointing).\n\nSQL Isolation Levels & Prevented Read Phenomena:\n1. Read Uncommitted: Suffers from Dirty Reads, Non-Repeatable Reads, Phantom Reads.\n2. Read Committed (Postgres default): Prevents Dirty Reads.\n3. Repeatable Read (MySQL default): Prevents Dirty Reads and Non-Repeatable Reads.\n4. Serializable: Prevents all anomalies including Phantom Reads via strict 2-Phase Locking (2PL) or SSI.\n      "
+    },
+    {
+      "id": "doc-tcs-pattern",
+      "title": "TCS NQT & Digital Interview Blueprint – Frequently Tested Patterns",
+      "branch_id": "branch-cse",
+      "subject_id": "sub-dsa",
+      "company_id": "comp-tcs",
+      "category": "INTERVIEW_PATTERN",
+      "keywords": [
+        "tcs",
+        "nqt",
+        "digital",
+        "ninja",
+        "prime",
+        "pattern",
+        "coding round",
+        "technical viva",
+        "pointers"
+      ],
+      "summary": "Complete recruitment breakdown for TCS Ninja, Digital and Prime roles, common coding patterns, and HR questions.",
+      "content": "\nTCS Recruitment Structure (NQT Ninja & Digital/Prime):\n1. Foundation Section (Cognitive): Numerical Ability (20 Qs), Verbal Ability (25 Qs), Reasoning Ability (20 Qs).\n2. Advanced Section: Advanced Quantitative & Reasoning (15 Qs), Hands-on Coding (2 Questions - 1 Easy/Medium, 1 Medium/Hard).\n\nTop Repeated Coding Patterns in TCS:\n- String manipulation without built-in library functions (Anagrams, Palindromes, Word Reversals).\n- Array rotations, Sliding Window maximum, Subarray with given sum.\n- Number theory: GCD/LCM, Prime factor factorization, Matrix spiral printing.\n\nTechnical Viva Expectations for TCS:\n- Explain your final year project architecture, your specific contribution, and database schema.\n- Difference between Process and Thread, Stack vs Heap memory allocation.\n- OOP: Difference between Abstract Class and Interface, Virtual Destructors.\n- DBMS: Write SQL query for Nth highest salary and explain Inner vs Left Outer Join.\n      "
+    },
+    {
+      "id": "doc-os-paging",
+      "title": "Operating Systems: Virtual Memory, Paging, Page Fault Handling & Thrashing",
+      "branch_id": "branch-cse",
+      "subject_id": "sub-os",
+      "company_id": "comp-amazon",
+      "category": "CONCEPT",
+      "keywords": [
+        "virtual memory",
+        "paging",
+        "tlb",
+        "page fault",
+        "thrashing",
+        "belady anomaly",
+        "lru",
+        "os"
+      ],
+      "summary": "Virtual memory concepts explained with memory management unit (MMU), Translation Lookaside Buffer (TLB), and Belady's anomaly.",
+      "content": "\nVirtual Memory maps large virtual address spaces onto smaller physical RAM frames using Paging.\n- Logical Address is divided into: Page Number (p) and Offset (d).\n- TLB (Translation Lookaside Buffer): High-speed hardware associative cache that stores recently accessed page-to-frame translations to avoid memory access penalties.\n- Page Fault: Occurs when a referenced page is not currently resident in physical RAM (valid bit = 0 in Page Table). The CPU triggers a trap to OS kernel.\n- Thrashing: Occurs when an OS spends more CPU cycles paging data in and out of swap space than executing productive process instructions. Occurs when sum of working sets exceeds total physical RAM.\n- Belady's Anomaly: In FIFO page replacement, increasing the number of physical page frames can paradoxically increase the number of page faults. Optimal and LRU page replacement policies never exhibit Belady's Anomaly.\n      "
+    },
+    {
+      "id": "doc-amazon-principles",
+      "title": "Cracking FAANG & Amazon Technical Interviews: DSA & STAR Method",
+      "branch_id": "branch-cse",
+      "subject_id": "sub-dsa",
+      "company_id": "comp-amazon",
+      "category": "INTERVIEW_PATTERN",
+      "keywords": [
+        "amazon",
+        "faang",
+        "leadership principles",
+        "star method",
+        "dsa",
+        "system design",
+        "coding round"
+      ],
+      "summary": "Preparation guide for Amazon SDE-1: Problem solving on dynamic programming, trees, and behavioral behavioral alignment with Leadership Principles.",
+      "content": "\nAmazon SDE-1 Recruitment Framework:\n1. Online Assessment (OA): 2 DSA questions (Graphs/DP/Priority Queues) + Work Style Assessment.\n2. Technical Rounds: Live coding on binary search, two pointers, trees, DFS/BFS, topological sort.\n3. Leadership Principles Integration: Every Amazon technical interviewer spends 15-20 minutes evaluating 2 Leadership Principles using the STAR method (Situation, Task, Action, Result).\n   - \"Customer Obsession\"\n   - \"Ownership\"\n   - \"Bias for Action\"\n   - \"Earn Trust\"\nAlways speak your thought process out loud before typing any code. State time and space complexity upfront.\n      "
+    },
+    {
+      "id": "doc-ece-embedded",
+      "title": "ENTC / ECE Placement Core Guide: 8085 Architecture, Interrupts and Embedded C",
+      "branch_id": "branch-ece",
+      "subject_id": "sub-microproc",
+      "company_id": "comp-tcs",
+      "category": "CONCEPT",
+      "keywords": [
+        "8085",
+        "microprocessor",
+        "embedded",
+        "interrupts",
+        "trap",
+        "rst",
+        "ece",
+        "entc",
+        "ale"
+      ],
+      "summary": "Core technical questions for electronics engineers appearing for embedded hardware and IT technical rounds.",
+      "content": "\nCore ECE Technical Viva Questions:\n1. 8085 Microprocessor Highlights:\n   - 8-bit data bus, 16-bit address bus (can address up to 64 KB of memory).\n   - Clock frequency: typically 3 MHz (internal clock generated by dividing crystal frequency by 2).\n   - Flags: Sign (S), Zero (Z), Auxiliary Carry (AC), Parity (P), Carry (CY).\n\n2. 8085 Interrupt Hierarchy (Highest to Lowest Priority):\n   - TRAP (Non-Maskable, Vectored at 0024H)\n   - RST 7.5 (Maskable, Edge-triggered, Vectored at 003CH)\n   - RST 6.5 (Maskable, Level-triggered, Vectored at 0034H)\n   - RST 5.5 (Maskable, Level-triggered, Vectored at 002CH)\n   - INTR (Maskable, Non-vectored)\n\n3. Difference between Microprocessor and Microcontroller:\n   - Microprocessor contains ALU, Registers and Control Unit; external RAM, ROM and I/O ports must be connected.\n   - Microcontroller has CPU, RAM, ROM, Timers and I/O ports integrated onto a single monolithic IC (e.g. 8051, ATmega328P, STM32).\n      "
+    },
+    {
+      "id": "doc-thermo-me",
+      "title": "Mechanical Engineering Core Interview: Laws of Thermodynamics & Heat Transfer",
+      "branch_id": "branch-me",
+      "subject_id": "sub-thermo",
+      "company_id": "comp-tcs",
+      "category": "CONCEPT",
+      "keywords": [
+        "thermodynamics",
+        "carnot",
+        "first law",
+        "second law",
+        "heat transfer",
+        "mechanical",
+        "entropy"
+      ],
+      "summary": "Mechanical technical interview questions for GET (Graduate Engineer Trainee) drives.",
+      "content": "\nEssential Mechanical Engineering Placement Concepts:\n1. Zeroth Law: Establishes thermal equilibrium and temperature measurement.\n2. First Law: Conservation of energy (dQ = dU + dW for closed systems).\n3. Second Law:\n   - Kelvin-Planck statement: Impossible to construct an engine operating in a cycle that absorbs heat from a single reservoir and produces an equivalent amount of work.\n   - Clausius statement: Impossible to construct a cyclic device that transfers heat from a lower temperature body to a higher temperature body without external work input.\n4. Modes of Heat Transfer:\n   - Conduction (Fourier's Law: Q = -k * A * dT/dx)\n   - Convection (Newton's Law of Cooling: Q = h * A * (Ts - Tinf))\n   - Radiation (Stefan-Boltzmann Law: E = epsilon * sigma * A * T^4)\n      "
+    }
+  ],
+  "announcements": [
+    {
+      "id": "ann-3e1a9e09-a8d2-4ea7-98c0-188127dac6be",
+      "title": "TCS NQT National Placement Drive 2026",
+      "message": "Registration window is live for Ninja & Digital profiles. Prepare DSA & Pseudocode questions.",
+      "category": "DRIVE",
+      "priority": "HIGH",
+      "company_name": "TCS",
+      "deadline": "Oct 28, 2026",
+      "created_at": "2026-10-08T06:50:42.014Z",
+      "created_by": "Dr. Ramesh Kulkarni (Placement Dean)"
+    }
+  ],
+  "codingProblems": [
+    {
+      "id": "prob-two-sum",
+      "title": "Two Sum",
+      "difficulty": "Easy",
+      "branch_id": "branch-cse",
+      "company_id": "comp-amazon",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-arrays",
+      "tags": [
+        "Arrays",
+        "Hash Table",
+        "Amazon",
+        "TCS Ninja",
+        "Top 50"
+      ],
+      "description": "Given an array of integers `nums` and an integer `target`, find the two numbers in the array such that they add up to `target`.\n\nReturn their indices formatted as space-separated 0-indexed integers in ascending order.\n\nYou may assume that each input will have exactly one solution, and you may not use the same element twice.",
+      "constraints": "2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\n-10^9 <= target <= 10^9\nOnly one valid answer exists.",
+      "timeLimit": 2000,
+      "memoryLimit": 256,
+      "starterCode": {
+        "c": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+        "python": "import sys\n\ndef two_sum():\n    lines = sys.stdin.read().strip().split('\\n')\n    if len(lines) < 2:\n        return\n    nums = list(map(int, lines[0].split()))\n    target = int(lines[1].strip())\n    \n    seen = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            print(f\"{seen[complement]} {i}\")\n            return\n        seen[num] = i\n\nif __name__ == '__main__':\n    two_sum()",
+        "cpp": "#include <iostream>\n#include <vector>\n#include <unordered_map>\n#include <sstream>\nusing namespace std;\n\nint main() {\n    string line1, line2;\n    if (!getline(cin, line1)) return 0;\n    getline(cin, line2);\n\n    stringstream ss(line1);\n    vector<int> nums;\n    int val;\n    while (ss >> val) nums.push_back(val);\n    int target = stoi(line2);\n\n    unordered_map<int, int> seen;\n    for (int i = 0; i < nums.size(); i++) {\n        int comp = target - nums[i];\n        if (seen.count(comp)) {\n            cout << seen[comp] << \" \" << i << endl;\n            return 0;\n        }\n        seen[nums[i]] = i;\n    }\n    return 0;\n}",
+        "java": "import java.util.*;\n\nclass Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextLine()) return;\n        String line1 = sc.nextLine().trim();\n        if (!sc.hasNextInt()) return;\n        int target = sc.nextInt();\n\n        String[] parts = line1.split(\"\\\\s+\");\n        int[] nums = new int[parts.length];\n        for (int i = 0; i < parts.length; i++) nums[i] = Integer.parseInt(parts[i]);\n\n        Map<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int comp = target - nums[i];\n            if (map.containsKey(comp)) {\n                System.out.println(map.get(comp) + \" \" + i);\n                return;\n            }\n            map.put(nums[i], i);\n        }\n    }\n}"
+      },
+      "created_at": "2026-10-12T18:42:12.848Z",
+      "updated_at": "2026-10-12T18:42:12.855Z",
+      "hints": [
+        "A brute force approach checks every pair of elements in O(n^2) time. Can you do it faster using extra space?",
+        "For each element x in the array, what complementary value are you looking for? (target - x)",
+        "Can you store numbers you have already visited in a hash map mapping value -> index so lookups take O(1) time?"
+      ],
+      "editorial": {
+        "approach": "One-Pass Hash Table",
+        "timeComplexity": "O(n)",
+        "spaceComplexity": "O(n)",
+        "explanation": "Iterate through the array once while maintaining a hash map of numbers seen so far and their indices. For each number, compute complement = target - num. If complement is already in the map, we have found our answer in O(1) lookup time."
+      }
+    },
+    {
+      "id": "prob-valid-parentheses",
+      "title": "Valid Parentheses",
+      "difficulty": "Easy",
+      "branch_id": "branch-cse",
+      "company_id": "comp-infosys",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-stack-queue",
+      "tags": [
+        "Stack",
+        "Strings",
+        "Infosys",
+        "TCS",
+        "Accenture"
+      ],
+      "description": "Given a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid.\n\nAn input string is valid if:\n1. Open brackets must be closed by the same type of brackets.\n2. Open brackets must be closed in the correct order.\n3. Every close bracket has a corresponding open bracket of the same type.\n\nPrint `true` if the string is valid, or `false` otherwise.",
+      "constraints": "1 <= s.length <= 10^4\ns consists of parentheses only '()[]{}'.",
+      "timeLimit": 2000,
+      "memoryLimit": 256,
+      "starterCode": {
+        "c": "#include <stdio.h>\n#include <stdbool.h>\n#include <string.h>\n\nint main() {\n    char s[10005];\n    if (scanf(\"%s\", s) != 1) return 0;\n\n    char stack[10005];\n    int top = -1;\n\n    for (int i = 0; s[i] != '\\0'; i++) {\n        char c = s[i];\n        if (c == '(' || c == '{' || c == '[') {\n            stack[++top] = c;\n        } else {\n            if (top == -1) {\n                printf(\"false\\n\");\n                return 0;\n            }\n            char open = stack[top--];\n            if ((c == ')' && open != '(') ||\n                (c == '}' && open != '{') ||\n                (c == ']' && open != '[')) {\n                printf(\"false\\n\");\n                return 0;\n            }\n        }\n    }\n\n    if (top == -1) {\n        printf(\"true\\n\");\n    } else {\n        printf(\"false\\n\");\n    }\n    return 0;\n}",
+        "python": "import sys\n\ndef is_valid():\n    s = sys.stdin.read().strip()\n    stack = []\n    pairs = {')': '(', '}': '{', ']': '['}\n    \n    for ch in s:\n        if ch in pairs:\n            if not stack or stack[-1] != pairs[ch]:\n                print(\"false\")\n                return\n            stack.pop()\n        else:\n            stack.append(ch)\n            \n    print(\"true\" if len(stack) == 0 else \"false\")\n\nif __name__ == '__main__':\n    is_valid()",
+        "cpp": "#include <iostream>\n#include <stack>\n#include <unordered_map>\nusing namespace std;\n\nint main() {\n    string s;\n    if (!(cin >> s)) return 0;\n\n    stack<char> st;\n    unordered_map<char, char> pairs = {{')', '('}, {'}', '{'}, {']', '['}};\n\n    for (char c : s) {\n        if (pairs.count(c)) {\n            if (st.empty() || st.top() != pairs[c]) {\n                cout << \"false\" << endl;\n                return 0;\n            }\n            st.pop();\n        } else {\n            st.push(c);\n        }\n    }\n\n    cout << (st.empty() ? \"true\" : \"false\") << endl;\n    return 0;\n}",
+        "java": "import java.util.*;\n\nclass Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNext()) return;\n        String s = sc.next().trim();\n\n        Deque<Character> stack = new ArrayDeque<>();\n        for (char c : s.toCharArray()) {\n            if (c == '(') stack.push(')');\n            else if (c == '{') stack.push('}');\n            else if (c == '[') stack.push(']');\n            else {\n                if (stack.isEmpty() || stack.pop() != c) {\n                    System.out.println(\"false\");\n                    return;\n                }\n            }\n        }\n        System.out.println(stack.isEmpty() ? \"true\" : \"false\");\n    }\n}"
+      },
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.857Z",
+      "hints": [
+        "Brackets have a Last-In, First-Out (LIFO) relationship. Which data structure naturally supports this?",
+        "When encountering an opening bracket, push it onto the stack. When encountering a closing bracket, check if it matches the top element.",
+        "Remember edge cases: an empty string is valid, but unmatched opening brackets remaining at the end make it invalid."
+      ],
+      "editorial": {
+        "approach": "Stack Evaluation",
+        "timeComplexity": "O(n)",
+        "spaceComplexity": "O(n)",
+        "explanation": "Iterate through the string. Push open brackets onto a stack. When a closing bracket is seen, verify the stack is non-empty and pop the top element. If it doesn't match the required opening bracket, return false. At the end, return true only if the stack is completely empty."
+      }
+    },
+    {
+      "id": "prob-binary-search",
+      "title": "Binary Search",
+      "difficulty": "Easy",
+      "branch_id": "branch-it",
+      "company_id": "comp-wipro",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-searching-sorting",
+      "tags": [
+        "Binary Search",
+        "Algorithms",
+        "Wipro",
+        "Cognizant"
+      ],
+      "description": "Given a sorted array of distinct integers `nums` in ascending order and a target value `target`, search for `target` in `nums`.\n\nIf `target` exists in the array, print its 0-based index. Otherwise, print `-1`.\n\nYour algorithm must have `O(log n)` runtime complexity.",
+      "constraints": "1 <= nums.length <= 10^4\n-10^4 < nums[i], target < 10^4\nAll integers in nums are unique and sorted in ascending order.",
+      "timeLimit": 2000,
+      "memoryLimit": 256,
+      "starterCode": {
+        "c": "#include <stdio.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    int left = 0, right = n - 1, ans = -1;\n    while (left <= right) {\n        int mid = left + (right - left) / 2;\n        if (nums[mid] == target) {\n            ans = mid;\n            break;\n        } else if (nums[mid] < target) {\n            left = mid + 1;\n        } else {\n            right = mid - 1;\n        }\n    }\n    printf(\"%d\\n\", ans);\n    return 0;\n}",
+        "python": "import sys\n\ndef binary_search():\n    lines = sys.stdin.read().strip().split('\\n')\n    if len(lines) < 2:\n        return\n    nums = list(map(int, lines[0].split()))\n    target = int(lines[1].strip())\n\n    left, right = 0, len(nums) - 1\n    ans = -1\n    while left <= right:\n        mid = (left + right) // 2\n        if nums[mid] == target:\n            ans = mid\n            break\n        elif nums[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n\n    print(ans)\n\nif __name__ == '__main__':\n    binary_search()",
+        "cpp": "#include <iostream>\n#include <vector>\n#include <sstream>\nusing namespace std;\n\nint main() {\n    string l1, l2;\n    if (!getline(cin, l1)) return 0;\n    getline(cin, l2);\n\n    stringstream ss(l1);\n    vector<int> nums;\n    int v;\n    while (ss >> v) nums.push_back(v);\n    int target = stoi(l2);\n\n    int left = 0, right = nums.size() - 1, ans = -1;\n    while (left <= right) {\n        int mid = left + (right - left) / 2;\n        if (nums[mid] == target) {\n            ans = mid;\n            break;\n        } else if (nums[mid] < target) {\n            left = mid + 1;\n        } else {\n            right = mid - 1;\n        }\n    }\n    cout << ans << endl;\n    return 0;\n}",
+        "java": "import java.util.*;\n\nclass Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextLine()) return;\n        String line1 = sc.nextLine().trim();\n        if (!sc.hasNextInt()) return;\n        int target = sc.nextInt();\n\n        String[] parts = line1.split(\"\\\\s+\");\n        int[] nums = new int[parts.length];\n        for (int i = 0; i < parts.length; i++) nums[i] = Integer.parseInt(parts[i]);\n\n        int left = 0, right = nums.length - 1, ans = -1;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (nums[mid] == target) {\n                ans = mid;\n                break;\n            } else if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        System.out.println(ans);\n    }\n}"
+      },
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.860Z",
+      "hints": [
+        "The input array is already sorted. What property allows you to discard half the search space at each step?",
+        "Calculate mid = left + (right - left) // 2 to avoid potential integer overflow.",
+        "If nums[mid] < target, target must lie in the right half (left = mid + 1). Otherwise, look in the left half."
+      ],
+      "editorial": {
+        "approach": "Divide and Conquer (Binary Search)",
+        "timeComplexity": "O(log n)",
+        "spaceComplexity": "O(1)",
+        "explanation": "Maintain left and right boundary pointers. While left <= right, find the middle index. If nums[mid] equals target, return mid immediately. If nums[mid] is smaller, shift left to mid + 1. Otherwise, shift right to mid - 1. If left exceeds right, return -1."
+      }
+    },
+    {
+      "id": "prob-max-subarray",
+      "title": "Maximum Subarray (Kadane’s Algorithm)",
+      "difficulty": "Medium",
+      "branch_id": "branch-cse",
+      "company_id": "comp-amazon",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-dp",
+      "tags": [
+        "Dynamic Programming",
+        "Kadane",
+        "Arrays",
+        "Amazon",
+        "TCS Digital"
+      ],
+      "description": "Given an integer array `nums`, find the contiguous subarray (containing at least one number) which has the largest sum, and return its sum.\n\nPrint the single maximum sum integer to standard output.",
+      "constraints": "1 <= nums.length <= 10^5\n-10^4 <= nums[i] <= 10^4",
+      "timeLimit": 2000,
+      "memoryLimit": 256,
+      "starterCode": {
+        "c": "#include <stdio.h>\n\nint main() {\n    int nums[100005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n    }\n    if (n == 0) return 0;\n\n    long long max_sum = nums[0];\n    long long curr_sum = nums[0];\n    for (int i = 1; i < n; i++) {\n        if (curr_sum + nums[i] > nums[i]) {\n            curr_sum = curr_sum + nums[i];\n        } else {\n            curr_sum = nums[i];\n        }\n        if (curr_sum > max_sum) {\n            max_sum = curr_sum;\n        }\n    }\n    printf(\"%lld\\n\", max_sum);\n    return 0;\n}",
+        "python": "import sys\n\ndef max_subarray():\n    raw = sys.stdin.read().strip()\n    if not raw:\n        return\n    nums = list(map(int, raw.split()))\n    \n    max_sum = nums[0]\n    curr_sum = nums[0]\n    for x in nums[1:]:\n        curr_sum = max(x, curr_sum + x)\n        max_sum = max(max_sum, curr_sum)\n        \n    print(max_sum)\n\nif __name__ == '__main__':\n    max_subarray()",
+        "cpp": "#include <iostream>\n#include <vector>\n#include <sstream>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    string line;\n    if (!getline(cin, line)) return 0;\n    stringstream ss(line);\n    vector<int> nums;\n    int v;\n    while (ss >> v) nums.push_back(v);\n\n    if (nums.empty()) return 0;\n    long long maxSum = nums[0], currSum = nums[0];\n    for (size_t i = 1; i < nums.size(); i++) {\n        currSum = max((long long)nums[i], currSum + nums[i]);\n        maxSum = max(maxSum, currSum);\n    }\n    cout << maxSum << endl;\n    return 0;\n}",
+        "java": "import java.util.*;\n\nclass Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextLine()) return;\n        String line = sc.nextLine().trim();\n        String[] parts = line.split(\"\\\\s+\");\n        if (parts.length == 0 || parts[0].isEmpty()) return;\n\n        int[] nums = new int[parts.length];\n        for (int i = 0; i < parts.length; i++) nums[i] = Integer.parseInt(parts[i]);\n\n        long maxSum = nums[0], currSum = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            currSum = Math.max(nums[i], currSum + nums[i]);\n            maxSum = Math.max(maxSum, currSum);\n        }\n        System.out.println(maxSum);\n    }\n}"
+      },
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.862Z",
+      "hints": [
+        "Can negative prefix sums ever contribute positively to subsequent subarrays?",
+        "At each step, decide whether to append the current element to the existing running sum or restart a new subarray from the current element.",
+        "Kadane's algorithm maintains currSum = max(num, currSum + num) and updates maxSum = max(maxSum, currSum)."
+      ],
+      "editorial": {
+        "approach": "Kadane's Algorithm (Dynamic Programming)",
+        "timeComplexity": "O(n)",
+        "spaceComplexity": "O(1)",
+        "explanation": "Iterate through the array. Keep a running sum of the current contiguous subarray. If the running sum falls below the current number, reset the running sum to the current number. Keep track of the global maximum sum across the entire traversal."
+      }
+    },
+    {
+      "id": "prob-palindrome-string",
+      "title": "Valid Palindrome",
+      "difficulty": "Easy",
+      "branch_id": "branch-it",
+      "company_id": "comp-tcs",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-strings",
+      "tags": [
+        "Two Pointers",
+        "Strings",
+        "TCS NQT",
+        "Cognizant"
+      ],
+      "description": "A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers.\n\nGiven a string `s`, print `true` if it is a palindrome, or `false` otherwise.",
+      "constraints": "1 <= s.length <= 2 * 10^5\ns consists only of printable ASCII characters.",
+      "timeLimit": 2000,
+      "memoryLimit": 256,
+      "starterCode": {
+        "c": "#include <stdio.h>\n#include <ctype.h>\n#include <stdbool.h>\n#include <string.h>\n\nint main() {\n    char s[200005];\n    if (!fgets(s, sizeof(s), stdin)) return 0;\n\n    int left = 0;\n    int right = (int)strlen(s) - 1;\n\n    while (left < right) {\n        while (left < right && !isalnum((unsigned char)s[left])) left++;\n        while (left < right && !isalnum((unsigned char)s[right])) right--;\n        if (tolower((unsigned char)s[left]) != tolower((unsigned char)s[right])) {\n            printf(\"false\\n\");\n            return 0;\n        }\n        left++;\n        right--;\n    }\n    printf(\"true\\n\");\n    return 0;\n}",
+        "python": "import sys\n\ndef is_palindrome():\n    s = sys.stdin.read().strip()\n    cleaned = ''.join(ch.lower() for ch in s if ch.isalnum())\n    print(\"true\" if cleaned == cleaned[::-1] else \"false\")\n\nif __name__ == '__main__':\n    is_palindrome()",
+        "cpp": "#include <iostream>\n#include <string>\n#include <cctype>\nusing namespace std;\n\nint main() {\n    string s;\n    getline(cin, s);\n    string cleaned = \"\";\n    for (char c : s) {\n        if (isalnum(c)) cleaned += tolower(c);\n    }\n    int l = 0, r = (int)cleaned.size() - 1;\n    bool ok = true;\n    while (l < r) {\n        if (cleaned[l++] != cleaned[r--]) {\n            ok = false;\n            break;\n        }\n    }\n    cout << (ok ? \"true\" : \"false\") << endl;\n    return 0;\n}",
+        "java": "import java.util.*;\n\nclass Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String s = sc.hasNextLine() ? sc.nextLine() : \"\";\n        StringBuilder sb = new StringBuilder();\n        for (char c : s.toCharArray()) {\n            if (Character.isLetterOrDigit(c)) sb.append(Character.toLowerCase(c));\n        }\n        String clean = sb.toString();\n        String rev = sb.reverse().toString();\n        System.out.println(clean.equals(rev) ? \"true\" : \"false\");\n    }\n}"
+      },
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.865Z",
+      "hints": [
+        "Filter the string to keep only alphanumeric characters and convert them to lowercase.",
+        "Use two pointers: one starting from the beginning and one from the end.",
+        "Move them inwards and verify characters match at every step."
+      ],
+      "editorial": {
+        "approach": "Two Pointers Traversal",
+        "timeComplexity": "O(n)",
+        "spaceComplexity": "O(1)",
+        "explanation": "Place left pointer at index 0 and right pointer at length - 1. Move inwards, skipping non-alphanumeric characters. Compare lowercased characters. If any mismatch occurs, print false. If pointers cross without mismatch, print true."
+      }
+    },
+    {
+      "id": "prob-longest-substring",
+      "title": "Longest Substring Without Repeating Characters",
+      "difficulty": "Medium",
+      "branch_id": "branch-cse",
+      "company_id": "comp-amazon",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-strings",
+      "tags": [
+        "Sliding Window",
+        "Hash Table",
+        "Amazon",
+        "Infosys HackWithInfy"
+      ],
+      "description": "Given a string `s`, find the length of the longest substring without repeating characters.\n\nPrint the single integer length to standard output.",
+      "constraints": "0 <= s.length <= 5 * 10^4\ns consists of English letters, digits, symbols and spaces.",
+      "timeLimit": 2000,
+      "memoryLimit": 256,
+      "starterCode": {
+        "c": "#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char s[50005];\n    if (!fgets(s, sizeof(s), stdin)) {\n        printf(\"0\\n\");\n        return 0;\n    }\n    int len = (int)strlen(s);\n    while (len > 0 && (s[len - 1] == '\\n' || s[len - 1] == '\\r')) {\n        s[--len] = '\\0';\n    }\n\n    int last[256];\n    for (int i = 0; i < 256; i++) last[i] = -1;\n\n    int left = 0, max_len = 0;\n    for (int right = 0; right < len; right++) {\n        unsigned char c = (unsigned char)s[right];\n        if (last[c] >= left) {\n            left = last[c] + 1;\n        }\n        last[c] = right;\n        int cur_len = right - left + 1;\n        if (cur_len > max_len) max_len = cur_len;\n    }\n    printf(\"%d\\n\", max_len);\n    return 0;\n}",
+        "python": "import sys\n\ndef length_of_longest_substring():\n    s = sys.stdin.read().rstrip('\\r\\n')\n    char_map = {}\n    left = 0\n    max_len = 0\n    for right, ch in enumerate(s):\n        if ch in char_map and char_map[ch] >= left:\n            left = char_map[ch] + 1\n        char_map[ch] = right\n        max_len = max(max_len, right - left + 1)\n    print(max_len)\n\nif __name__ == '__main__':\n    length_of_longest_substring()",
+        "cpp": "#include <iostream>\n#include <string>\n#include <unordered_map>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    string s;\n    if (!getline(cin, s)) {\n        cout << 0 << endl;\n        return 0;\n    }\n    unordered_map<char, int> lastIdx;\n    int left = 0, maxLen = 0;\n    for (int right = 0; right < (int)s.size(); right++) {\n        char c = s[right];\n        if (lastIdx.count(c) && lastIdx[c] >= left) {\n            left = lastIdx[c] + 1;\n        }\n        lastIdx[c] = right;\n        maxLen = max(maxLen, right - left + 1);\n    }\n    cout << maxLen << endl;\n    return 0;\n}",
+        "java": "import java.util.*;\n\nclass Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String s = sc.hasNextLine() ? sc.nextLine() : \"\";\n        Map<Character, Integer> map = new HashMap<>();\n        int left = 0, maxLen = 0;\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            if (map.containsKey(c) && map.get(c) >= left) {\n                left = map.get(c) + 1;\n            }\n            map.put(c, right);\n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        System.out.println(maxLen);\n    }\n}"
+      },
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.867Z",
+      "hints": [
+        "Can you maintain a sliding window [left, right] of characters that are currently distinct?",
+        "Use a hash map or array to store the last seen position of each character.",
+        "If a character is already inside the current window, advance the left pointer past its previous index."
+      ],
+      "editorial": {
+        "approach": "Sliding Window with Hash Map",
+        "timeComplexity": "O(n)",
+        "spaceComplexity": "O(min(n, m))",
+        "explanation": "Maintain two pointers representing the window. As right expands, if the character was already seen inside [left, right], advance left to lastSeen[ch] + 1. Update lastSeen[ch] = right and update maxLen = max(maxLen, right - left + 1)."
+      }
+    },
+    {
+      "id": "prob-buy-sell-stock",
+      "title": "Best Time to Buy and Sell Stock",
+      "difficulty": "Easy",
+      "branch_id": "branch-cse",
+      "company_id": "comp-amazon",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-arrays",
+      "tags": [
+        "Arrays",
+        "Dynamic Programming",
+        "Amazon",
+        "TCS",
+        "Accenture"
+      ],
+      "description": "You are given an array `prices` where `prices[i]` is the price of a given stock on the `i`-th day.\n\nYou want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock.\n\nPrint the maximum profit you can achieve from this transaction. If you cannot achieve any profit, print `0`.",
+      "constraints": "1 <= prices.length <= 10^5\n0 <= prices[i] <= 10^4",
+      "timeLimit": 2000,
+      "memoryLimit": 256,
+      "hints": [
+        "You cannot sell a stock before you buy it. The buy day must come strictly before the sell day.",
+        "As you iterate through the days, track the lowest price observed so far.",
+        "The maximum profit on day i is prices[i] - minPriceSoFar."
+      ],
+      "editorial": {
+        "approach": "One-Pass Minimum Tracking",
+        "timeComplexity": "O(n)",
+        "spaceComplexity": "O(1)",
+        "explanation": "Maintain minPrice initialized to infinity and maxProfit to 0. For each price, update minPrice = min(minPrice, price), and compute profit = price - minPrice. If profit > maxProfit, update maxProfit. Output maxProfit."
+      },
+      "starterCode": {
+        "c": "#include <stdio.h>\n\nint main() {\n    int prices[100005];\n    int n = 0;\n    while (scanf(\"%d\", &prices[n]) == 1) {\n        n++;\n    }\n    if (n <= 1) {\n        printf(\"0\\n\");\n        return 0;\n    }\n\n    int min_price = prices[0];\n    int max_profit = 0;\n    for (int i = 1; i < n; i++) {\n        if (prices[i] < min_price) {\n            min_price = prices[i];\n        } else if (prices[i] - min_price > max_profit) {\n            max_profit = prices[i] - min_price;\n        }\n    }\n    printf(\"%d\\n\", max_profit);\n    return 0;\n}",
+        "python": "import sys\n\ndef max_profit():\n    raw = sys.stdin.read().strip()\n    if not raw:\n        print(0)\n        return\n    prices = list(map(int, raw.split()))\n    min_price = float('inf')\n    max_profit = 0\n    for p in prices:\n        if p < min_price:\n            min_price = p\n        elif p - min_price > max_profit:\n            max_profit = p - min_price\n    print(max_profit)\n\nif __name__ == '__main__':\n    max_profit()",
+        "cpp": "#include <iostream>\n#include <vector>\n#include <sstream>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    string line;\n    if (!getline(cin, line)) {\n        cout << 0 << endl;\n        return 0;\n    }\n    stringstream ss(line);\n    int p;\n    int minPrice = 1e9, maxProfit = 0;\n    while (ss >> p) {\n        if (p < minPrice) minPrice = p;\n        else if (p - minPrice > maxProfit) maxProfit = p - minPrice;\n    }\n    cout << maxProfit << endl;\n    return 0;\n}",
+        "java": "import java.util.*;\n\nclass Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) {\n            System.out.println(0);\n            return;\n        }\n        int minPrice = Integer.MAX_VALUE;\n        int maxProfit = 0;\n        while (sc.hasNextInt()) {\n            int p = sc.nextInt();\n            if (p < minPrice) minPrice = p;\n            else if (p - minPrice > maxProfit) maxProfit = p - minPrice;\n        }\n        System.out.println(maxProfit);\n    }\n}"
+      },
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.871Z"
+    },
+    {
+      "id": "prob-climbing-stairs",
+      "title": "Climbing Stairs",
+      "difficulty": "Easy",
+      "branch_id": "branch-cse",
+      "company_id": "comp-infosys",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-dp",
+      "tags": [
+        "Dynamic Programming",
+        "Math",
+        "Infosys",
+        "Cognizant",
+        "TCS"
+      ],
+      "description": "You are climbing a staircase. It takes `n` steps to reach the top.\n\nEach time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?\n\nPrint the number of distinct ways to standard output.",
+      "constraints": "1 <= n <= 45",
+      "timeLimit": 2000,
+      "memoryLimit": 256,
+      "hints": [
+        "To reach step n, you could have arrived from either step n-1 (by taking 1 step) or step n-2 (by taking 2 steps).",
+        "ways(n) = ways(n-1) + ways(n-2). This is identical to the Fibonacci sequence!",
+        "You only need to store the previous two values instead of an entire array."
+      ],
+      "editorial": {
+        "approach": "Fibonacci Dynamic Programming",
+        "timeComplexity": "O(n)",
+        "spaceComplexity": "O(1)",
+        "explanation": "Base cases: ways(1) = 1, ways(2) = 2. For i from 3 to n, current = prev1 + prev2. Update pointers iteratively in O(1) space."
+      },
+      "starterCode": {
+        "c": "#include <stdio.h>\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    if (n <= 2) {\n        printf(\"%d\\n\", n);\n        return 0;\n    }\n    long long a = 1, b = 2;\n    for (int i = 3; i <= n; i++) {\n        long long c = a + b;\n        a = b;\n        b = c;\n    }\n    printf(\"%lld\\n\", b);\n    return 0;\n}",
+        "python": "import sys\n\ndef climb_stairs():\n    raw = sys.stdin.read().strip()\n    if not raw:\n        return\n    n = int(raw)\n    if n <= 2:\n        print(n)\n        return\n    a, b = 1, 2\n    for _ in range(3, n + 1):\n        a, b = b, a + b\n    print(b)\n\nif __name__ == '__main__':\n    climb_stairs()",
+        "cpp": "#include <iostream>\nusing namespace std;\n\nint main() {\n    int n;\n    if (!(cin >> n)) return 0;\n    if (n <= 2) {\n        cout << n << endl;\n        return 0;\n    }\n    long long a = 1, b = 2;\n    for (int i = 3; i <= n; i++) {\n        long long c = a + b;\n        a = b;\n        b = c;\n    }\n    cout << b << endl;\n    return 0;\n}",
+        "java": "import java.util.*;\n\nclass Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        if (n <= 2) {\n            System.out.println(n);\n            return;\n        }\n        int a = 1, b = 2;\n        for (int i = 3; i <= n; i++) {\n            int c = a + b;\n            a = b;\n            b = c;\n        }\n        System.out.println(b);\n    }\n}"
+      },
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.873Z"
+    },
+    {
+      "id": "prob-container-with-most-water",
+      "title": "Container With Most Water",
+      "difficulty": "Medium",
+      "branch_id": "branch-cse",
+      "company_id": "comp-amazon",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-arrays",
+      "tags": [
+        "Two Pointers",
+        "Greedy",
+        "Amazon",
+        "Microsoft"
+      ],
+      "description": "You are given an integer array `height` of length `n`. There are `n` vertical lines drawn such that the two endpoints of the `i`-th line are `(i, 0)` and `(i, height[i])`.\n\nFind two lines that together with the x-axis form a container, such that the container contains the most water.\n\nReturn the maximum amount of water a container can store. Print the integer answer.",
+      "constraints": "2 <= n <= 10^5\n0 <= height[i] <= 10^4",
+      "timeLimit": 2000,
+      "memoryLimit": 256,
+      "hints": [
+        "The area is limited by min(height[left], height[right]) * (right - left).",
+        "Start with the widest container using two pointers at the ends (left = 0, right = n-1).",
+        "Which pointer should you move inwards? Moving the taller line cannot increase the area because width decreases and the height was bottlenecked by the shorter line anyway. Always move the shorter pointer!"
+      ],
+      "editorial": {
+        "approach": "Two Pointers Greedy",
+        "timeComplexity": "O(n)",
+        "spaceComplexity": "O(1)",
+        "explanation": "Place pointers at left = 0 and right = n - 1. Calculate area = min(height[left], height[right]) * (right - left). Compare with maxArea. Move the pointer pointing to the shorter vertical bar inward, because keeping the shorter bar with a reduced width cannot possibly yield a larger area."
+      },
+      "starterCode": {
+        "c": "#include <stdio.h>\n\nint main() {\n    int h[100005];\n    int n = 0;\n    while (scanf(\"%d\", &h[n]) == 1) {\n        n++;\n    }\n    int l = 0, r = n - 1;\n    long long max_water = 0;\n    while (l < r) {\n        int height = h[l] < h[r] ? h[l] : h[r];\n        long long water = (long long)height * (r - l);\n        if (water > max_water) max_water = water;\n        if (h[l] < h[r]) l++;\n        else r--;\n    }\n    printf(\"%lld\\n\", max_water);\n    return 0;\n}",
+        "python": "import sys\n\ndef max_area():\n    raw = sys.stdin.read().strip()\n    if not raw:\n        return\n    height = list(map(int, raw.split()))\n    left, right = 0, len(height) - 1\n    max_water = 0\n    while left < right:\n        h = min(height[left], height[right])\n        max_water = max(max_water, h * (right - left))\n        if height[left] < height[right]:\n            left += 1\n        else:\n            right -= 1\n    print(max_water)\n\nif __name__ == '__main__':\n    max_area()",
+        "cpp": "#include <iostream>\n#include <vector>\n#include <sstream>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    string line;\n    if (!getline(cin, line)) return 0;\n    stringstream ss(line);\n    vector<int> h;\n    int v;\n    while (ss >> v) h.push_back(v);\n\n    int l = 0, r = (int)h.size() - 1;\n    long long maxW = 0;\n    while (l < r) {\n        long long currentH = min(h[l], h[r]);\n        maxW = max(maxW, currentH * (r - l));\n        if (h[l] < h[r]) l++;\n        else r--;\n    }\n    cout << maxW << endl;\n    return 0;\n}",
+        "java": "import java.util.*;\n\nclass Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        List<Integer> list = new ArrayList<>();\n        while (sc.hasNextInt()) list.add(sc.nextInt());\n        int l = 0, r = list.size() - 1;\n        long maxW = 0;\n        while (l < r) {\n            long h = Math.min(list.get(l), list.get(r));\n            maxW = Math.max(maxW, h * (r - l));\n            if (list.get(l) < list.get(r)) l++;\n            else r--;\n        }\n        System.out.println(maxW);\n    }\n}"
+      },
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.876Z"
+    }
+  ],
+  "codingTestCases": [
+    {
+      "id": "tc-two-sum-1",
+      "problem_id": "prob-two-sum",
+      "input": "2 7 11 15\n9",
+      "expectedOutput": "0 1",
+      "isHidden": false,
+      "explanation": "nums[0] + nums[1] == 2 + 7 == 9, indices are 0 1",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.878Z"
+    },
+    {
+      "id": "tc-two-sum-2",
+      "problem_id": "prob-two-sum",
+      "input": "3 2 4\n6",
+      "expectedOutput": "1 2",
+      "isHidden": false,
+      "explanation": "nums[1] + nums[2] == 2 + 4 == 6, indices are 1 2",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.879Z"
+    },
+    {
+      "id": "tc-two-sum-3",
+      "problem_id": "prob-two-sum",
+      "input": "3 3\n6",
+      "expectedOutput": "0 1",
+      "isHidden": false,
+      "explanation": "nums[0] + nums[1] == 3 + 3 == 6, indices are 0 1",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.881Z"
+    },
+    {
+      "id": "tc-two-sum-4",
+      "problem_id": "prob-two-sum",
+      "input": "1 5 8 10 14\n19",
+      "expectedOutput": "1 4",
+      "isHidden": true,
+      "explanation": "5 + 14 == 19",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.883Z"
+    },
+    {
+      "id": "tc-two-sum-5",
+      "problem_id": "prob-two-sum",
+      "input": "-3 4 3 90\n0",
+      "expectedOutput": "0 2",
+      "isHidden": true,
+      "explanation": "-3 + 3 == 0",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.885Z"
+    },
+    {
+      "id": "tc-vp-1",
+      "problem_id": "prob-valid-parentheses",
+      "input": "()",
+      "expectedOutput": "true",
+      "isHidden": false,
+      "explanation": "Single matching round brackets pair",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.888Z"
+    },
+    {
+      "id": "tc-vp-2",
+      "problem_id": "prob-valid-parentheses",
+      "input": "()[]{}",
+      "expectedOutput": "true",
+      "isHidden": false,
+      "explanation": "Consecutive valid pairs",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.890Z"
+    },
+    {
+      "id": "tc-vp-3",
+      "problem_id": "prob-valid-parentheses",
+      "input": "(]",
+      "expectedOutput": "false",
+      "isHidden": false,
+      "explanation": "Mismatched bracket types",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.892Z"
+    },
+    {
+      "id": "tc-vp-4",
+      "problem_id": "prob-valid-parentheses",
+      "input": "([{}])",
+      "expectedOutput": "true",
+      "isHidden": true,
+      "explanation": "Nested bracket sequences correctly closed",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.894Z"
+    },
+    {
+      "id": "tc-vp-5",
+      "problem_id": "prob-valid-parentheses",
+      "input": "[(])",
+      "expectedOutput": "false",
+      "isHidden": true,
+      "explanation": "Interleaved incorrect closure order",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.896Z"
+    },
+    {
+      "id": "tc-bs-1",
+      "problem_id": "prob-binary-search",
+      "input": "-1 0 3 5 9 12\n9",
+      "expectedOutput": "4",
+      "isHidden": false,
+      "explanation": "9 exists in nums and its index is 4",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.898Z"
+    },
+    {
+      "id": "tc-bs-2",
+      "problem_id": "prob-binary-search",
+      "input": "-1 0 3 5 9 12\n2",
+      "expectedOutput": "-1",
+      "isHidden": false,
+      "explanation": "2 does not exist in nums, return -1",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.900Z"
+    },
+    {
+      "id": "tc-bs-3",
+      "problem_id": "prob-binary-search",
+      "input": "5\n5",
+      "expectedOutput": "0",
+      "isHidden": true,
+      "explanation": "Single element matching target",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.902Z"
+    },
+    {
+      "id": "tc-bs-4",
+      "problem_id": "prob-binary-search",
+      "input": "1 3 5 7 9 11 13\n13",
+      "expectedOutput": "6",
+      "isHidden": true,
+      "explanation": "Target is the last element at index 6",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.904Z"
+    },
+    {
+      "id": "tc-ms-1",
+      "problem_id": "prob-max-subarray",
+      "input": "-2 1 -3 4 -1 2 1 -5 4",
+      "expectedOutput": "6",
+      "isHidden": false,
+      "explanation": "The subarray [4,-1,2,1] has the largest sum 6.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.906Z"
+    },
+    {
+      "id": "tc-ms-2",
+      "problem_id": "prob-max-subarray",
+      "input": "1",
+      "expectedOutput": "1",
+      "isHidden": false,
+      "explanation": "Single element array max sum is 1",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.907Z"
+    },
+    {
+      "id": "tc-ms-3",
+      "problem_id": "prob-max-subarray",
+      "input": "5 4 -1 7 8",
+      "expectedOutput": "23",
+      "isHidden": false,
+      "explanation": "The subarray [5,4,-1,7,8] has the largest sum 23",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.909Z"
+    },
+    {
+      "id": "tc-ms-4",
+      "problem_id": "prob-max-subarray",
+      "input": "-5 -2 -8 -1",
+      "expectedOutput": "-1",
+      "isHidden": true,
+      "explanation": "All negative numbers: maximum is least negative element -1",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.911Z"
+    },
+    {
+      "id": "tc-pal-1",
+      "problem_id": "prob-palindrome-string",
+      "input": "A man, a plan, a canal: Panama",
+      "expectedOutput": "true",
+      "isHidden": false,
+      "explanation": "amanaplanacanalpanama is a palindrome",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.913Z"
+    },
+    {
+      "id": "tc-pal-2",
+      "problem_id": "prob-palindrome-string",
+      "input": "race a car",
+      "expectedOutput": "false",
+      "isHidden": false,
+      "explanation": "raceacar is not a palindrome",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.914Z"
+    },
+    {
+      "id": "tc-pal-3",
+      "problem_id": "prob-palindrome-string",
+      "input": "Was it a car or a cat I saw?",
+      "expectedOutput": "true",
+      "isHidden": true,
+      "explanation": "wasitacaroracatisaw is a palindrome",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.916Z"
+    },
+    {
+      "id": "tc-ls-1",
+      "problem_id": "prob-longest-substring",
+      "input": "abcabcbb",
+      "expectedOutput": "3",
+      "isHidden": false,
+      "explanation": "The answer is 'abc', with the length of 3.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.918Z"
+    },
+    {
+      "id": "tc-ls-2",
+      "problem_id": "prob-longest-substring",
+      "input": "bbbbb",
+      "expectedOutput": "1",
+      "isHidden": false,
+      "explanation": "The answer is 'b', with the length of 1.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.920Z"
+    },
+    {
+      "id": "tc-ls-3",
+      "problem_id": "prob-longest-substring",
+      "input": "pwwkew",
+      "expectedOutput": "3",
+      "isHidden": false,
+      "explanation": "The answer is 'wke', with length of 3.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.921Z"
+    },
+    {
+      "id": "tc-ls-4",
+      "problem_id": "prob-longest-substring",
+      "input": "abcdef",
+      "expectedOutput": "6",
+      "isHidden": true,
+      "explanation": "All distinct characters, length 6.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.923Z"
+    },
+    {
+      "id": "tc-bss-1",
+      "problem_id": "prob-buy-sell-stock",
+      "input": "7 1 5 3 6 4",
+      "expectedOutput": "5",
+      "isHidden": false,
+      "explanation": "Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.924Z"
+    },
+    {
+      "id": "tc-bss-2",
+      "problem_id": "prob-buy-sell-stock",
+      "input": "7 6 4 3 1",
+      "expectedOutput": "0",
+      "isHidden": false,
+      "explanation": "In this case, no transactions are done and max profit = 0.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.926Z"
+    },
+    {
+      "id": "tc-bss-3",
+      "problem_id": "prob-buy-sell-stock",
+      "input": "2 4 1",
+      "expectedOutput": "2",
+      "isHidden": true,
+      "explanation": "Buy at 2, sell at 4 = profit 2.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.927Z"
+    },
+    {
+      "id": "tc-bss-4",
+      "problem_id": "prob-buy-sell-stock",
+      "input": "1 2 3 4 5",
+      "expectedOutput": "4",
+      "isHidden": true,
+      "explanation": "Buy at 1, sell at 5 = profit 4.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.929Z"
+    },
+    {
+      "id": "tc-cs-1",
+      "problem_id": "prob-climbing-stairs",
+      "input": "2",
+      "expectedOutput": "2",
+      "isHidden": false,
+      "explanation": "There are two ways: 1+1 or 2 steps.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.930Z"
+    },
+    {
+      "id": "tc-cs-2",
+      "problem_id": "prob-climbing-stairs",
+      "input": "3",
+      "expectedOutput": "3",
+      "isHidden": false,
+      "explanation": "Three ways: 1+1+1, 1+2, or 2+1 steps.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.932Z"
+    },
+    {
+      "id": "tc-cs-3",
+      "problem_id": "prob-climbing-stairs",
+      "input": "5",
+      "expectedOutput": "8",
+      "isHidden": true,
+      "explanation": "Fibonacci sequence step 5 = 8 ways.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.933Z"
+    },
+    {
+      "id": "tc-cs-4",
+      "problem_id": "prob-climbing-stairs",
+      "input": "10",
+      "expectedOutput": "89",
+      "isHidden": true,
+      "explanation": "10 steps has 89 ways.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.935Z"
+    },
+    {
+      "id": "tc-cwm-1",
+      "problem_id": "prob-container-with-most-water",
+      "input": "1 8 6 2 5 4 8 3 7",
+      "expectedOutput": "49",
+      "isHidden": false,
+      "explanation": "Between index 1 (height 8) and index 8 (height 7), min(8,7) * (8-1) = 49.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.937Z"
+    },
+    {
+      "id": "tc-cwm-2",
+      "problem_id": "prob-container-with-most-water",
+      "input": "1 1",
+      "expectedOutput": "1",
+      "isHidden": false,
+      "explanation": "min(1,1) * (1-0) = 1.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.939Z"
+    },
+    {
+      "id": "tc-cwm-3",
+      "problem_id": "prob-container-with-most-water",
+      "input": "4 3 2 1 4",
+      "expectedOutput": "16",
+      "isHidden": true,
+      "explanation": "Endpoints 4 and 4 with width 4 = 16.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.940Z"
+    },
+    {
+      "id": "tc-cwm-4",
+      "problem_id": "prob-container-with-most-water",
+      "input": "1 2 1",
+      "expectedOutput": "2",
+      "isHidden": true,
+      "explanation": "Width 2 between 1 and 1 gives 2.",
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.942Z"
+    }
+  ],
+  "codingSubmissions": [
+    {
+      "id": "da2ef24b-bef9-4066-b792-7f0c6d745794",
+      "user_id": "user-student-demo",
+      "problem_id": "prob-two-sum",
+      "code": "import sys\n\ndef two_sum():\n    lines = sys.stdin.read().strip().split('\\n')\n    if len(lines) < 2: return\n    nums = list(map(int, lines[0].split()))\n    target = int(lines[1].strip())\n    seen = {}\n    for i, num in enumerate(nums):\n        comp = target - num\n        if comp in seen:\n            print(f\"{seen[comp]} {i}\")\n            return\n        seen[num] = i\n\ntwo_sum()\n",
+      "language": "python",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": ""
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": ""
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": ""
+        },
+        {
+          "input": "1 5 8 10 14\n19",
+          "expectedOutput": "1 4",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": ""
+        },
+        {
+          "input": "-3 4 3 90\n0",
+          "expectedOutput": "0 2",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": ""
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 0,
+      "memory_used": 0,
+      "submitted_at": "2026-10-12T09:43:48.633Z"
+    },
+    {
+      "id": "5011946d-39c2-4675-8529-f23ba21c13c3",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "problem_id": "prob-two-sum",
+      "code": "function solve() {\n    2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\n-10^9 <= target <= 10^9\n}\n\nsolve();",
+      "language": "javascript",
+      "status": "RUNTIME_ERROR",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "",
+          "passed": false,
+          "error": "file:///C:/Users/Shashwat/Downloads/new%20project%20234/new%20project%20234/server/temp_code/072466fc-fe3a-4d2f-9461-ee069145f8a4/main.js:2\r\n    2 <= nums.length <= 10^4\r\n         ^\r\n\r\nReferenceError: nums is not defined\r\n    at solve (file:///C:/Users/Shashwat/Downloads/new%20project%20234/new%20project%20234/server/temp_code/072466fc-fe3a-4d2f-9461-ee069145f8a4/main.js:2:10)\r\n    at file:///C:/Users/Shashwat/Downloads/new%20project%20234/new%20project%20234/server/temp_code/072466fc-fe3a-4d2f-9461-ee069145f8a4/main.js:7:1\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\r\n    at async node:internal/modules/esm/loader:650:26\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)\r\n\r\nNode.js v26.11.1"
+        }
+      ],
+      "passed_count": 0,
+      "total_count": 5,
+      "execution_time": 0,
+      "memory_used": 0,
+      "submitted_at": "2026-10-12T18:21:23.746Z"
+    },
+    {
+      "id": "5fe92196-8856-4fd8-884b-4b1842efd054",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "problem_id": "prob-two-sum",
+      "code": "function solve() {\n0\n1\n}\n\nsolve();",
+      "language": "javascript",
+      "status": "WRONG_ANSWER",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "",
+          "passed": false,
+          "error": ""
+        }
+      ],
+      "passed_count": 0,
+      "total_count": 5,
+      "execution_time": 0,
+      "memory_used": 0,
+      "submitted_at": "2026-10-12T18:21:36.780Z"
+    },
+    {
+      "id": "e59a11ab-f609-4c08-91c7-75be0d40693f",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "problem_id": "prob-two-sum",
+      "code": "function solve() {\n0\n1\n}\n\nsolve();",
+      "language": "javascript",
+      "status": "WRONG_ANSWER",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "",
+          "passed": false,
+          "error": ""
+        }
+      ],
+      "passed_count": 0,
+      "total_count": 5,
+      "execution_time": 0,
+      "memory_used": 0,
+      "submitted_at": "2026-10-12T18:21:40.102Z"
+    },
+    {
+      "id": "100f2d54-8fe0-45e7-8b2b-792c6eca39d7",
+      "user_id": "user-99e8a72f-d937-4083-be5c-89c0577bf9cc",
+      "problem_id": "prob-two-sum",
+      "code": "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    \n    // Write your solution here\n    \n    return 0;\n}",
+      "language": "cpp",
+      "status": "WRONG_ANSWER",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "",
+          "passed": false,
+          "error": ""
+        }
+      ],
+      "passed_count": 0,
+      "total_count": 5,
+      "execution_time": 0,
+      "memory_used": 0,
+      "submitted_at": "2026-10-12T18:21:44.577Z"
+    }
+  ],
+  "codingLanguages": [],
+  "codingBookmarks": [],
+  "codingAssessments": [
+    {
+      "id": "asmt-tcs-nqt-round1",
+      "title": "TCS NQT Hands-on Coding Round",
+      "description": "Simulated 45-minute assessment reflecting the TCS National Qualifier Test (NQT) coding section. Emphasizes foundational logic, string formatting, and array search algorithms.",
+      "company": "TCS",
+      "duration_minutes": 45,
+      "difficulty": "Easy",
+      "total_marks": 100,
+      "problem_ids": [
+        "prob-palindrome-string",
+        "prob-two-sum"
+      ],
+      "tags": [
+        "TCS NQT",
+        "National Qualifier",
+        "Arrays",
+        "Strings"
+      ],
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.944Z"
+    },
+    {
+      "id": "asmt-amazon-oa",
+      "title": "Amazon SDE-1 Online Assessment",
+      "description": "Amazon SDE-1 OA Simulation. Tests algorithmic optimization, contiguous subarray optimization, and sliding window string patterns under strict timing.",
+      "company": "Amazon",
+      "duration_minutes": 60,
+      "difficulty": "Medium",
+      "total_marks": 100,
+      "problem_ids": [
+        "prob-max-subarray",
+        "prob-longest-substring"
+      ],
+      "tags": [
+        "Amazon",
+        "SDE-1",
+        "Dynamic Programming",
+        "Sliding Window"
+      ],
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.945Z"
+    },
+    {
+      "id": "asmt-infosys-dse",
+      "title": "Infosys DSE Coding Challenge",
+      "description": "Infosys Digital Specialist Engineer (DSE) hands-on coding assessment. Evaluates stack LIFO invariants, bracket matching, and binary search logarithmic algorithms.",
+      "company": "Infosys",
+      "duration_minutes": 50,
+      "difficulty": "Easy - Medium",
+      "total_marks": 100,
+      "problem_ids": [
+        "prob-valid-parentheses",
+        "prob-binary-search"
+      ],
+      "tags": [
+        "Infosys",
+        "DSE",
+        "Stack",
+        "Binary Search"
+      ],
+      "created_at": "2026-10-12T18:42:12.849Z",
+      "updated_at": "2026-10-12T18:42:12.947Z"
+    }
+  ],
+  "codingAssessmentAttempts": [
+    {
+      "id": "a0c03565-f0ad-4363-80ab-5d4586b9f1cc",
+      "assessment_id": "asmt-tcs-nqt-round1",
+      "user_id": "user-student-demo",
+      "start_time": "2026-10-12T18:39:11.743Z",
+      "duration_minutes": 45,
+      "status": "IN_PROGRESS",
+      "answers": {},
+      "created_at": "2026-10-12T18:39:11.743Z"
+    }
+  ]
+}
