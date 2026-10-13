@@ -24,7 +24,7 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister }) => {
-  const { login } = useAuth();
+  const { login, registerDean } = useAuth();
   const [loginMode, setLoginMode] = useState<'student' | 'admin'>('student');
   const [email, setEmail] = useState('student@careerprep.ai');
   const [password, setPassword] = useState('password123');
@@ -74,11 +74,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
     setSuccessMsg('');
     setLoading(true);
 
-    const res = await login({ email, password });
+    const res = await login({ email: email.trim(), password });
     setLoading(false);
 
     if (res.success) {
-      onSuccess(loginMode === 'admin' || email.includes('admin') ? 'ADMIN' : 'STUDENT');
+      const resolvedRole = res.user?.role || (loginMode === 'admin' || email.includes('admin') ? 'ADMIN' : 'STUDENT');
+      onSuccess(resolvedRole);
     } else {
       setError(res.message || 'Login failed. Please verify credentials.');
     }
@@ -104,17 +105,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
     setDeanRegisterLoading(true);
 
     try {
-      const res = await api.registerDean({
-        name: deanName,
-        email: deanEmail,
+      const res = await registerDean({
+        name: deanName.trim(),
+        email: deanEmail.trim(),
         password: deanPassword,
-        passcode: deanPasscode,
-        department: deanDepartment,
-        designation: deanDesignation
+        passcode: deanPasscode.trim(),
+        department: deanDepartment.trim(),
+        designation: deanDesignation.trim()
       });
 
-      if (res.success && res.token) {
-        localStorage.setItem('careerprep_token', res.token);
+      if (res.success) {
         setShowDeanRegisterModal(false);
         onSuccess('ADMIN');
       } else {

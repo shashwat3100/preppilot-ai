@@ -3,11 +3,12 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import db from '../database/db.js';
 import { generateToken, authenticate } from '../middleware/auth.js';
+import { authLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
 // POST /api/auth/register
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
   try {
     const {
       name,
@@ -26,7 +27,14 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Name, email, and password are required.' });
     }
 
-    const existingUser = db.findOne('users', u => u.email.toLowerCase() === email.toLowerCase());
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+
+    if (password.length < 4) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 4 characters.' });
+    }
+
+    const existingUser = db.findOne('users', u => u.email.toLowerCase() === cleanEmail);
     if (existingUser) {
       return res.status(400).json({ success: false, message: 'An account with this email address already exists.' });
     }
@@ -37,8 +45,8 @@ router.post('/register', async (req, res) => {
 
     const newUser = {
       id: userId,
-      name,
-      email: email.toLowerCase(),
+      name: cleanName,
+      email: cleanEmail,
       password_hash: passwordHash,
       role: 'STUDENT',
       branch_id: branch_id || 'branch-cse',
@@ -94,14 +102,15 @@ router.post('/register', async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Email and password are required.' });
     }
 
-    const user = db.findOne('users', u => u.email.toLowerCase() === email.toLowerCase());
+    const cleanEmail = email.trim().toLowerCase();
+    const user = db.findOne('users', u => u.email.toLowerCase() === cleanEmail);
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password credentials.' });
     }
@@ -137,7 +146,7 @@ router.post('/login', async (req, res) => {
 const passwordResets = new Map();
 
 // POST /api/auth/register-dean
-router.post('/register-dean', async (req, res) => {
+router.post('/register-dean', authLimiter, async (req, res) => {
   try {
     const { name, email, password, passcode, designation, department } = req.body;
 
@@ -235,7 +244,7 @@ router.post('/register-dean', async (req, res) => {
 });
 
 // POST /api/auth/forgot-password
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', authLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -271,7 +280,7 @@ router.post('/forgot-password', async (req, res) => {
 });
 
 // POST /api/auth/reset-password
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', authLimiter, async (req, res) => {
   try {
     const { email, verification_pin, new_password } = req.body;
 

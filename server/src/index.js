@@ -55,8 +55,17 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Mount Routes with specialized rate limits
-app.use('/api/auth', authLimiter, authRoutes);
+// Security Headers Middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// Mount Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/analytics', analyticsRoutes);
@@ -68,10 +77,13 @@ app.use('/api/coding', codingRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
-  console.error('[CareerPrep Server Error]:', err);
+  console.error('[CareerPrep Server Error]:', err.message || err);
+  const isProd = process.env.NODE_ENV === 'production';
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Internal Server Error'
+    message: isProd && (!err.status || err.status === 500)
+      ? 'An unexpected error occurred. Please try again later.'
+      : (err.message || 'Internal Server Error')
   });
 });
 

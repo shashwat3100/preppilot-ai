@@ -16,18 +16,32 @@ export function createRateLimiter({ windowMs = 60 * 1000, maxRequests = 60, mess
   }, windowMs * 2);
 
   return (req, res, next) => {
-    // Determine client key by user ID if authenticated or client IP
-    const key = req.user?.id || req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const rawIp = req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+    const isLocalhost = (
+      rawIp === '127.0.0.1' ||
+      rawIp === '::1' ||
+      rawIp === '::ffff:127.0.0.1' ||
+      rawIp === 'localhost' ||
+      String(rawIp).includes('127.0.0.1')
+    );
+
+    // In development or local loopback, allow high capacity so dev and tests never get blocked
+    const isDev = process.env.NODE_ENV !== 'production';
+    const effectiveMax = (isDev || isLocalhost) ? Math.max(maxRequests, 1000) : maxRequests;
+
+    // Use distinct user ID or IP for tracking
+    const key = req.user?.id ? `user:${req.user.id}` : `ip:${rawIp}`;
     const now = Date.now();
 
     const clientTimestamps = requests.get(key) || [];
     const validTimestamps = clientTimestamps.filter(ts => now - ts < windowMs);
 
-    if (validTimestamps.length >= maxRequests) {
+    if (validTimestamps.length >= effectiveMax) {
       const retryAfterSec = Math.ceil((windowMs - (now - validTimestamps[0])) / 1000);
       res.setHeader('Retry-After', retryAfterSec);
       return res.status(429).json({
         success: false,
+        message,
         error: message,
         retryAfter: retryAfterSec
       });
@@ -42,18 +56,19 @@ export function createRateLimiter({ windowMs = 60 * 1000, maxRequests = 60, mess
 // Preconfigured limiters
 export const authLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 30,          // max 30 login/register attempts per 15 min
-  message: 'Too many authentication attempts. Please wait 15 minutes before trying again.'
+  maxRequests: 50,          // generous 50 attempts per 15 min
+  message: 'Too many authentication attempts. Please wait a moment before trying again.'
 });
 
 export const codeExecutionLimiter = createRateLimiter({
   windowMs: 60 * 1000,      // 1 minute
-  maxRequests: 20,          // max 20 executions per minute
+  maxRequests: 30,          // max 30 executions per minute
   message: 'Code execution rate limit exceeded. Please wait a moment before running more code.'
 });
 
 export const assessmentSubmissionLimiter = createRateLimiter({
   windowMs: 60 * 1000,      // 1 minute
-  maxRequests: 10,          // max 10 submission requests per minute
+  maxRequests: 20,          // max 20 submission requests per minute
   message: 'Assessment submission rate limit reached. Please wait before submitting again.'
 });
+

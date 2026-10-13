@@ -17,9 +17,13 @@ const THEME_STORAGE_KEY = 'preppilot_theme';
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Requirement: Dark Mode is the default for new users
   const [theme, setThemeState] = useState<ThemeMode>(() => {
-    const saved = localStorage.getItem(THEME_STORAGE_KEY);
-    if (saved === 'dark' || saved === 'light' || saved === 'system') {
-      return saved;
+    try {
+      const saved = localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved === 'dark' || saved === 'light' || saved === 'system') {
+        return saved;
+      }
+    } catch (e) {
+      // Storage unavailable or restricted
     }
     return 'dark'; // Explicit default
   });
@@ -31,7 +35,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const applyTheme = () => {
       let active: ResolvedTheme = 'dark';
       if (theme === 'system') {
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         active = systemPrefersDark ? 'dark' : 'light';
       } else {
         active = theme;
@@ -53,7 +57,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     applyTheme();
 
-    if (theme === 'system') {
+    if (theme === 'system' && window.matchMedia) {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const listener = () => applyTheme();
       mediaQuery.addEventListener('change', listener);
@@ -63,7 +67,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setTheme = (mode: ThemeMode) => {
     setThemeState(mode);
-    localStorage.setItem(THEME_STORAGE_KEY, mode);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, mode);
+    } catch (e) {
+      // Storage error gracefully handled
+    }
   };
 
   const toggleTheme = () => {

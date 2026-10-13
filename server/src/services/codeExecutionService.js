@@ -262,6 +262,7 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
     let stdout = '';
     let stderr = '';
     let timedOut = false;
+    let outputExceeded = false;
 
     const timeoutHandle = setTimeout(() => {
       timedOut = true;
@@ -282,7 +283,7 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
     proc.stdout.on('data', (data) => {
       stdout += data.toString();
       if (stdout.length > EXECUTION_LIMITS.maxOutputBytes) {
-        timedOut = true;
+        outputExceeded = true;
         killProcessTree(proc.pid);
       }
     });
@@ -294,7 +295,18 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
     proc.on('close', (code) => {
       clearTimeout(timeoutHandle);
       const executionTimeMs = Number((process.hrtime.bigint() - startTime) / 1000000n);
-      if (timedOut) {
+      if (outputExceeded) {
+        resolve({
+          success: false,
+          output: stdout.slice(0, 1000) + '\n... [Output Truncated]',
+          error: 'Output Limit Exceeded (1 MB max output exceeded)',
+          outputLimitExceeded: true,
+          executionTimeMs,
+          memoryKb: null,
+          isSandboxed: false,
+          engine: 'LOCAL_DEVELOPMENT_RUNNER'
+        });
+      } else if (timedOut) {
         resolve({
           success: false,
           output: '',
@@ -362,16 +374,45 @@ export async function runCode(code, language, input = '') {
     return { success: false, output: '', error: `Unsupported language: ${language}`, executionTimeMs: 0 };
   }
 
-  // 1. If Judge0 is configured in environment, dispatch to Judge0 sandbox
+  // 1. Production Security Boundary Check:
+  // In production, NEVER execute untrusted code locally on the application host.
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (isProduction) {
+    if (!process.env.JUDGE0_API_URL) {
+      return {
+        success: false,
+        output: '',
+        error: 'Execution service configuration error: Production requires a sandboxed execution runner (JUDGE0_API_URL). Local execution fallback is disabled.',
+        executionTimeMs: 0,
+        isSandboxed: true,
+        engine: 'SANDBOX_CONFIG_REQUIRED'
+      };
+    }
+    try {
+      return await runWithJudge0(code, language, input);
+    } catch (err) {
+      console.error('[CodeExecution] Judge0 dispatch failed in production:', err.message);
+      return {
+        success: false,
+        output: '',
+        error: `Sandboxed execution provider temporarily unavailable: ${err.message}. Local execution fallback is disabled in production for security.`,
+        executionTimeMs: 0,
+        isSandboxed: true,
+        engine: 'JUDGE0_SANDBOX_OUTAGE'
+      };
+    }
+  }
+
+  // 2. In development, try Judge0 first if configured; otherwise use safe local runner
   if (process.env.JUDGE0_API_URL) {
     try {
       return await runWithJudge0(code, language, input);
     } catch (err) {
-      console.warn('[CodeExecution] Judge0 dispatch failed, falling back to local runner:', err.message);
+      console.warn('[CodeExecution] Judge0 dispatch failed in development, falling back to local runner:', err.message);
     }
   }
 
-  // 2. Local isolated development runner with concurrency control
+  // 3. Local isolated development runner with concurrency control
   await acquireLocalSlot();
   let runDir = null;
   try {

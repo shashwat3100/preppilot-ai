@@ -34,6 +34,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { CodeEditor } from '../components/CodeEditor';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 /* ------------------------------------------------------------------ */
@@ -148,13 +149,16 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 const COMPANIES = ['All', 'Amazon', 'TCS', 'Infosys', 'Wipro', 'Cognizant', 'Accenture', 'Microsoft'];
 
-const getDraftStorageKey = (problemId: string, lang: string) => `preppilot_draft_${problemId}_${lang}`;
+const getDraftStorageKey = (userId: string | undefined, problemId: string, lang: string) =>
+  `preppilot_draft_${userId || 'guest'}_${problemId}_${lang}`;
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
 const CodingPracticePage: React.FC = () => {
+  const { user } = useAuth();
+
   // Navigation mode: 'practice' | 'assessment'
   const [arenaMode, setArenaMode] = useState<'practice' | 'assessment'>('practice');
 
@@ -231,7 +235,10 @@ const CodingPracticePage: React.FC = () => {
       const params: Record<string, string> = {};
       if (debouncedSearch) params.search = debouncedSearch;
       if (difficultyFilter) params.difficulty = difficultyFilter;
-      if (companyFilter !== 'All') params.tag = companyFilter;
+      if (companyFilter !== 'All') {
+        params.company = companyFilter;
+        params.tag = companyFilter;
+      }
       if (onlyBookmarked) params.bookmarked = 'true';
 
       const res = await api.getCodingProblems(params);
@@ -301,26 +308,34 @@ const CodingPracticePage: React.FC = () => {
 
   // 4. Code Draft Autosaving & Loading
   const loadCodeForProblemAndLanguage = useCallback((prob: CodingProblem, lang: string) => {
-    const storageKey = getDraftStorageKey(prob.id, lang);
-    const savedDraft = localStorage.getItem(storageKey);
-    if (savedDraft !== null && savedDraft.trim() !== '') {
-      setCode(savedDraft);
-      setDraftSavedTimestamp('Restored Draft');
-    } else {
-      const initialStarter = prob.starterCode?.[lang] || prob.starterCode?.c || '';
-      setCode(initialStarter);
-      setDraftSavedTimestamp(null);
+    try {
+      const storageKey = getDraftStorageKey(user?.id, prob.id, lang);
+      const savedDraft = localStorage.getItem(storageKey);
+      if (savedDraft !== null && savedDraft.trim() !== '') {
+        setCode(savedDraft);
+        setDraftSavedTimestamp('Restored Draft');
+        return;
+      }
+    } catch (e) {
+      // Storage unavailable or blocked
     }
-  }, []);
+    const initialStarter = prob.starterCode?.[lang] || prob.starterCode?.c || '';
+    setCode(initialStarter);
+    setDraftSavedTimestamp(null);
+  }, [user?.id]);
 
   const handleCodeChange = useCallback((newCode: string) => {
     setCode(newCode);
     if (selectedProblem) {
-      const storageKey = getDraftStorageKey(selectedProblem.id, language);
-      localStorage.setItem(storageKey, newCode);
-      setDraftSavedTimestamp('Autosaved');
+      try {
+        const storageKey = getDraftStorageKey(user?.id, selectedProblem.id, language);
+        localStorage.setItem(storageKey, newCode);
+        setDraftSavedTimestamp('Autosaved');
+      } catch (e) {
+        // Storage quota or error
+      }
     }
-  }, [selectedProblem, language]);
+  }, [selectedProblem, language, user?.id]);
 
   // 5. Select Problem
   const selectProblem = useCallback(async (problem: CodingProblem) => {
@@ -358,13 +373,15 @@ const CodingPracticePage: React.FC = () => {
   // 7. Reset Code with Confirmation
   const confirmResetCode = useCallback(() => {
     if (!selectedProblem) return;
-    const storageKey = getDraftStorageKey(selectedProblem.id, language);
-    localStorage.removeItem(storageKey);
+    try {
+      const storageKey = getDraftStorageKey(user?.id, selectedProblem.id, language);
+      localStorage.removeItem(storageKey);
+    } catch (e) {}
     const starter = selectedProblem.starterCode?.[language] || selectedProblem.starterCode?.c || '';
     setCode(starter);
     setDraftSavedTimestamp('Reset to Default');
     setShowResetConfirmModal(false);
-  }, [selectedProblem, language]);
+  }, [selectedProblem, language, user?.id]);
 
   // 8. Bookmark Toggle
   const handleToggleBookmark = useCallback(async (problemId: string, e?: React.MouseEvent) => {

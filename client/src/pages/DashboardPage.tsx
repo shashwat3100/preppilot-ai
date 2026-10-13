@@ -22,7 +22,8 @@ import {
   BookOpen,
   Award,
   HelpCircle,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
 
 interface DashboardPageProps {
@@ -80,9 +81,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     );
   }
 
-  const prepScore = stats?.preparation_score || 68;
-  const targetCompanies = user?.target_companies?.join(', ') || 'TCS, Infosys, Capgemini';
-  const targetRole = user?.job_role_title || 'Software Development Engineer';
+  const isNewStudent = (stats?.total_questions_attempted || 0) === 0;
+  const prepScore = stats?.preparation_score !== undefined ? stats.preparation_score : 0;
+  const targetCompanies = user?.target_companies && user.target_companies.length > 0
+    ? user.target_companies.join(', ')
+    : 'Campus Recruiters';
+  const targetRole = user?.job_role_title || 'Software Development Engineer (SDE)';
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-150">
@@ -179,6 +183,31 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       </div>
 
+      {/* First-Use Onboarding State for New Students */}
+      {isNewStudent && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400 shrink-0">
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+                Welcome to PrepPilot AI! Establish Your Baseline
+              </h3>
+              <p className="text-xs text-[var(--text-secondary)]">
+                Complete your first 5-question Adaptive Quiz or solve a Coding challenge to calibrate your placement readiness index and unlock tailored AI recommendations.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onStartAdaptiveQuiz}
+            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shrink-0 cursor-pointer transition-colors shadow-sm"
+          >
+            Start Diagnostic Quiz
+          </button>
+        </div>
+      )}
+
       {/* PrepPilot Dedicated AI Assistant Card */}
       <PrepPilotCard />
 
@@ -198,9 +227,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-extrabold text-[var(--text-primary)]">{prepScore}%</span>
-            <span className="text-xs text-emerald-500 font-semibold flex items-center">
-              <TrendingUp size={12} className="mr-0.5" /> +4% this week
-            </span>
+            {isNewStudent ? (
+              <span className="text-xs text-indigo-400 font-semibold flex items-center">
+                New Student
+              </span>
+            ) : (
+              <span className="text-xs text-emerald-500 font-semibold flex items-center">
+                <TrendingUp size={12} className="mr-0.5" /> Calibrated
+              </span>
+            )}
           </div>
           <div className="w-full bg-[var(--surface-elevated)] h-2 rounded-full mt-3 overflow-hidden border border-[var(--surface-border)]">
             <div
@@ -209,7 +244,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             />
           </div>
           <span className="text-[11px] text-[var(--text-muted)] mt-2">
-            Multi-factor syllabus & test accuracy index
+            {isNewStudent ? 'Complete first quiz to activate scoring' : 'Multi-factor syllabus & test accuracy index'}
           </span>
         </div>
 

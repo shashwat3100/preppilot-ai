@@ -6,8 +6,9 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (credentials: any) => Promise<{ success: boolean; message?: string }>;
-  register: (data: any) => Promise<{ success: boolean; message?: string }>;
+  login: (credentials: any) => Promise<{ success: boolean; message?: string; user?: User }>;
+  register: (data: any) => Promise<{ success: boolean; message?: string; user?: User }>;
+  registerDean: (data: any) => Promise<{ success: boolean; message?: string; user?: User }>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   isAdmin: boolean;
@@ -31,14 +32,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await api.getMe();
       if (res.success && res.user) {
         setUser(res.user);
-      } else {
+      } else if (res.message && (res.message.includes('401') || res.message.toLowerCase().includes('token') || res.message.toLowerCase().includes('unauthorized'))) {
         localStorage.removeItem('careerprep_token');
+        setToken(null);
         setUser(null);
       }
     } catch (err) {
       console.error('[Auth Refresh Error]:', err);
-      localStorage.removeItem('careerprep_token');
-      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -55,9 +55,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('careerprep_token', res.token);
         setToken(res.token);
         setUser(res.user);
-        return { success: true };
+        return { success: true, user: res.user, message: res.message };
       }
-      return { success: false, message: res.message || 'Login failed' };
+      return { success: false, message: res.message || res.error || 'Login failed' };
     } catch (err: any) {
       return { success: false, message: err.message || 'Network error during login' };
     }
@@ -70,11 +70,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('careerprep_token', res.token);
         setToken(res.token);
         setUser(res.user);
-        return { success: true };
+        return { success: true, user: res.user, message: res.message };
       }
-      return { success: false, message: res.message || 'Registration failed' };
+      return { success: false, message: res.message || res.error || 'Registration failed' };
     } catch (err: any) {
       return { success: false, message: err.message || 'Network error during registration' };
+    }
+  };
+
+  const registerDean = async (data: any) => {
+    try {
+      const res = await api.registerDean(data);
+      if (res.success && res.token) {
+        localStorage.setItem('careerprep_token', res.token);
+        setToken(res.token);
+        setUser(res.user);
+        return { success: true, user: res.user, message: res.message };
+      }
+      return { success: false, message: res.message || res.error || 'Dean registration failed' };
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Network error during dean registration' };
     }
   };
 
@@ -87,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAdmin = user?.role === 'ADMIN';
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, refreshUser, isAdmin }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, registerDean, logout, refreshUser, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

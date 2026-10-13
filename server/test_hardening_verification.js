@@ -82,6 +82,37 @@ async function runHardeningTests() {
   }
 
   // ----------------------------------------------------
+  // TEST 6: Production Sandbox Boundary Enforcement
+  // ----------------------------------------------------
+  try {
+    const originalEnv = process.env.NODE_ENV;
+    const originalJudge0 = process.env.JUDGE0_API_URL;
+    process.env.NODE_ENV = 'production';
+    delete process.env.JUDGE0_API_URL;
+
+    const res = await runCode('print("hello")', 'python', '');
+    assert('1.8 Production disables local unsandboxed fallback', res.success === false && res.engine === 'SANDBOX_CONFIG_REQUIRED', `Got: ${JSON.stringify(res)}`);
+
+    // Restore env
+    process.env.NODE_ENV = originalEnv;
+    if (originalJudge0) process.env.JUDGE0_API_URL = originalJudge0;
+  } catch (err) {
+    assert('1.8 Production sandbox check', false, err.message);
+  }
+
+  // ----------------------------------------------------
+  // TEST 7: Output Limit Exceeded
+  // ----------------------------------------------------
+  try {
+    // Generate > 1MB of text
+    const massiveOutputCode = 'print("A" * 1200000)';
+    const res = await runCode(massiveOutputCode, 'python', '');
+    assert('1.9 Output limit exceeded classified', res.outputLimitExceeded === true && res.success === false, `Got: ${JSON.stringify(res)}`);
+  } catch (err) {
+    assert('1.9 Output limit check', false, err.message);
+  }
+
+  // ----------------------------------------------------
   // TEST 6: Hidden Test Case Protection
   // ----------------------------------------------------
   console.log('\n--- Test Suite 2: Hidden Test & Security Boundary ---');
@@ -208,6 +239,17 @@ async function runHardeningTests() {
         assert('4.5 Analytics includes revision recommendations', Array.isArray(analyticsData.analytics?.coding?.revision_recommendations));
       } catch (e) {
         assert('4.4 Analytics endpoint', false, e.message);
+      }
+
+      // 5. Verify company query filtering
+      try {
+        const compRes = await fetch(`${BASE_URL}/api/coding/problems?company=Amazon`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const compData = await compRes.json();
+        assert('4.6 Company filtering works accurately via query params', compRes.status === 200 && Array.isArray(compData.problems) && compData.problems.length > 0);
+      } catch (e) {
+        assert('4.6 Company filtering', false, e.message);
       }
     }
   } catch (err) {

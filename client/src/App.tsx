@@ -21,14 +21,54 @@ const ThinkingOrbPage = React.lazy(() => import('./pages/ThinkingOrbPage'));
 import api from './services/api';
 import type { QuizSession } from './types';
 
+const VALID_TABS = new Set([
+  'dashboard',
+  'adaptive-quiz',
+  'coding-practice',
+  'assessment',
+  'companies',
+  'custom-practice',
+  'analytics',
+  'preppilot-studio',
+  'admin',
+  'profile',
+  'thinking-orb',
+  'quiz_active',
+  'login',
+  'register'
+]);
+
+const getTabFromHash = (): string => {
+  if (typeof window === 'undefined') return 'dashboard';
+  const clean = window.location.hash.replace(/^#\/?/, '').trim();
+  return VALID_TABS.has(clean) ? clean : 'dashboard';
+};
+
 const MainApp: React.FC = () => {
   const { user, loading } = useAuth();
-  const [currentTab, setCurrentTab] = useState<string>('dashboard');
+  const [currentTab, setCurrentTab] = useState<string>(() => getTabFromHash());
   const [activeQuizSession, setActiveQuizSession] = useState<QuizSession | null>(null);
+
+  // Synchronize hash with back/forward history navigation
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      const target = getTabFromHash();
+      setCurrentTab(target);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const handleSelectTab = (tab: string) => {
+    setCurrentTab(tab);
+    if (tab !== 'quiz_active') {
+      window.location.hash = `#/${tab}`;
+    }
+  };
 
   React.useEffect(() => {
     if (user && user.role === 'ADMIN' && currentTab === 'dashboard') {
-      setCurrentTab('admin');
+      handleSelectTab('admin');
     }
   }, [user]);
 
@@ -48,27 +88,27 @@ const MainApp: React.FC = () => {
     if (currentTab === 'register') {
       return (
         <RegisterPage
-          onSuccess={() => setCurrentTab('dashboard')}
-          onGoToLogin={() => setCurrentTab('login')}
+          onSuccess={() => handleSelectTab('dashboard')}
+          onGoToLogin={() => handleSelectTab('login')}
         />
       );
     }
     if (currentTab === 'login') {
       return (
         <LoginPage
-          onSuccess={(role) => setCurrentTab(role === 'ADMIN' ? 'admin' : 'dashboard')}
-          onGoToRegister={() => setCurrentTab('register')}
+          onSuccess={(role) => handleSelectTab(role === 'ADMIN' ? 'admin' : 'dashboard')}
+          onGoToRegister={() => handleSelectTab('register')}
         />
       );
     }
     return (
       <LandingPage
-        onStartPreparing={() => setCurrentTab('register')}
+        onStartPreparing={() => handleSelectTab('register')}
         onExploreFeatures={() => {
           const el = document.getElementById('features');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
         }}
-        onLogin={() => setCurrentTab('login')}
+        onLogin={() => handleSelectTab('login')}
       />
     );
   }
@@ -100,14 +140,14 @@ const MainApp: React.FC = () => {
   };
 
   return (
-    <AppLayout currentTab={currentTab} onSelectTab={setCurrentTab}>
+    <AppLayout currentTab={currentTab} onSelectTab={handleSelectTab}>
       {/* Routed Workspace Tab Rendering */}
       {currentTab === 'quiz_active' && activeQuizSession ? (
         <QuizPage
           quizSession={activeQuizSession}
           onFinish={() => {
             setActiveQuizSession(null);
-            setCurrentTab('dashboard');
+            handleSelectTab('dashboard');
           }}
           onRetake={() => {
             setActiveQuizSession(null);
@@ -117,9 +157,10 @@ const MainApp: React.FC = () => {
       ) : currentTab === 'dashboard' ? (
         <DashboardPage
           onStartAdaptiveQuiz={handleLaunchAdaptiveDailyQuiz}
-          onStartCustomQuiz={() => setCurrentTab('custom-practice')}
-          onExploreCompanies={() => setCurrentTab('companies')}
-          onViewAnalytics={() => setCurrentTab('analytics')}
+          onStartCustomQuiz={() => handleSelectTab('custom-practice')}
+          onStartAssessment={() => handleSelectTab('assessment')}
+          onExploreCompanies={() => handleSelectTab('companies')}
+          onViewAnalytics={() => handleSelectTab('analytics')}
         />
       ) : currentTab === 'adaptive-quiz' ? (
         <div className="max-w-4xl mx-auto py-8 text-center space-y-6">
@@ -153,11 +194,11 @@ const MainApp: React.FC = () => {
       ) : currentTab === 'coding-practice' ? (
         <CodingPracticePage />
       ) : currentTab === 'assessment' ? (
-        <AssessmentPage onReturnToDashboard={() => setCurrentTab('dashboard')} />
+        <AssessmentPage onReturnToDashboard={() => handleSelectTab('dashboard')} />
       ) : currentTab === 'companies' ? (
         <CompanyPrepPage onStartCompanyQuiz={handleLaunchCompanyQuiz} />
       ) : currentTab === 'analytics' ? (
-        <AnalyticsPage onNavigateToCoding={() => setCurrentTab('coding-practice')} />
+        <AnalyticsPage onNavigateToCoding={() => handleSelectTab('coding-practice')} />
       ) : currentTab === 'preppilot-studio' ? (
         <PrepPilotPage />
       ) : currentTab === 'admin' ? (
@@ -171,10 +212,10 @@ const MainApp: React.FC = () => {
       ) : (
         <DashboardPage
           onStartAdaptiveQuiz={handleLaunchAdaptiveDailyQuiz}
-          onStartCustomQuiz={() => setCurrentTab('custom-practice')}
-          onStartAssessment={() => setCurrentTab('assessment')}
-          onExploreCompanies={() => setCurrentTab('companies')}
-          onViewAnalytics={() => setCurrentTab('analytics')}
+          onStartCustomQuiz={() => handleSelectTab('custom-practice')}
+          onStartAssessment={() => handleSelectTab('assessment')}
+          onExploreCompanies={() => handleSelectTab('companies')}
+          onViewAnalytics={() => handleSelectTab('analytics')}
         />
       )}
 

@@ -40,15 +40,39 @@ router.post('/problems/:id/bookmark', authenticate, (req, res) => {
 
 // List problems with filtering, search, stats & bookmarks
 router.get('/problems', authenticate, (req, res) => {
-  const { branch_id, company_id, subject_id, difficulty, search, tag, bookmarked } = req.query;
+  const { branch_id, company_id, company, subject_id, difficulty, search, tag, bookmarked } = req.query;
   let problems = db.getAll('codingProblems');
 
   if (branch_id) problems = problems.filter(p => p.branch_id === branch_id);
-  if (company_id) problems = problems.filter(p => p.company_id === company_id);
+
+  const companyFilterVal = company || company_id;
+  if (companyFilterVal) {
+    const allCompanies = db.getAll('companies');
+    const matchedComp = allCompanies.find(c =>
+      c.id.toLowerCase() === companyFilterVal.toLowerCase() ||
+      c.name.toLowerCase() === companyFilterVal.toLowerCase()
+    );
+    const targetCompId = matchedComp ? matchedComp.id : companyFilterVal;
+    problems = problems.filter(p =>
+      p.company_id === targetCompId ||
+      (p.tags && p.tags.some(t => t.toLowerCase() === companyFilterVal.toLowerCase()))
+    );
+  }
+
   if (subject_id) problems = problems.filter(p => p.subject_id === subject_id);
   if (difficulty) problems = problems.filter(p => p.difficulty === difficulty);
+
   if (tag) {
-    problems = problems.filter(p => p.tags && p.tags.some(t => t.toLowerCase() === tag.toLowerCase()));
+    const allCompanies = db.getAll('companies');
+    const matchedComp = allCompanies.find(c =>
+      c.id.toLowerCase() === tag.toLowerCase() ||
+      c.name.toLowerCase() === tag.toLowerCase()
+    );
+    const targetCompId = matchedComp ? matchedComp.id : null;
+    problems = problems.filter(p =>
+      (p.tags && p.tags.some(t => t.toLowerCase() === tag.toLowerCase())) ||
+      (targetCompId && p.company_id === targetCompId)
+    );
   }
   if (search) {
     const term = search.toLowerCase();

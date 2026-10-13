@@ -3,7 +3,26 @@ const API_BASE = '/api';
 const safeJson = async (res: Response) => {
   try {
     const text = await res.text();
-    return JSON.parse(text);
+    const data = text ? JSON.parse(text) : {};
+    if (data && typeof data === 'object') {
+      if (!data.message && data.error) {
+        data.message = data.error;
+      }
+      if (!data.error && data.message) {
+        data.error = data.message;
+      }
+      if (!res.ok) {
+        data.success = false;
+        if (!data.message) {
+          data.message = res.status === 404
+            ? 'Endpoint not found (HTTP 404).'
+            : res.status === 429
+            ? 'Too many attempts. Please wait a moment before trying again.'
+            : `Request failed (HTTP ${res.status}).`;
+        }
+      }
+    }
+    return data;
   } catch {
     return {
       success: false,

@@ -221,6 +221,147 @@
       "last_active_date": "2026-10-13",
       "created_at": "2026-10-12T18:19:54.346Z",
       "updated_at": "2026-10-13T05:09:42.314Z"
+    },
+    {
+      "id": "user-a850de7b-76a2-492f-9157-3f94a840503c",
+      "name": "Test Student",
+      "email": "test_1791874998539@example.com",
+      "password_hash": "$2b$10$SmAYZM3IsTWWztCHXHn6H.xdVhMTFfchRc54veShQ/cvc7hRH3i.y",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs"
+      ],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [
+        "DSA"
+      ],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-13",
+      "created_at": "2026-10-13T07:03:18.622Z",
+      "updated_at": "2026-10-13T07:03:18.622Z"
+    },
+    {
+      "id": "user-876b854b-9a28-405a-93d8-0f8848de633b",
+      "name": "shashwat balamwar",
+      "email": "balamwarshshwat@gmail.com",
+      "password_hash": "$2b$10$sLUFvRwYMG1CR3p1ryPJE.qGPy62VMVrhS/gmKlRnbh5hbTiA6C.e",
+      "role": "STUDENT",
+      "branch_id": "branch-it",
+      "year": "4th Year",
+      "graduation_year": 2027,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys"
+      ],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [
+        "DBMS",
+        "DSA",
+        "Operating Systems",
+        "Web Dev"
+      ],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-13",
+      "created_at": "2026-10-13T07:06:49.970Z",
+      "updated_at": "2026-10-13T07:06:49.970Z"
+    },
+    {
+      "id": "user-85d0d83f-3ec0-4be2-9e6a-737a817bdc41",
+      "name": "New Candidate",
+      "email": "newstudent_1791875409545@careerprep.ai",
+      "password_hash": "$2b$10$aYCJnb8JJnHkbbqg1FcuOeokFMwTbRzbFK9/1mmT4AVgOwOhFfX7K",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs"
+      ],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [
+        "DSA"
+      ],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-13",
+      "created_at": "2026-10-13T07:10:09.627Z",
+      "updated_at": "2026-10-13T07:10:09.793Z"
+    },
+    {
+      "id": "user-dean-2062270c-baf9-4085-be1e-972504df525f",
+      "name": "Dr. New Dean",
+      "email": "newdean_1791875409633@careerprep.ai",
+      "password_hash": "$2b$10$XueZxob94dZfMMqVPaM.mu8elbhJXcjUYhC6294gaSieMwBDx.nEO",
+      "role": "ADMIN",
+      "designation": "Associate Dean",
+      "department": "Training & Placement",
+      "branch_id": "branch-cse",
+      "year": "Faculty / Admin",
+      "graduation_year": 2018,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys",
+        "comp-wipro",
+        "comp-accenture"
+      ],
+      "skill_level": "Advanced",
+      "areas_of_interest": [
+        "Campus Placement Drives",
+        "Assessment Evaluation",
+        "Curriculum Mapping"
+      ],
+      "total_xp": 2500,
+      "current_level": 10,
+      "current_streak": 30,
+      "longest_streak": 45,
+      "last_active_date": "2026-10-13",
+      "created_at": "2026-10-13T07:10:09.710Z",
+      "updated_at": "2026-10-13T07:10:09.710Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-f18e30d8-d9fb-4390-ace5-31567ffde085",
+      "name": "Pooja Verma",
+      "email": "pooja.verma@college.edu",
+      "password_hash": "$2b$10$r7DTYoH7uwSUbBe3Ro//COYxH3G7gtgCoCe1RWuTN0EMbb7LLhxNC",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys"
+      ],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [
+        "DBMS",
+        "DSA",
+        "Operating Systems"
+      ],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-13",
+      "created_at": "2026-10-13T07:14:43.413Z",
+      "updated_at": "2026-10-13T07:14:43.413Z"
     }
   ],
   "branches": [
@@ -3607,6 +3748,34 @@
       "action_type": "CUSTOM_PRACTICE_QUIZ",
       "reference_id": "session-e4b92acb-6184-4004-aa16-fc620ff97390",
       "created_at": "2026-10-13T05:09:42.319Z"
+    },
+    {
+      "id": "xph-1a6cfe28-255f-49b7-a339-6b85db9043d9",
+      "user_id": "user-a850de7b-76a2-492f-9157-3f94a840503c",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-13T07:03:18.626Z"
+    },
+    {
+      "id": "xph-26e94255-e74c-490a-8ca6-d4780f538eb5",
+      "user_id": "user-876b854b-9a28-405a-93d8-0f8848de633b",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-13T07:06:49.975Z"
+    },
+    {
+      "id": "xph-bd9da053-595f-4da9-824a-e6e39b83903e",
+      "user_id": "user-85d0d83f-3ec0-4be2-9e6a-737a817bdc41",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-13T07:10:09.630Z"
+    },
+    {
+      "id": "xph-6267d93a-f01c-48a7-9454-a1bd295318ff",
+      "user_id": "user-f18e30d8-d9fb-4390-ace5-31567ffde085",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-13T07:14:43.427Z"
     }
   ],
   "streaks": [
@@ -3643,6 +3812,38 @@
       "last_activity_date": "2026-10-13",
       "streak_freeze_count": 2,
       "updated_at": "2026-10-13T04:19:52.920Z"
+    },
+    {
+      "id": "streak-user-a850de7b-76a2-492f-9157-3f94a840503c",
+      "user_id": "user-a850de7b-76a2-492f-9157-3f94a840503c",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-13",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-876b854b-9a28-405a-93d8-0f8848de633b",
+      "user_id": "user-876b854b-9a28-405a-93d8-0f8848de633b",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-13",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-85d0d83f-3ec0-4be2-9e6a-737a817bdc41",
+      "user_id": "user-85d0d83f-3ec0-4be2-9e6a-737a817bdc41",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-13",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-f18e30d8-d9fb-4390-ace5-31567ffde085",
+      "user_id": "user-f18e30d8-d9fb-4390-ace5-31567ffde085",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-13",
+      "streak_freeze_count": 2
     }
   ],
   "achievements": [

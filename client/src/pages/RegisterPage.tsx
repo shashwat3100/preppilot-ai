@@ -66,29 +66,34 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onGoToLog
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password) {
-      setError('Please fill in all core credentials.');
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+
+    if (!cleanName || !cleanEmail || !password) {
+      setError('Please fill in all core credentials (name, email, and password).');
       return;
     }
-    if (targetCompanies.length === 0) {
-      setError('Please select at least one target company.');
+    if (password.length < 4) {
+      setError('Password must be at least 4 characters long.');
       return;
     }
+
+    const selectedCompanies = targetCompanies.length > 0 ? targetCompanies : ['comp-tcs', 'comp-infosys'];
 
     setError('');
     setLoading(true);
 
     const res = await register({
-      name,
-      email,
+      name: cleanName,
+      email: cleanEmail,
       password,
-      branch_id: branchId,
-      year,
-      graduation_year: parseInt(graduationYear),
-      preferred_job_role_id: jobRoleId,
-      target_companies: targetCompanies,
+      branch_id: branchId || 'branch-cse',
+      year: year || '4th Year',
+      graduation_year: parseInt(graduationYear) || 2026,
+      preferred_job_role_id: jobRoleId || 'role-sde',
+      target_companies: selectedCompanies,
       skill_level: skillLevel,
-      areas_of_interest: areasOfInterest
+      areas_of_interest: areasOfInterest.length > 0 ? areasOfInterest : ['DSA', 'DBMS']
     });
 
     setLoading(false);
@@ -270,14 +275,19 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onGoToLog
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {companies.map(c => {
+                {(companies.length > 0 ? companies : [
+                  { id: 'comp-tcs', name: 'TCS' },
+                  { id: 'comp-infosys', name: 'Infosys' },
+                  { id: 'comp-wipro', name: 'Wipro' },
+                  { id: 'comp-accenture', name: 'Accenture' }
+                ]).map(c => {
                   const selected = targetCompanies.includes(c.id);
                   return (
                     <button
                       type="button"
                       key={c.id}
                       onClick={() => toggleCompany(c.id)}
-                      className={`p-2.5 rounded-xl text-xs font-semibold border flex items-center justify-between transition-all ${
+                      className={`p-2.5 rounded-xl text-xs font-semibold border flex items-center justify-between transition-all cursor-pointer ${
                         selected
                           ? 'bg-indigo-600/20 border-cyan-400 text-white shadow-md'
                           : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
