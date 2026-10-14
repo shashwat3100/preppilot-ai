@@ -66,7 +66,10 @@ Reconstructed pattern questions and hiring round blueprints for:
 
 - **Frontend:** React 19, TypeScript, Tailwind CSS v4, Lucide Icons, Monaco Editor, Recharts, Canvas-Confetti
 - **Backend:** Node.js, Express.js, REST API, JWT Authentication, bcryptjs
-- **Persistence:** Active persistence is backed by atomic JSON storage (`server/src/database/careerprep_data.json`). Full relational DDL and migration scripts are provided in `server/src/database/schema.sql` for PostgreSQL targets.
+- **Persistence Architecture:**
+  - **Static Learning Fixtures:** Curated, reviewed educational content (branches, companies, job roles, questions, coding problems, assessments, and study documents) is committed in `server/src/database/static_fixtures.json`.
+  - **Runtime Database:** All live user accounts, sessions, attempts, and submissions reside exclusively in an ignored runtime directory (default: `server/data/careerprep_runtime.json`), completely isolated from version control.
+  - **Relational DDL:** Full PostgreSQL schema definitions and migration tools are provided in `server/src/database/schema.sql` and `server/src/database/migrateToPostgres.js`.
 - **AI / Voice:** Web Speech API (STT & TTS), Cosine Vector Similarity RAG Engine
 - **Code Execution:** Dual-mode runner supporting trusted sandbox gateways (Judge0) with local development fallback.
 
@@ -80,6 +83,9 @@ Create a `.env` file in the `server` directory (or configure platform environmen
 | :--- | :--- | :--- | :--- |
 | `PORT` | Optional | Server listening port | `5000` |
 | `NODE_ENV` | Optional | Application runtime environment (`development` or `production`) | `development` |
+| `PREPPILOT_DATA_DIR` | Optional | Dedicated filesystem directory for runtime JSON database | `server/data` |
+| `PREPPILOT_DATA_PATH` | Optional | Explicit custom file path for runtime JSON database | `server/data/careerprep_runtime.json` |
+| `ALLOW_DEV_DEMO_ACCOUNTS` | Optional | Enable pre-seeded demo accounts in non-production environments | `true` in dev / `false` in prod |
 | `JWT_SECRET` | **Production** | Secret key used for signing and verifying JWT tokens | Auto-generated dev fallback |
 | `ADMIN_INVITE_TOKEN` | Optional | Master bootstrap invitation secret for faculty/Dean onboarding | Auto-generated dev fallback |
 | `JUDGE0_API_URL` | **Production** | Endpoint URL for isolated code execution sandbox cluster | None (Local dev runner) |
@@ -91,18 +97,23 @@ Create a `.env` file in the `server` directory (or configure platform environmen
 
 ---
 
-## 🛡️ Security & Sandbox Policy
+## 🛡️ Security & Data Privacy Policy
 
-### 1. Code Execution Policy
+### 1. Data Isolation & Production Protection
+- **No Committed Runtime Data:** Runtime database files (`server/data/*`), session records, user accounts, and test submissions are strictly ignored by Git and never committed.
+- **Production Demo Account Guard:** Production environments (`NODE_ENV=production`) automatically prohibit the creation of shared demo accounts or synthetic user profiles. First-time production setup requires explicit administrator bootstrap or registration.
+- **Revocation of Prior Invitation Tokens:** Any administrator invitation token issued prior to security remediation cut-off is invalidated. New invitations must be generated via the secure Dean administration portal.
+
+### 2. Code Execution Policy
 - **Development Mode:** Runs via `LOCAL_DEVELOPMENT_RUNNER (NO_OS_ISOLATION)` with bounded resource guards: 10s compile timeout, 5s execution timeout, 512 KB output truncation, bounded concurrency queue (max 10 jobs), and automated temporary workspace cleanup.
 - **Production Mode:** Server strictly blocks all local host process execution (`SANDBOX_CONFIG_REQUIRED`). A verified containerized sandbox cluster (`JUDGE0_API_URL`) must be supplied to execute user code in production.
 
-### 2. Privilege Escalation Prevention
+### 3. Privilege Escalation Prevention
 - Public registration (`POST /api/auth/register`) enforces `role: 'STUDENT'` unconditionally.
 - Dean/Admin registration (`POST /api/auth/register-dean`) requires a cryptographically valid, single-use invitation token issued by an active administrator or matching `ADMIN_INVITE_TOKEN`.
 - Legacy static passcodes (`DEAN2026`) and hints have been completely removed.
 
-### 3. Password Reset Flow
+### 4. Password Reset Flow
 - PINs are generated via secure cryptographically strong random numbers and stored as salted bcrypt hashes with a 15-minute expiration.
 - Reset codes are never exposed in API responses.
 - Brute-force protection invalidates sessions after 5 failed attempts (HTTP 429).

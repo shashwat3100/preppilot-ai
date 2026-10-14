@@ -1,10 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getDbFilePath } from '../src/database/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_FILE = path.join(__dirname, '../src/database/careerprep_data.json');
+const DB_FILE = getDbFilePath();
 
 const raw = fs.readFileSync(DB_FILE, 'utf-8');
 const data = JSON.parse(raw);

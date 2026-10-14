@@ -217,12 +217,17 @@ router.post('/register-dean', authLimiter, async (req, res) => {
     const envSecret = process.env.ADMIN_INVITE_TOKEN;
     const isEnvSecretValid = Boolean(envSecret && effectiveToken === envSecret);
 
+    // Security Cutoff: All admin invitations issued prior to data exposure cleanup are revoked
+    const EXPOSURE_REMEDIATION_CUTOFF = new Date('2026-10-14T17:30:00.000Z').getTime();
+
     const storedInvitation = db.findOne('adminInvitations', inv =>
-      inv.token === effectiveToken && !inv.is_used
+      inv.token === effectiveToken && !inv.is_used && !inv.is_revoked
     );
 
     const isStoredValid = Boolean(
-      storedInvitation && new Date(storedInvitation.expires_at).getTime() > Date.now()
+      storedInvitation &&
+      new Date(storedInvitation.created_at).getTime() >= EXPOSURE_REMEDIATION_CUTOFF &&
+      new Date(storedInvitation.expires_at).getTime() > Date.now()
     );
 
     if (!isEnvSecretValid && !isStoredValid) {
