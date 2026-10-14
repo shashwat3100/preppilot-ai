@@ -41,6 +41,15 @@ Thumbs.db
 *.backup-*.json
 migration_dump.sql
 
+# Runtime databases & local data storage (Strictly excluded from VCS)
+server/data/
+**/data/
+careerprep_runtime.json
+**/careerprep_runtime.json
+careerprep_data.json
+**/careerprep_data.json
+*.tmp
+
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json

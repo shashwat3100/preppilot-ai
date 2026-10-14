@@ -1,10 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getDbFilePath } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DATA_FILE = path.join(__dirname, 'careerprep_data.json');
+const DATA_FILE = getDbFilePath();
 const SCHEMA_FILE = path.join(__dirname, 'schema.sql');
 const OUTPUT_SQL_FILE = path.join(__dirname, 'migration_dump.sql');
 

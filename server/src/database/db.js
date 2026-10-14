@@ -4,10 +4,26 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_FILE = path.join(__dirname, 'careerprep_data.json');
+const FIXTURES_FILE = path.join(__dirname, 'static_fixtures.json');
 
-// Memory store backed by persistent JSON file
-let store = {
+/**
+ * Resolves the persistent runtime database file path.
+ * Priority:
+ *  1. PREPPILOT_DATA_PATH (explicit file path)
+ *  2. PREPPILOT_DATA_DIR / careerprep_runtime.json
+ *  3. server/data/careerprep_runtime.json (default ignored local data directory)
+ */
+export const getDbFilePath = () => {
+  if (process.env.PREPPILOT_DATA_PATH) {
+    return path.resolve(process.env.PREPPILOT_DATA_PATH);
+  }
+  const dataDir = process.env.PREPPILOT_DATA_DIR
+    ? path.resolve(process.env.PREPPILOT_DATA_DIR)
+    : path.resolve(__dirname, '../../data');
+  return path.join(dataDir, 'careerprep_runtime.json');
+};
+
+const createEmptyStore = () => ({
   users: [],
   branches: [],
   companies: [],
@@ -35,36 +51,97 @@ let store = {
   codingAssessmentAttempts: [],
   adminInvitations: [],
   facultyApplications: []
-};
+});
 
-// Load existing data if available
-export const initDb = async () => {
-  try {
-    if (fs.existsSync(DB_FILE)) {
-      const raw = fs.readFileSync(DB_FILE, 'utf-8');
-      store = { ...store, ...JSON.parse(raw) };
-      console.log(`[Database] Loaded persistent data from ${DB_FILE}`);
-    } else {
-      console.log(`[Database] Fresh database initialized. Ready for seeding.`);
-    }
-  } catch (err) {
-    console.error('[Database] Error loading database file:', err);
+// In-memory store backed by persistent runtime JSON file
+let store = createEmptyStore();
+
+/**
+ * Ensures the target directory for the runtime database exists.
+ */
+const ensureDataDirectory = (filePath) => {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
 };
 
-// Save store to disk safely without Windows/OneDrive rename lock collisions
+/**
+ * Load existing runtime data if available.
+ * If no runtime file exists, bootstrap with static educational fixtures.
+ * Fatal read errors are thrown to prevent silently overwriting corrupted stores.
+ */
+export const initDb = async () => {
+  const dbFile = getDbFilePath();
+  ensureDataDirectory(dbFile);
+
+  if (fs.existsSync(dbFile)) {
+    try {
+      const raw = fs.readFileSync(dbFile, 'utf-8');
+      const parsed = JSON.parse(raw);
+      store = { ...createEmptyStore(), ...parsed };
+      console.log(`[Database] Loaded persistent runtime data from ${dbFile}`);
+    } catch (err) {
+      console.error(`[Database CRITICAL] Failed to read or parse database file at ${dbFile}:`, err.message);
+      // Fail explicitly: do NOT silently proceed with an empty store as that could overwrite corrupted data
+      throw new Error(`[Database] Cannot start: unreadable database at ${dbFile}. Details: ${err.message}`);
+    }
+  } else {
+    // 1. Check if a local legacy database exists to migrate local user records
+    const legacyPath = path.resolve(__dirname, 'careerprep_data.json');
+    if (fs.existsSync(legacyPath)) {
+      try {
+        const rawLegacy = fs.readFileSync(legacyPath, 'utf-8');
+        const legacyParsed = JSON.parse(rawLegacy);
+        store = { ...createEmptyStore(), ...legacyParsed };
+        saveDb();
+        console.log(`[Database] Migrated existing local database records to ignored runtime path: ${dbFile}`);
+        return;
+      } catch (legacyErr) {
+        console.warn('[Database] Could not migrate legacy database file, falling back to static fixtures:', legacyErr.message);
+      }
+    }
+
+    // 2. Fresh initialization from verified static educational fixtures
+    store = createEmptyStore();
+    if (fs.existsSync(FIXTURES_FILE)) {
+      try {
+        const rawFixtures = fs.readFileSync(FIXTURES_FILE, 'utf-8');
+        const fixtures = JSON.parse(rawFixtures);
+        store = { ...store, ...fixtures };
+        console.log(`[Database] Initialized new runtime database from static educational fixtures.`);
+      } catch (fixtureErr) {
+        console.warn('[Database] Warning: could not parse static_fixtures.json:', fixtureErr.message);
+      }
+    } else {
+      console.log(`[Database] Fresh empty database initialized.`);
+    }
+
+    // Persist initial runtime file immediately
+    saveDb();
+    console.log(`[Database] Created fresh runtime database file at ${dbFile}`);
+  }
+};
+
+/**
+ * Save store to disk safely without Windows/OneDrive rename lock collisions.
+ */
 export const saveDb = () => {
+  const dbFile = getDbFilePath();
+  ensureDataDirectory(dbFile);
+
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(store, null, 2), 'utf-8');
+    fs.writeFileSync(dbFile, JSON.stringify(store, null, 2), 'utf-8');
   } catch (err) {
     try {
-      // Fallback with copy if write fails
-      const tempFile = `${DB_FILE}.tmp`;
+      // Fallback with temporary file copy
+      const tempFile = `${dbFile}.tmp`;
       fs.writeFileSync(tempFile, JSON.stringify(store, null, 2), 'utf-8');
-      fs.copyFileSync(tempFile, DB_FILE);
+      fs.copyFileSync(tempFile, dbFile);
       if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
     } catch (fallbackErr) {
-      console.error('[Database] Error saving database:', fallbackErr);
+      console.error('[Database] Critical error saving runtime database:', fallbackErr);
+      throw fallbackErr;
     }
   }
 };
