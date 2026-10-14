@@ -372,9 +372,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </span>
             <span className="text-xs text-amber-500 font-semibold">Active Streak</span>
           </div>
-          <p className="text-[11px] text-[var(--text-muted)] mt-2">
-            Longest record: {stats?.longest_streak || 0} consecutive days
-          </p>
+          <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)] mt-2">
+            <span>Daily Goal: 5 MCQs</span>
+            <span>Record: {stats?.longest_streak || 0}d</span>
+          </div>
         </div>
 
         {/* Metric 4: Experience Points & Level */}
@@ -545,9 +546,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                       <h4 className="text-xs font-bold text-[var(--text-primary)] truncate">{item.topic_name}</h4>
                       <span className="text-[10px] text-[var(--text-muted)]">{item.subject_name} • {item.attempts} attempts</span>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <span className="text-xs font-bold text-amber-500">{item.accuracy}%</span>
-                      <span className="block text-[9px] text-[var(--text-muted)]">Accuracy</span>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <div className="text-right">
+                        <span className="text-xs font-bold text-amber-500">{item.accuracy}%</span>
+                        <span className="block text-[9px] text-[var(--text-muted)]">Accuracy</span>
+                      </div>
+                      <button
+                        onClick={onStartAdaptiveQuiz}
+                        className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 text-[11px] font-bold border border-amber-500/30 flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Practice adaptive drill on this topic"
+                      >
+                        <Play size={10} className="fill-current" />
+                        <span>Drill</span>
+                      </button>
                     </div>
                   </div>
                 ))

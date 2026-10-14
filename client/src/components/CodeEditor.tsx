@@ -91,6 +91,8 @@ export function CodeEditor({
   const [drawerTab, setDrawerTab] = useState<'sample' | 'custom' | 'output'>('sample');
   const [selectedCaseIdx, setSelectedCaseIdx] = useState(0);
   const [customInput, setCustomInput] = useState('');
+  const [fontSize, setFontSize] = useState<number>(14);
+  const [wordWrap, setWordWrap] = useState<'on' | 'off'>('on');
 
   // Switch to output tab when running finishes
   useEffect(() => {
@@ -242,6 +244,29 @@ export function CodeEditor({
             <AlignLeft size={13} />
             <span className="hidden sm:inline">Format</span>
           </button>
+
+          {/* Font size toggle */}
+          <button
+            onClick={() => setFontSize(prev => (prev === 13 ? 14 : prev === 14 ? 16 : 13))}
+            className="px-2 py-1 bg-[var(--surface-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs rounded-lg hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] transition-colors flex items-center gap-1 cursor-pointer font-mono"
+            title="Cycle Font Size (13px / 14px / 16px)"
+          >
+            <span className="font-bold text-[10px]">A</span>
+            <span className="text-[10px]">{fontSize}px</span>
+          </button>
+
+          {/* Word Wrap toggle */}
+          <button
+            onClick={() => setWordWrap(prev => (prev === 'on' ? 'off' : 'on'))}
+            className={`px-2 py-1 text-xs rounded-lg border transition-colors cursor-pointer text-[10px] font-semibold ${
+              wordWrap === 'on'
+                ? 'bg-indigo-600/15 text-indigo-400 border-indigo-500/30'
+                : 'bg-[var(--surface-card)] text-[var(--text-muted)] border-[var(--surface-border)] hover:text-[var(--text-primary)]'
+            }`}
+            title={`Word Wrap: ${wordWrap === 'on' ? 'Enabled' : 'Disabled'}`}
+          >
+            Wrap
+          </button>
         </div>
 
         {/* Action Buttons: Run & Submit */}
@@ -250,7 +275,7 @@ export function CodeEditor({
             onClick={handleRun}
             disabled={running || submitting}
             className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
-            title="Run solution against sample or custom input"
+            title="Run solution (Shortcut: Ctrl + Enter)"
           >
             {running ? (
               <>
@@ -261,6 +286,7 @@ export function CodeEditor({
               <>
                 <Play size={13} className="fill-current" />
                 <span>Run Code</span>
+                <span className="hidden md:inline font-mono text-[9px] opacity-75 bg-black/25 px-1 py-0.5 rounded">Ctrl+↵</span>
               </>
             )}
           </button>
@@ -269,7 +295,7 @@ export function CodeEditor({
             onClick={handleSubmit}
             disabled={running || submitting}
             className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
-            title="Submit solution to server test suite"
+            title="Submit solution to test suite (Shortcut: Ctrl + Shift + Enter)"
           >
             {submitting ? (
               <>
@@ -280,6 +306,7 @@ export function CodeEditor({
               <>
                 <Send size={13} />
                 <span>Submit</span>
+                <span className="hidden md:inline font-mono text-[9px] opacity-75 bg-black/25 px-1 py-0.5 rounded">Ctrl+⇧+↵</span>
               </>
             )}
           </button>
@@ -296,12 +323,12 @@ export function CodeEditor({
           onChange={handleEditorChange}
           options={{
             minimap: { enabled: false },
-            fontSize: 14,
+            fontSize,
             lineNumbers: 'on',
             scrollBeyondLastLine: false,
             automaticLayout: true,
             tabSize: 4,
-            wordWrap: 'on',
+            wordWrap,
             bracketPairColorization: { enabled: true },
             renderLineHighlight: 'all',
             folding: true,
@@ -310,6 +337,14 @@ export function CodeEditor({
           }}
           onMount={(editor, monaco) => {
             editorRef.current = { editor, monaco };
+            // Ctrl+Enter or Cmd+Enter to Run Code
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+              handleRun();
+            });
+            // Ctrl+Shift+Enter or Cmd+Shift+Enter to Submit Code
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => {
+              handleSubmit();
+            });
           }}
           beforeMount={(monaco) => {
             monaco.languages.typescript?.javascriptDefaults?.setCompilerOptions({
@@ -403,20 +438,36 @@ export function CodeEditor({
           <div className="flex-1 p-3 overflow-y-auto font-mono text-xs">
             {drawerTab === 'sample' && (
               <div className="h-full flex flex-col space-y-2">
-                <div className="flex items-center gap-1.5">
-                  {sampleTestCases.map((tc, idx) => (
+                <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    {sampleTestCases.map((tc, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedCaseIdx(idx)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer border transition-colors ${
+                          selectedCaseIdx === idx
+                            ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/40'
+                            : 'bg-[var(--surface-elevated)] text-[var(--text-secondary)] border-[var(--surface-border)] hover:text-[var(--text-primary)]'
+                        }`}
+                      >
+                        Case {idx + 1}
+                      </button>
+                    ))}
+                  </div>
+
+                  {sampleTestCases[selectedCaseIdx] && (
                     <button
-                      key={idx}
-                      onClick={() => setSelectedCaseIdx(idx)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer border transition-colors ${
-                        selectedCaseIdx === idx
-                          ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/40'
-                          : 'bg-[var(--surface-elevated)] text-[var(--text-secondary)] border-[var(--surface-border)] hover:text-[var(--text-primary)]'
-                      }`}
+                      onClick={() => {
+                        setCustomInput(sampleTestCases[selectedCaseIdx].input || '');
+                        setDrawerTab('custom');
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 border border-indigo-500/30 flex items-center gap-1.5 cursor-pointer transition-colors"
+                      title="Copy this sample input to Custom Input tab to test variations"
                     >
-                      Case {idx + 1}
+                      <Edit3 size={11} />
+                      <span>Edit in Custom Input</span>
                     </button>
-                  ))}
+                  )}
                 </div>
 
                 {sampleTestCases[selectedCaseIdx] ? (

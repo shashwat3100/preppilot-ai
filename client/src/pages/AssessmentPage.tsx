@@ -37,7 +37,9 @@ import {
   Sliders,
   Send,
   X,
-  Flag
+  Flag,
+  Printer,
+  FileText
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -502,6 +504,126 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
     setCurrentIndex(0);
     setGradedResult(null);
     setCodingProblem(null);
+  };
+
+  // Print Assessment Scorecard
+  const handlePrintScorecard = () => {
+    const accuracy = gradedResult?.accuracy_rate ?? 0;
+    const correctCount = gradedResult?.correct_count ?? 0;
+    const totalCount = gradedResult?.total_questions ?? questions.length;
+    const timeTaken = gradedResult?.time_taken_seconds ?? 0;
+    const passingCutoff = selectedAssessment?.passingPercent ?? 65;
+    const isPassed = accuracy >= passingCutoff;
+
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('style', 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;');
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) {
+      window.print();
+      return;
+    }
+
+    const headStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+      .map(el => el.outerHTML)
+      .join('\n');
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <title>Assessment_Scorecard_${user?.name || 'Student'}</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          ${headStyles}
+          <style>
+            @page { size: A4 portrait; margin: 15mm; }
+            body {
+              font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+              background: #ffffff !important;
+              color: #0f172a !important;
+              padding: 24px;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+          </style>
+        </head>
+        <body>
+          <div style="border: 2px solid #6366f1; border-radius: 20px; padding: 28px; max-width: 720px; margin: 0 auto; background: #ffffff;">
+            <div style="display: flex; justify-content: space-between; align-items: start; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px;">
+              <div>
+                <h1 style="margin: 0; font-size: 24px; font-weight: 900; color: #4f46e5;">PREPPILOT AI</h1>
+                <p style="margin: 4px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 700;">
+                  Official Assessment Evaluation Scorecard
+                </p>
+              </div>
+              <div style="text-align: right;">
+                <span style="display: inline-block; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 800; background: ${isPassed ? '#dcfce7' : '#fef3c7'}; color: ${isPassed ? '#15803d' : '#b45309'}; border: 1px solid ${isPassed ? '#86efac' : '#fcd34d'};">
+                  ${isPassed ? 'BENCHMARK CLEARED' : 'NEEDS REINFORCEMENT'}
+                </span>
+                <div style="font-size: 11px; color: #64748b; margin-top: 4px;">
+                  Date: ${new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </div>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0; padding: 14px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 12px;">
+              <div><strong style="color: #64748b; text-transform: uppercase; font-size: 10px; display: block;">Candidate Name</strong> ${user?.name || 'Candidate'}</div>
+              <div><strong style="color: #64748b; text-transform: uppercase; font-size: 10px; display: block;">Candidate Email</strong> ${user?.email || 'student@college.edu'}</div>
+              <div><strong style="color: #64748b; text-transform: uppercase; font-size: 10px; display: block;">Department</strong> ${user?.branch_name || 'Computer Science & Engineering'}</div>
+              <div><strong style="color: #64748b; text-transform: uppercase; font-size: 10px; display: block;">Assessment Track</strong> ${selectedAssessment?.title || 'Placement Assessment'}</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; text-align: center;">
+              <div style="padding: 12px; background: #eef2ff; border-radius: 12px; border: 1px solid #c7d2fe;">
+                <span style="font-size: 10px; font-weight: 700; color: #4338ca; text-transform: uppercase; display: block;">Score</span>
+                <span style="font-size: 22px; font-weight: 900; color: #312e81;">${correctCount} / ${totalCount}</span>
+              </div>
+              <div style="padding: 12px; background: #ecfdf5; border-radius: 12px; border: 1px solid #a7f3d0;">
+                <span style="font-size: 10px; font-weight: 700; color: #047857; text-transform: uppercase; display: block;">Accuracy</span>
+                <span style="font-size: 22px; font-weight: 900; color: #065f46;">${accuracy}%</span>
+              </div>
+              <div style="padding: 12px; background: #f0fdfa; border-radius: 12px; border: 1px solid #99f6e4;">
+                <span style="font-size: 10px; font-weight: 700; color: #0f766e; text-transform: uppercase; display: block;">Time Spent</span>
+                <span style="font-size: 22px; font-weight: 900; color: #115e59;">${formatTime(timeTaken)}</span>
+              </div>
+              <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #cbd5e1;">
+                <span style="font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; display: block;">Cutoff</span>
+                <span style="font-size: 22px; font-weight: 900; color: #1e293b;">${passingCutoff}%</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 36px; padding-top: 20px; border-top: 1px dashed #cbd5e1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; text-align: center;">
+              <div>
+                <div style="height: 36px; border-bottom: 1px solid #94a3b8; margin-bottom: 6px;"></div>
+                <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Candidate Signature</span>
+              </div>
+              <div>
+                <div style="height: 36px; border-bottom: 1px solid #94a3b8; margin-bottom: 6px; font-size: 11px; font-family: monospace; color: #4f46e5; line-height: 48px;">SEAL-VERIFIED-2026</div>
+                <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">TPO Assessment Authority</span>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      try {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      } catch (err) {
+        window.print();
+      }
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 5000);
+    }, 250);
   };
 
   /* ================================================================== */
@@ -1113,13 +1235,23 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
 
           {/* Action Row */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <button
-              onClick={handleResetToCatalog}
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm"
-            >
-              <RotateCcw size={14} />
-              <span>Choose Another Assessment</span>
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={handleResetToCatalog}
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm"
+              >
+                <RotateCcw size={14} />
+                <span>Choose Another Assessment</span>
+              </button>
+
+              <button
+                onClick={handlePrintScorecard}
+                className="px-5 py-2.5 rounded-xl bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-400 border border-emerald-500/30 text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors shadow-sm"
+              >
+                <Printer size={14} />
+                <span>Print Scorecard / Certificate</span>
+              </button>
+            </div>
 
             <button
               onClick={onReturnToDashboard}
