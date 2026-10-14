@@ -1,26 +1,27 @@
-# CareerPrep AI – B.Tech Placement Interview & Quiz Recommendation Engine
-### Integrated AI Voice Assistant: **PrepPilot**
+# PrepPilot AI – Student Placement Preparation & Technical Interview Platform
+### Integrated AI Voice & Engineering Coach
 > **Tagline:** *"Prepare Smarter. Practice Better. Get Interview Ready."*
-> **Academic Project:** B.Tech Final-Year Major Project
+> **Academic Project:** B.Tech Major Project
 
 ---
 
 ## 🌐 Live Localhost Links
 
-- **Web Application (Frontend):** [http://localhost:5173/](http://localhost:5173/)
-- **REST API Backend & RAG Engine:** [http://localhost:5000/](http://localhost:5000/)
+- **VS Code Live Server (Go Live):** [http://127.0.0.1:5500/](http://127.0.0.1:5500/)
+- **Vite Dev Server (Frontend):** [http://localhost:5173/](http://localhost:5173/)
+- **REST API Backend & Coding Engine:** [http://localhost:5000/](http://localhost:5000/)
 - **API Health Check:** [http://localhost:5000/api/health](http://localhost:5000/api/health)
 
 ---
 
 ## 🔑 1-Click Demo Accounts
 
-Both accounts feature a **1-Click Demo Fill** button directly on the Login screen:
+Both accounts feature **1-Click Demo Fill** buttons directly on the Login screen:
 
 | Role | Email | Password | Details |
 | :--- | :--- | :--- | :--- |
-| **Student** | `student@careerprep.ai` | `password123` | B.Tech IT, 4th Year, Target: TCS, Infosys, Amazon (Pre-seeded with XP, streak, performance data) |
-| **Admin (Dean)** | `admin@careerprep.ai` | `admin123` | Placement Dean Access (Question Bank CRUD, Student management, Campus weakness analytics) |
+| **Student** | `student@college.edu` | `Password123` | B.Tech CSE/IT, Target: TCS, Infosys, Amazon (Pre-seeded with XP, streak, performance data) |
+| **Admin (Dean)** | `admin@college.edu` | `AdminPass123` | Placement Dean Access (Question Bank CRUD, Student management, Campus weakness analytics) |
 
 ---
 
