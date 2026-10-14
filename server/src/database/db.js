@@ -87,7 +87,22 @@ export const initDb = async () => {
       throw new Error(`[Database] Cannot start: unreadable database at ${dbFile}. Details: ${err.message}`);
     }
   } else {
-    // Fresh initialization from verified static educational fixtures
+    // 1. Check if a local legacy database exists to migrate local user records
+    const legacyPath = path.resolve(__dirname, 'careerprep_data.json');
+    if (fs.existsSync(legacyPath)) {
+      try {
+        const rawLegacy = fs.readFileSync(legacyPath, 'utf-8');
+        const legacyParsed = JSON.parse(rawLegacy);
+        store = { ...createEmptyStore(), ...legacyParsed };
+        saveDb();
+        console.log(`[Database] Migrated existing local database records to ignored runtime path: ${dbFile}`);
+        return;
+      } catch (legacyErr) {
+        console.warn('[Database] Could not migrate legacy database file, falling back to static fixtures:', legacyErr.message);
+      }
+    }
+
+    // 2. Fresh initialization from verified static educational fixtures
     store = createEmptyStore();
     if (fs.existsSync(FIXTURES_FILE)) {
       try {

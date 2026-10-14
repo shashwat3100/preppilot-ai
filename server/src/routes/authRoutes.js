@@ -213,6 +213,28 @@ router.post('/register-dean', authLimiter, async (req, res) => {
       return res.status(400).json({ success: false, message: passwordValidation.message });
     }
 
+    // Explicit SHA-256 blocklist of all historically exposed invitation tokens
+    const EXPOSED_TOKEN_HASHES = new Set([
+      '0c1694574e1347e42d0bb6e1fff157629d9e131a349ce301b690cef5db81d310',
+      '695c6e488a223458fc38376d8e00c86a683825640454531d88be718212f5b812',
+      'a67b5cb3411b5815d773d493e993be00ac3855351d24da6ef05ef856ceef02ec',
+      '3d22ab88a8bdcc6d1836f7af52de9d9465dd1b599a9fae696ab2929815b20ea1',
+      'b45d6c002dda8b16f339c74bc1332d9b8b7fcf389fc2f4e50523d8fd2dba44a5',
+      '90379c1249272f98fc9966407a52df3fe8c751752a4fd8eece5ed96ed481281b',
+      '5b517720323608aa62a9148cf6d2f20924eab9417ae514080d1d6da3a2fc5930',
+      'e43f01c7c73a8eb4e54f392c74fad27c2655af67c01fa10531ac09807d76dd34',
+      '1b96296db96920b7be42d6ce5cdf8313e60ecb6ebaf3d405a9e8fe100a3fa1a2',
+      'a0b02465555a358c73b67eacee80aaf18bfc4e83abf5a870d3d98a0cb71364bc'
+    ]);
+
+    const tokenHash = crypto.createHash('sha256').update(effectiveToken).digest('hex');
+    if (EXPOSED_TOKEN_HASHES.has(tokenHash)) {
+      return res.status(403).json({
+        success: false,
+        message: 'This administrator invitation token has been permanently revoked for security compliance.'
+      });
+    }
+
     // Verify against cryptographically secure admin invitations or environment secret
     const envSecret = process.env.ADMIN_INVITE_TOKEN;
     const isEnvSecretValid = Boolean(envSecret && effectiveToken === envSecret);
