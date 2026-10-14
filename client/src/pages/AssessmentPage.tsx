@@ -36,7 +36,8 @@ import {
   Building2,
   Sliders,
   Send,
-  X
+  X,
+  Flag
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -144,6 +145,7 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Record<string, boolean>>({});
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState<number>(0);
   const [totalDurationSeconds, setTotalDurationSeconds] = useState<number>(0);
   const [startTime, setStartTime] = useState<number>(0);
@@ -257,6 +259,62 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
 
     return () => clearInterval(interval);
   }, [stage, timeRemainingSeconds]);
+
+  // Keyboard navigation & rapid option selection hotkeys
+  useEffect(() => {
+    if (stage !== 'quiz' || showSubmitModal) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+
+      const currentQ = questions[currentIndex];
+      if (!currentQ) return;
+
+      // 1-4 Number keys
+      if (['1', '2', '3', '4'].includes(e.key)) {
+        const optIdx = parseInt(e.key, 10) - 1;
+        if (currentQ.options && currentQ.options[optIdx]) {
+          e.preventDefault();
+          handleSelectOption(currentQ.options[optIdx].option_key);
+        }
+      }
+
+      // A-D Letter keys
+      const upperKey = e.key.toUpperCase();
+      if (['A', 'B', 'C', 'D'].includes(upperKey)) {
+        const found = currentQ.options?.find(o => o.option_key.toUpperCase() === upperKey);
+        if (found) {
+          e.preventDefault();
+          handleSelectOption(found.option_key);
+        }
+      }
+
+      // Next / Previous navigation
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (currentIndex < questions.length - 1) {
+          setCurrentIndex(prev => prev + 1);
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentIndex > 0) {
+          setCurrentIndex(prev => prev - 1);
+        }
+      }
+
+      // Toggle Flag with 'F' key
+      if (upperKey === 'F') {
+        e.preventDefault();
+        setFlaggedQuestions(prev => ({
+          ...prev,
+          [currentQ.id]: !prev[currentQ.id]
+        }));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [stage, showSubmitModal, currentIndex, questions]);
 
   // Auto-submit when countdown hits zero
   const handleAutoSubmitOnExpiry = useCallback(() => {
@@ -620,13 +678,29 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
                     </span>
                   </div>
 
-                  <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
-                    isAnswered
-                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                      : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                  }`}>
-                    {isAnswered ? 'Answered' : 'Unattempted'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFlaggedQuestions(prev => ({ ...prev, [currentQ.id]: !prev[currentQ.id] }))}
+                      className={`px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                        flaggedQuestions[currentQ.id]
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                          : 'bg-[var(--surface-elevated)] text-[var(--text-muted)] border-[var(--surface-border)] hover:text-amber-400'
+                      }`}
+                      title="Flag for review before submission (Shortcut: Press 'F')"
+                    >
+                      <Flag size={12} className={flaggedQuestions[currentQ.id] ? 'fill-current text-amber-400' : ''} />
+                      <span>{flaggedQuestions[currentQ.id] ? 'Flagged' : 'Flag'}</span>
+                    </button>
+
+                    <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-xl border ${
+                      isAnswered
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                        : 'bg-[var(--surface-elevated)] text-[var(--text-muted)] border-[var(--surface-border)]'
+                    }`}>
+                      {isAnswered ? 'Answered' : 'Unattempted'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Question Text */}
@@ -663,6 +737,24 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
                       </button>
                     );
                   })}
+                </div>
+
+                {/* Hotkeys Helper Bar */}
+                <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)] px-1 pt-1 select-none flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-semibold text-indigo-400">Hotkeys:</span>
+                    <span className="px-1.5 py-0.5 rounded bg-[var(--surface-elevated)] border border-[var(--surface-border)] font-mono text-[10px]">1-4 / A-D</span>
+                    <span>Select Option</span>
+                    <span className="text-[var(--surface-border)]">•</span>
+                    <span className="px-1.5 py-0.5 rounded bg-[var(--surface-elevated)] border border-[var(--surface-border)] font-mono text-[10px]">→</span>
+                    <span>Next</span>
+                    <span className="text-[var(--surface-border)]">•</span>
+                    <span className="px-1.5 py-0.5 rounded bg-[var(--surface-elevated)] border border-[var(--surface-border)] font-mono text-[10px]">←</span>
+                    <span>Prev</span>
+                    <span className="text-[var(--surface-border)]">•</span>
+                    <span className="px-1.5 py-0.5 rounded bg-[var(--surface-elevated)] border border-[var(--surface-border)] font-mono text-[10px]">F</span>
+                    <span>Flag</span>
+                  </div>
                 </div>
 
                 {/* Question Bottom Navigation Controls */}
@@ -720,15 +812,19 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
                 </span>
               </div>
 
-              {/* Legend */}
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-[var(--text-muted)] pb-1">
-                <div className="flex items-center gap-2">
+              {/* Legend with 3 States: Answered, Flagged, Unattempted */}
+              <div className="grid grid-cols-3 gap-1.5 text-[10px] text-[var(--text-muted)] pb-1 font-semibold">
+                <div className="flex items-center gap-1.5">
                   <div className="w-3.5 h-3.5 rounded-md bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold">✓</div>
-                  <span>Answered</span>
+                  <span>Done</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3.5 h-3.5 rounded-md bg-amber-500 text-black flex items-center justify-center text-[9px] font-bold">⚑</div>
+                  <span>Flagged</span>
+                </div>
+                <div className="flex items-center gap-1.5">
                   <div className="w-3.5 h-3.5 rounded-md bg-[var(--surface-elevated)] border border-[var(--surface-border)]" />
-                  <span>Unattempted</span>
+                  <span>Pending</span>
                 </div>
               </div>
 
@@ -737,21 +833,27 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
                 {questions.map((q, idx) => {
                   const answered = Boolean(answers[q.id]);
                   const isCurrent = idx === currentIndex;
+                  const isFlagged = Boolean(flaggedQuestions[q.id]);
 
                   return (
                     <button
                       key={q.id}
                       onClick={() => setCurrentIndex(idx)}
-                      className={`h-9 rounded-xl text-xs font-extrabold flex items-center justify-center transition-all cursor-pointer ${
+                      className={`relative h-9 rounded-xl text-xs font-extrabold flex items-center justify-center transition-all cursor-pointer ${
                         isCurrent
                           ? 'ring-2 ring-indigo-500 text-white bg-indigo-600 shadow-md shadow-indigo-600/30'
+                          : isFlagged
+                          ? 'bg-amber-500/20 text-amber-300 border-2 border-amber-500/60 hover:bg-amber-500/30'
                           : answered
                           ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30'
                           : 'bg-[var(--surface-elevated)] text-[var(--text-secondary)] border border-[var(--surface-border)] hover:bg-[var(--surface-hover)]'
                       }`}
-                      title={`Jump to Question ${idx + 1}`}
+                      title={`Jump to Question ${idx + 1}${isFlagged ? ' (Flagged for Review)' : ''}`}
                     >
-                      {idx + 1}
+                      <span>{idx + 1}</span>
+                      {isFlagged && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-slate-900 shadow-xs" />
+                      )}
                     </button>
                   );
                 })}

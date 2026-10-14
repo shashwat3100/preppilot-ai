@@ -345,6 +345,7 @@ export default function ThinkingOrbPage() {
                             isSpeaking={isSpeaking}
                             onSpeak={speakText}
                             onStopSpeak={stopSpeaking}
+                            onPromptClick={handleSend}
                           />
                         </div>
                       )}

@@ -27,7 +27,7 @@
       "current_streak": 1,
       "longest_streak": 9,
       "last_active_date": "2026-10-14",
-      "updated_at": "2026-10-14T11:02:44.822Z",
+      "updated_at": "2026-10-14T17:07:54.284Z",
       "is_blocked": false,
       "status": "ACTIVE",
       "blocked_at": null,
@@ -1631,6 +1631,258 @@
       "last_active_date": "2026-10-14",
       "created_at": "2026-10-14T11:02:35.063Z",
       "updated_at": "2026-10-14T11:02:41.638Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-66115d0b-eda4-4f00-805b-b298ac0ba8ef",
+      "name": "Escalation Attacker",
+      "email": "student_esc_1791979759313@college.edu",
+      "password_hash": "$2b$10$XVjDFd5fzLNLuZyBMMy1luLe0.p.uU/mraiJH3If7Tdvrc5WfLD82",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-14",
+      "created_at": "2026-10-14T12:09:19.740Z",
+      "updated_at": "2026-10-14T12:09:19.740Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-dean-1c474f40-f8f9-4c22-852c-0f2a11928430",
+      "name": "Dr. Invited Faculty",
+      "email": "faculty_inv_1791979759900@college.edu",
+      "password_hash": "$2b$10$42SrIeMtcLW1D/iyAMlbBOc81UnPvAAIDjPJmZFrpe4kLbfbuaI9e",
+      "role": "ADMIN",
+      "designation": "Placement Dean & Officer",
+      "department": "Training & Placement Cell",
+      "branch_id": "branch-cse",
+      "year": "Faculty / Admin",
+      "graduation_year": 2018,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys",
+        "comp-wipro",
+        "comp-accenture"
+      ],
+      "skill_level": "Advanced",
+      "areas_of_interest": [
+        "Campus Placement Drives",
+        "Assessment Evaluation",
+        "Curriculum Mapping"
+      ],
+      "total_xp": 2500,
+      "current_level": 10,
+      "current_streak": 30,
+      "longest_streak": 45,
+      "last_active_date": "2026-10-14",
+      "created_at": "2026-10-14T12:09:20.070Z",
+      "updated_at": "2026-10-14T12:09:20.070Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-4d81ecf2-41ae-41ec-949f-95e4d4b22cb2",
+      "name": "Expire Test",
+      "email": "expire_1791979760889@college.edu",
+      "password_hash": "$2b$10$djm6zJiM9KECewSi5sHPWejNjRkemT86DiRS9al2pPvpQuQ.M3Ay2",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-14",
+      "created_at": "2026-10-14T12:09:21.000Z",
+      "updated_at": "2026-10-14T12:09:21.000Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-bfce48f3-87d3-49bb-88b4-df4856085e19",
+      "name": "Suspended Candidate",
+      "email": "blocked_1791979761158@college.edu",
+      "password_hash": "$2b$10$aw6kxYPbt.arK8R/Udu9j.C1akpu5aTO8POdOS04ODaj02FwmYTWW",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-14",
+      "created_at": "2026-10-14T12:09:21.298Z",
+      "updated_at": "2026-10-14T12:09:21.326Z",
+      "is_blocked": true,
+      "status": "BLOCKED"
+    },
+    {
+      "id": "user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "name": "Concurrent Test Candidate",
+      "email": "concurrent_1791979761795@college.edu",
+      "password_hash": "$2b$10$7jKzIeMVYYeecQbgbqADMesaF7fyx00FwUkmSSoGM5irphfQ1S5VW",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [],
+      "total_xp": 100,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-14",
+      "created_at": "2026-10-14T12:09:21.936Z",
+      "updated_at": "2026-10-14T12:09:28.277Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-2147fd2c-0ac6-4c9a-85b1-ed61bbb762c3",
+      "name": "Escalation Attacker",
+      "email": "student_esc_1791997660850@college.edu",
+      "password_hash": "$2b$10$TLBN5gzY085QTI3A3TE0wOS0GYFH99jx.dWQu7Sy0j2vlOkp.GH.q",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-14",
+      "created_at": "2026-10-14T17:07:41.039Z",
+      "updated_at": "2026-10-14T17:07:41.039Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-dean-f40d1f63-2928-4340-9a15-838809c02423",
+      "name": "Dr. Invited Faculty",
+      "email": "faculty_inv_1791997661219@college.edu",
+      "password_hash": "$2b$10$z1kU6NRyPNqFJra7ELdRTeIe9Q5aO.jTik0O4ndBFwsq2WQNdVm4y",
+      "role": "ADMIN",
+      "designation": "Placement Dean & Officer",
+      "department": "Training & Placement Cell",
+      "branch_id": "branch-cse",
+      "year": "Faculty / Admin",
+      "graduation_year": 2018,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [
+        "comp-tcs",
+        "comp-infosys",
+        "comp-wipro",
+        "comp-accenture"
+      ],
+      "skill_level": "Advanced",
+      "areas_of_interest": [
+        "Campus Placement Drives",
+        "Assessment Evaluation",
+        "Curriculum Mapping"
+      ],
+      "total_xp": 2500,
+      "current_level": 10,
+      "current_streak": 30,
+      "longest_streak": 45,
+      "last_active_date": "2026-10-14",
+      "created_at": "2026-10-14T17:07:41.373Z",
+      "updated_at": "2026-10-14T17:07:41.373Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-305f62c5-e7c1-400e-a51d-1f7bcfc81233",
+      "name": "Expire Test",
+      "email": "expire_1791997662283@college.edu",
+      "password_hash": "$2b$10$lbgVDR/W0mQQagpVo.nySOlVVPm3Wd9uo2sGCc6rIgJFVxBK35LtK",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-14",
+      "created_at": "2026-10-14T17:07:42.390Z",
+      "updated_at": "2026-10-14T17:07:42.390Z",
+      "is_blocked": false,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "user-43c8de44-a7d5-4675-b9da-1691440f426d",
+      "name": "Suspended Candidate",
+      "email": "blocked_1791997662535@college.edu",
+      "password_hash": "$2b$10$jyQujXn9fYybttGl94q13OkIbF43D90I.5nbRLp76zGVU8cT5ScyS",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [],
+      "total_xp": 50,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-14",
+      "created_at": "2026-10-14T17:07:42.642Z",
+      "updated_at": "2026-10-14T17:07:42.674Z",
+      "is_blocked": true,
+      "status": "BLOCKED"
+    },
+    {
+      "id": "user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
+      "name": "Concurrent Test Candidate",
+      "email": "concurrent_1791997663233@college.edu",
+      "password_hash": "$2b$10$NNrt6nebNapQCKsZ/B8ZJ.0OGIBbfs.UNq7Bv.LL0tocA1lfWqszG",
+      "role": "STUDENT",
+      "branch_id": "branch-cse",
+      "year": "4th Year",
+      "graduation_year": 2026,
+      "preferred_job_role_id": "role-sde",
+      "target_companies": [],
+      "skill_level": "Intermediate",
+      "areas_of_interest": [],
+      "total_xp": 100,
+      "current_level": 1,
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_active_date": "2026-10-14",
+      "created_at": "2026-10-14T17:07:43.513Z",
+      "updated_at": "2026-10-14T17:07:51.047Z",
       "is_blocked": false,
       "status": "ACTIVE"
     }
@@ -8803,6 +9055,446 @@
       "time_spent_seconds": 30,
       "xp_gained": 0,
       "attempted_at": "2026-10-14T11:02:44.746Z"
+    },
+    {
+      "id": "att-8d6d0424-3749-4edb-8a47-10b918772177",
+      "user_id": "user-student-demo",
+      "question_id": "q-cn-subnet-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.780Z"
+    },
+    {
+      "id": "att-20b67bb0-272b-4eca-b97b-e0ba754a12e8",
+      "user_id": "user-student-demo",
+      "question_id": "q-tcs-cs-4",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.789Z"
+    },
+    {
+      "id": "att-8d9e4000-4567-4044-b622-4f207bbd953a",
+      "user_id": "user-student-demo",
+      "question_id": "q-cn-dns-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.799Z"
+    },
+    {
+      "id": "att-6dd5dc45-2097-454d-aa45-c2165b204765",
+      "user_id": "user-student-demo",
+      "question_id": "q-os-fork-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.808Z"
+    },
+    {
+      "id": "att-522386d3-f090-4e94-8def-203dd3da1958",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-wal-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.819Z"
+    },
+    {
+      "id": "att-a925addc-b1f5-4e83-b2ca-b8c30e0f38ed",
+      "user_id": "user-student-demo",
+      "question_id": "q-os-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.828Z"
+    },
+    {
+      "id": "att-5915796b-630e-4d96-a7c7-ba9e4ba9bec1",
+      "user_id": "user-student-demo",
+      "question_id": "q-capgemini-sql-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.839Z"
+    },
+    {
+      "id": "att-382627e0-dae5-4ad1-b795-a1620f89e650",
+      "user_id": "user-student-demo",
+      "question_id": "q-cn-dhcp-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.848Z"
+    },
+    {
+      "id": "att-93e27c87-1426-49fb-91b1-dd3c388d8c7e",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-btree-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.857Z"
+    },
+    {
+      "id": "att-164677da-8459-4971-9607-03e6467c6742",
+      "user_id": "user-student-demo",
+      "question_id": "q-oop-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.866Z"
+    },
+    {
+      "id": "att-93801ce4-977e-4f44-a1b0-a2663fd797cd",
+      "user_id": "user-student-demo",
+      "question_id": "q-tcs-os-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.875Z"
+    },
+    {
+      "id": "att-fef608da-f5ff-4598-acfb-af649e3e2300",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-4",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.883Z"
+    },
+    {
+      "id": "att-00659799-7cfa-4d4c-96d6-6dcf7ae0d75a",
+      "user_id": "user-student-demo",
+      "question_id": "q-acc-01",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.893Z"
+    },
+    {
+      "id": "att-d117f69f-b1bd-4765-8ef4-bb8b5de7a6c7",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.903Z"
+    },
+    {
+      "id": "att-3206ac9a-cfc9-421c-ada9-14580b5f2e4a",
+      "user_id": "user-student-demo",
+      "question_id": "q-accenture-cloud-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.913Z"
+    },
+    {
+      "id": "att-2702bd3f-95bd-49e6-a5c3-138882782b56",
+      "user_id": "user-student-demo",
+      "question_id": "q-tcs-cs-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.924Z"
+    },
+    {
+      "id": "att-8c27e6fd-2251-44d4-b26e-1f5a735812a5",
+      "user_id": "user-student-demo",
+      "question_id": "q-os-thrashing-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.932Z"
+    },
+    {
+      "id": "att-b7aab57e-40e3-4bb1-9b45-7aef6e21521b",
+      "user_id": "user-student-demo",
+      "question_id": "q-amz-03",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.943Z"
+    },
+    {
+      "id": "att-7e316cce-223e-4ef2-8102-727bab8fe3ff",
+      "user_id": "user-student-demo",
+      "question_id": "q-oop-solid-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.952Z"
+    },
+    {
+      "id": "att-b8d06590-e020-434e-a15b-f9dd20f7e54b",
+      "user_id": "user-student-demo",
+      "question_id": "q-deloitte-sec-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T12:09:30.961Z"
+    },
+    {
+      "id": "att-37289bf2-0520-4501-93a6-8327f464a481",
+      "user_id": "user-student-demo",
+      "question_id": "q-capgemini-sql-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:53.938Z"
+    },
+    {
+      "id": "att-d5860178-173d-4c2b-93fe-205ae18a99cc",
+      "user_id": "user-student-demo",
+      "question_id": "q-os-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:53.955Z"
+    },
+    {
+      "id": "att-0dd2677e-6287-47ee-9b63-bd7fafaee8a8",
+      "user_id": "user-student-demo",
+      "question_id": "q-deloitte-dbms-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:53.967Z"
+    },
+    {
+      "id": "att-bfcf355e-95fc-4159-8295-03f643198ebb",
+      "user_id": "user-student-demo",
+      "question_id": "q-cn-tcp3way-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:53.979Z"
+    },
+    {
+      "id": "att-9e0cf5c1-d9c9-420c-9299-46232dc652b7",
+      "user_id": "user-student-demo",
+      "question_id": "q-os-2",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:53.991Z"
+    },
+    {
+      "id": "att-0122e89f-2fef-4d31-bf03-5ad7cfca3854",
+      "user_id": "user-student-demo",
+      "question_id": "q-deloitte-sec-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.003Z"
+    },
+    {
+      "id": "att-80e4484d-ba2c-47bf-a906-961dbb5737d9",
+      "user_id": "user-student-demo",
+      "question_id": "q-oop-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.018Z"
+    },
+    {
+      "id": "att-550bc910-8c0e-44a3-9ee7-d145917c6425",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-lossless-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.031Z"
+    },
+    {
+      "id": "att-c61eeb62-a86c-43e3-a1d4-3fecd91431be",
+      "user_id": "user-student-demo",
+      "question_id": "q-acc-03",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.043Z"
+    },
+    {
+      "id": "att-07e20bf3-72d8-489a-892b-41589415a391",
+      "user_id": "user-student-demo",
+      "question_id": "q-goog-02",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.055Z"
+    },
+    {
+      "id": "att-3c591d64-3daf-40ea-a8b7-777b123f73f4",
+      "user_id": "user-student-demo",
+      "question_id": "q-tcs-cs-5",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.068Z"
+    },
+    {
+      "id": "att-4b2454b9-ab23-4dc0-8536-fbdc740c127c",
+      "user_id": "user-student-demo",
+      "question_id": "q-cn-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.082Z"
+    },
+    {
+      "id": "att-73632b39-2d67-4cbd-a5ee-fc497923f099",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-3",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.094Z"
+    },
+    {
+      "id": "att-9c0feef0-5b5b-4bb6-b293-3c6141ce2e77",
+      "user_id": "user-student-demo",
+      "question_id": "q-os-fork-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.108Z"
+    },
+    {
+      "id": "att-8a0ce37f-96dd-4916-9e70-106526e04b94",
+      "user_id": "user-student-demo",
+      "question_id": "q-oop-solid-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.121Z"
+    },
+    {
+      "id": "att-495d0e5c-23d4-474b-ae4e-210bc834cc35",
+      "user_id": "user-student-demo",
+      "question_id": "q-os-thrashing-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.135Z"
+    },
+    {
+      "id": "att-32fd3c51-df04-4130-9968-437281bf381b",
+      "user_id": "user-student-demo",
+      "question_id": "q-oop-poly-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.148Z"
+    },
+    {
+      "id": "att-7c1d9cbb-0568-461f-95f4-791599371e15",
+      "user_id": "user-student-demo",
+      "question_id": "q-dbms-btree-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.159Z"
+    },
+    {
+      "id": "att-e05e66c1-f785-434f-8ebe-73ec50ec694b",
+      "user_id": "user-student-demo",
+      "question_id": "q-acc-01",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.171Z"
+    },
+    {
+      "id": "att-372c1a9c-ed32-4d60-8d69-f3a62686b94e",
+      "user_id": "user-student-demo",
+      "question_id": "q-oop-diamond-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "xp_gained": 0,
+      "attempted_at": "2026-10-14T17:07:54.185Z"
     }
   ],
   "quizSessions": [
@@ -9824,6 +10516,110 @@
       "xp_earned": 0,
       "time_taken_seconds": 0,
       "created_at": "2026-10-14T11:02:44.451Z",
+      "completed_at": null
+    },
+    {
+      "id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "user_id": "user-student-demo",
+      "mode": "TIMED_ASSESSMENT",
+      "assessment_type": "core-cs",
+      "assessment_title": "Core Computer Science Comprehensive Assessment",
+      "category": "Core Computer Science",
+      "duration_minutes": 25,
+      "status": "COMPLETED",
+      "total_questions": 20,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 120,
+      "created_at": "2026-10-14T12:09:30.445Z",
+      "completed_at": "2026-10-14T12:09:30.970Z",
+      "updated_at": "2026-10-14T12:09:30.970Z"
+    },
+    {
+      "id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "user_id": "user-student-demo",
+      "mode": "TIMED_ASSESSMENT",
+      "assessment_type": "tcs-nqt",
+      "assessment_title": "TCS-Style National Qualifier Mock Assessment",
+      "category": "Company Recruitment",
+      "duration_minutes": 45,
+      "status": "IN_PROGRESS",
+      "total_questions": 30,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "created_at": "2026-10-14T12:09:30.564Z",
+      "completed_at": null
+    },
+    {
+      "id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "user_id": "user-student-demo",
+      "mode": "TIMED_ASSESSMENT",
+      "assessment_type": "dsa-mastery",
+      "assessment_title": "Data Structures & Algorithms Mastery Test",
+      "category": "Algorithms & Problem Solving",
+      "duration_minutes": 30,
+      "status": "IN_PROGRESS",
+      "total_questions": 15,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "created_at": "2026-10-14T12:09:30.704Z",
+      "completed_at": null
+    },
+    {
+      "id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "user_id": "user-student-demo",
+      "mode": "TIMED_ASSESSMENT",
+      "assessment_type": "core-cs",
+      "assessment_title": "Core Computer Science Comprehensive Assessment",
+      "category": "Core Computer Science",
+      "duration_minutes": 25,
+      "status": "COMPLETED",
+      "total_questions": 20,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 120,
+      "created_at": "2026-10-14T17:07:53.462Z",
+      "completed_at": "2026-10-14T17:07:54.200Z",
+      "updated_at": "2026-10-14T17:07:54.200Z"
+    },
+    {
+      "id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "user_id": "user-student-demo",
+      "mode": "TIMED_ASSESSMENT",
+      "assessment_type": "tcs-nqt",
+      "assessment_title": "TCS-Style National Qualifier Mock Assessment",
+      "category": "Company Recruitment",
+      "duration_minutes": 45,
+      "status": "IN_PROGRESS",
+      "total_questions": 30,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "created_at": "2026-10-14T17:07:53.608Z",
+      "completed_at": null
+    },
+    {
+      "id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "user_id": "user-student-demo",
+      "mode": "TIMED_ASSESSMENT",
+      "assessment_type": "dsa-mastery",
+      "assessment_title": "Data Structures & Algorithms Mastery Test",
+      "category": "Algorithms & Problem Solving",
+      "duration_minutes": 30,
+      "status": "IN_PROGRESS",
+      "total_questions": 15,
+      "correct_count": 0,
+      "score": 0,
+      "xp_earned": 0,
+      "time_taken_seconds": 0,
+      "created_at": "2026-10-14T17:07:53.835Z",
       "completed_at": null
     }
   ],
@@ -14646,6 +15442,1216 @@
       "user_answer": null,
       "is_correct": null,
       "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-1",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-cn-subnet-1",
+      "sequence_order": 1,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.784Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-2",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-tcs-cs-4",
+      "sequence_order": 2,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.794Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-3",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-cn-dns-1",
+      "sequence_order": 3,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.804Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-4",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-os-fork-1",
+      "sequence_order": 4,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.813Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-5",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-dbms-wal-1",
+      "sequence_order": 5,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.824Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-6",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-os-1",
+      "sequence_order": 6,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.833Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-7",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-capgemini-sql-1",
+      "sequence_order": 7,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.844Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-8",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-cn-dhcp-1",
+      "sequence_order": 8,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.853Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-9",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-dbms-btree-1",
+      "sequence_order": 9,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.862Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-10",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-oop-1",
+      "sequence_order": 10,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.871Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-11",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-tcs-os-1",
+      "sequence_order": 11,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.879Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-12",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-dbms-4",
+      "sequence_order": 12,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.889Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-13",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-acc-01",
+      "sequence_order": 13,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.898Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-14",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-dbms-1",
+      "sequence_order": 14,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.908Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-15",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-accenture-cloud-1",
+      "sequence_order": 15,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.918Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-16",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-tcs-cs-1",
+      "sequence_order": 16,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.928Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-17",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-os-thrashing-1",
+      "sequence_order": 17,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.938Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-18",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-amz-03",
+      "sequence_order": 18,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.947Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-19",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-oop-solid-1",
+      "sequence_order": 19,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.956Z"
+    },
+    {
+      "id": "qq-asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185-20",
+      "session_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "question_id": "q-deloitte-sec-1",
+      "sequence_order": 20,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T12:09:30.965Z"
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-1",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-dbms-2",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-2",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-google-graph-1",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-3",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-accenture-logic-1",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-4",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-amazon-concurrency-1",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-5",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-capgemini-sql-1",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-6",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-cn-dhcp-1",
+      "sequence_order": 6,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-7",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-msft-bit-1",
+      "sequence_order": 7,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-8",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-oop-solid-1",
+      "sequence_order": 8,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-9",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-ee-1",
+      "sequence_order": 9,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-10",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-os-thrashing-1",
+      "sequence_order": 10,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-11",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-dsa-3",
+      "sequence_order": 11,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-12",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-tcs-os-1",
+      "sequence_order": 12,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-13",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-inf-01",
+      "sequence_order": 13,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-14",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-google-sys-1",
+      "sequence_order": 14,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-15",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-infy-pseudo-1",
+      "sequence_order": 15,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-16",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-ece-1",
+      "sequence_order": 16,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-17",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-tcs-quant-1",
+      "sequence_order": 17,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-18",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-dsa-dp-coin-1",
+      "sequence_order": 18,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-19",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-del-02",
+      "sequence_order": 19,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-20",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-msft-01",
+      "sequence_order": 20,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-21",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-infy-dsa-1",
+      "sequence_order": 21,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-22",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-tcs-apt-6",
+      "sequence_order": 22,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-23",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-tcs-apt-16",
+      "sequence_order": 23,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-24",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-acc-01",
+      "sequence_order": 24,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-25",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-amz-01",
+      "sequence_order": 25,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-26",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-tcs-apt-5",
+      "sequence_order": 26,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-27",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-inf-04",
+      "sequence_order": 27,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-28",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-acc-03",
+      "sequence_order": 28,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-29",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-tcs-apt-18",
+      "sequence_order": 29,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05-30",
+      "session_id": "asmt-sess-917f6294-030a-4dfe-8e0c-54dbb90c2f05",
+      "question_id": "q-dbms-wal-1",
+      "sequence_order": 30,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-1",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-wipro-c-1",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-2",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-inf-01",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-3",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-amz-01",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-4",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-infy-dsa-1",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-5",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-dsa-graph-bfs-1",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-6",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-dsa-bst-1",
+      "sequence_order": 6,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-7",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-cognizant-dsa-1",
+      "sequence_order": 7,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-8",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-google-graph-1",
+      "sequence_order": 8,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-9",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-dsa-3",
+      "sequence_order": 9,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-10",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-dsa-topological-1",
+      "sequence_order": 10,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-11",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-dsa-2",
+      "sequence_order": 11,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-12",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-dsa-amortized-1",
+      "sequence_order": 12,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-13",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-dsa-1",
+      "sequence_order": 13,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-14",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-acc-02",
+      "sequence_order": 14,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-343ae212-18ea-474e-9767-822c5727a386-15",
+      "session_id": "asmt-sess-343ae212-18ea-474e-9767-822c5727a386",
+      "question_id": "q-msft-bit-1",
+      "sequence_order": 15,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-1",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-capgemini-sql-1",
+      "sequence_order": 1,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:53.945Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-2",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-os-1",
+      "sequence_order": 2,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:53.961Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-3",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-deloitte-dbms-1",
+      "sequence_order": 3,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:53.973Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-4",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-cn-tcp3way-1",
+      "sequence_order": 4,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:53.985Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-5",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-os-2",
+      "sequence_order": 5,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:53.997Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-6",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-deloitte-sec-1",
+      "sequence_order": 6,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.009Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-7",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-oop-1",
+      "sequence_order": 7,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.024Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-8",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-dbms-lossless-1",
+      "sequence_order": 8,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.037Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-9",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-acc-03",
+      "sequence_order": 9,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.049Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-10",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-goog-02",
+      "sequence_order": 10,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.061Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-11",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-tcs-cs-5",
+      "sequence_order": 11,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.076Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-12",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-cn-1",
+      "sequence_order": 12,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.088Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-13",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-dbms-3",
+      "sequence_order": 13,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.100Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-14",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-os-fork-1",
+      "sequence_order": 14,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.115Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-15",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-oop-solid-1",
+      "sequence_order": 15,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.127Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-16",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-os-thrashing-1",
+      "sequence_order": 16,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.142Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-17",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-oop-poly-1",
+      "sequence_order": 17,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.153Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-18",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-dbms-btree-1",
+      "sequence_order": 18,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.165Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-19",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-acc-01",
+      "sequence_order": 19,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.178Z"
+    },
+    {
+      "id": "qq-asmt-sess-f9860c41-c867-4432-af90-940177b3b903-20",
+      "session_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "question_id": "q-oop-diamond-1",
+      "sequence_order": 20,
+      "user_answer": "",
+      "is_correct": false,
+      "time_spent_seconds": 30,
+      "updated_at": "2026-10-14T17:07:54.194Z"
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-1",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-tcs-apt-6",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-2",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-dsa-3",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-3",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-os-2",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-4",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-os-context-1",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-5",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-dsa-2",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-6",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-wipro-c-1",
+      "sequence_order": 6,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-7",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-cognizant-dsa-1",
+      "sequence_order": 7,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-8",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-amazon-concurrency-1",
+      "sequence_order": 8,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-9",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-ee-1",
+      "sequence_order": 9,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-10",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-dbms-btree-1",
+      "sequence_order": 10,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-11",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-dbms-3",
+      "sequence_order": 11,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-12",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-cn-1",
+      "sequence_order": 12,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-13",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-cn-dhcp-1",
+      "sequence_order": 13,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-14",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-google-sys-1",
+      "sequence_order": 14,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-15",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-del-01",
+      "sequence_order": 15,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-16",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-dbms-2",
+      "sequence_order": 16,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-17",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-dsa-amortized-1",
+      "sequence_order": 17,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-18",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-tcs-cs-5",
+      "sequence_order": 18,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-19",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-dbms-wal-1",
+      "sequence_order": 19,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-20",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-dbms-1",
+      "sequence_order": 20,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-21",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-os-1",
+      "sequence_order": 21,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-22",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-wipro-net-1",
+      "sequence_order": 22,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-23",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-deloitte-sec-1",
+      "sequence_order": 23,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-24",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-cn-tcp3way-1",
+      "sequence_order": 24,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-25",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-capgemini-pseudo-1",
+      "sequence_order": 25,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-26",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-apt-1",
+      "sequence_order": 26,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-27",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-dsa-graph-bfs-1",
+      "sequence_order": 27,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-28",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-tcs-apt-17",
+      "sequence_order": 28,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-29",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-dsa-hash-1",
+      "sequence_order": 29,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3-30",
+      "session_id": "asmt-sess-9831ed20-31f1-4f01-9838-e5d6aca159b3",
+      "question_id": "q-google-graph-1",
+      "sequence_order": 30,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-1",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-dsa-bst-1",
+      "sequence_order": 1,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-2",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-amz-02",
+      "sequence_order": 2,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-3",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-amz-01",
+      "sequence_order": 3,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-4",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-goog-01",
+      "sequence_order": 4,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-5",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-msft-bit-1",
+      "sequence_order": 5,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-6",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-amazon-dp-1",
+      "sequence_order": 6,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-7",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-dsa-amortized-1",
+      "sequence_order": 7,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-8",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-dsa-graph-bfs-1",
+      "sequence_order": 8,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-9",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-tcs-cs-3",
+      "sequence_order": 9,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-10",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-cognizant-dsa-1",
+      "sequence_order": 10,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-11",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-dsa-hash-1",
+      "sequence_order": 11,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-12",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-wipro-c-1",
+      "sequence_order": 12,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-13",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-inf-01",
+      "sequence_order": 13,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-14",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-dsa-dp-coin-1",
+      "sequence_order": 14,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
+    },
+    {
+      "id": "qq-asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc-15",
+      "session_id": "asmt-sess-cb70a27a-7830-4ecb-845b-c1a6b980a7bc",
+      "question_id": "q-google-graph-1",
+      "sequence_order": 15,
+      "user_answer": null,
+      "is_correct": null,
+      "time_spent_seconds": 0
     }
   ],
   "studentPerformance": [
@@ -14654,12 +16660,12 @@
       "user_id": "user-student-demo",
       "topic_id": "top-normalization",
       "subject_id": "sub-dbms",
-      "attempts_count": 20,
+      "attempts_count": 22,
       "correct_count": 3,
-      "accuracy_rate": 15,
-      "weakness_score": 0.85,
-      "last_attempted_at": "2026-10-14T11:02:44.802Z",
-      "updated_at": "2026-10-14T11:02:44.802Z"
+      "accuracy_rate": 13.636363636363635,
+      "weakness_score": 0.86,
+      "last_attempted_at": "2026-10-14T17:07:54.243Z",
+      "updated_at": "2026-10-14T17:07:54.243Z"
     },
     {
       "id": "perf-2",
@@ -14677,24 +16683,24 @@
       "user_id": "user-student-demo",
       "topic_id": "top-deadlocks",
       "subject_id": "sub-os",
-      "attempts_count": 9,
+      "attempts_count": 11,
       "correct_count": 2,
-      "accuracy_rate": 22.22222222222222,
-      "weakness_score": 0.78,
-      "last_attempted_at": "2026-10-14T11:02:44.796Z",
-      "updated_at": "2026-10-14T11:02:44.796Z"
+      "accuracy_rate": 18.181818181818183,
+      "weakness_score": 0.82,
+      "last_attempted_at": "2026-10-14T17:07:54.213Z",
+      "updated_at": "2026-10-14T17:07:54.213Z"
     },
     {
       "id": "perf-4",
       "user_id": "user-student-demo",
       "topic_id": "top-osi-tcp",
       "subject_id": "sub-cn",
-      "attempts_count": 22,
+      "attempts_count": 29,
       "correct_count": 4,
-      "accuracy_rate": 18.181818181818183,
-      "weakness_score": 0.82,
-      "last_attempted_at": "2026-10-14T11:02:44.769Z",
-      "updated_at": "2026-10-14T11:02:44.769Z"
+      "accuracy_rate": 13.793103448275861,
+      "weakness_score": 0.86,
+      "last_attempted_at": "2026-10-14T17:07:54.225Z",
+      "updated_at": "2026-10-14T17:07:54.225Z"
     },
     {
       "id": "perf-64fcc545-c531-46f0-93d7-203cc2653a65",
@@ -14852,83 +16858,84 @@
       "user_id": "user-student-demo",
       "topic_id": "top-pillars",
       "subject_id": "sub-oop",
-      "attempts_count": 25,
+      "attempts_count": 33,
       "correct_count": 0,
       "accuracy_rate": 0,
       "weakness_score": 1,
-      "last_attempted_at": "2026-10-14T11:02:44.785Z",
-      "updated_at": "2026-10-14T11:02:44.785Z"
+      "last_attempted_at": "2026-10-14T17:07:54.237Z",
+      "updated_at": "2026-10-14T17:07:54.238Z"
     },
     {
       "id": "perf-9d5b9c1e-d248-468b-9b4a-4bc42ffcc517",
       "user_id": "user-student-demo",
       "topic_id": "top-acid",
       "subject_id": "sub-dbms",
-      "attempts_count": 8,
+      "attempts_count": 11,
       "correct_count": 0,
       "accuracy_rate": 0,
       "weakness_score": 1,
-      "last_attempted_at": "2026-10-14T11:02:44.791Z",
-      "updated_at": "2026-10-14T11:02:44.791Z"
+      "last_attempted_at": "2026-10-14T17:07:54.219Z",
+      "updated_at": "2026-10-14T17:07:54.219Z"
     },
     {
       "id": "perf-27cbc81c-1398-4676-809f-d7625ffb75cc",
       "user_id": "user-student-demo",
       "topic_id": "top-indexing",
       "subject_id": "sub-dbms",
-      "attempts_count": 1,
+      "attempts_count": 3,
       "correct_count": 0,
       "accuracy_rate": 0,
       "weakness_score": 1,
-      "last_attempted_at": "2026-10-14T10:22:52.371Z"
+      "last_attempted_at": "2026-10-14T17:07:54.270Z",
+      "updated_at": "2026-10-14T17:07:54.270Z"
     },
     {
       "id": "perf-cf2e7b0a-908c-4c21-aedc-3eeed3cdc0ab",
       "user_id": "user-student-demo",
       "topic_id": "top-sql-queries",
       "subject_id": "sub-dbms",
-      "attempts_count": 11,
+      "attempts_count": 15,
       "correct_count": 0,
       "accuracy_rate": 0,
       "weakness_score": 1,
-      "last_attempted_at": "2026-10-14T11:02:44.764Z",
-      "updated_at": "2026-10-14T11:02:44.764Z"
+      "last_attempted_at": "2026-10-14T17:07:54.206Z",
+      "updated_at": "2026-10-14T17:07:54.207Z"
     },
     {
       "id": "perf-a55d798e-7b62-409d-8811-f536af8f327a",
       "user_id": "user-student-demo",
       "topic_id": "top-cpu-sched",
       "subject_id": "sub-os",
-      "attempts_count": 7,
+      "attempts_count": 10,
       "correct_count": 0,
       "accuracy_rate": 0,
       "weakness_score": 1,
-      "last_attempted_at": "2026-10-14T11:02:44.806Z",
-      "updated_at": "2026-10-14T11:02:44.806Z"
+      "last_attempted_at": "2026-10-14T17:07:54.263Z",
+      "updated_at": "2026-10-14T17:07:54.263Z"
     },
     {
       "id": "perf-f87a3fa6-bd55-4f9a-b42c-5199c491b329",
       "user_id": "user-student-demo",
       "topic_id": "top-memory-mgmt",
       "subject_id": "sub-os",
-      "attempts_count": 9,
+      "attempts_count": 12,
       "correct_count": 0,
       "accuracy_rate": 0,
       "weakness_score": 1,
-      "last_attempted_at": "2026-10-14T11:02:44.775Z",
-      "updated_at": "2026-10-14T11:02:44.775Z"
+      "last_attempted_at": "2026-10-14T17:07:54.231Z",
+      "updated_at": "2026-10-14T17:07:54.231Z"
     },
     {
       "id": "perf-ac7c26ee-4cca-4bc0-bc70-7d98d2c76f44",
       "user_id": "user-student-demo",
       "topic_id": "top-routing",
       "subject_id": "sub-cn",
-      "attempts_count": 2,
+      "attempts_count": 3,
       "correct_count": 0,
       "accuracy_rate": 0,
       "weakness_score": 1,
-      "last_attempted_at": "2026-10-14T10:25:30.499Z",
-      "updated_at": "2026-10-14T10:25:30.499Z"
+      "last_attempted_at": "2026-10-14T12:09:30.975Z",
+      "updated_at": "2026-10-14T12:09:30.975Z"
     },
     {
       "id": "perf-3dd473d8-63df-4f07-b0ff-4e17e1c68fca",
@@ -14947,11 +16954,12 @@
       "user_id": "user-student-demo",
       "topic_id": "top-dbms-acid",
       "subject_id": "sub-dbms",
-      "attempts_count": 1,
+      "attempts_count": 2,
       "correct_count": 0,
       "accuracy_rate": 0,
       "weakness_score": 1,
-      "last_attempted_at": "2026-10-14T11:02:44.811Z"
+      "last_attempted_at": "2026-10-14T12:09:31.029Z",
+      "updated_at": "2026-10-14T12:09:31.029Z"
     },
     {
       "id": "perf-9c5cd9b1-086b-4244-9589-7a26831cfdc1",
@@ -14963,6 +16971,40 @@
       "accuracy_rate": 0,
       "weakness_score": 1,
       "last_attempted_at": "2026-10-14T11:02:44.816Z"
+    },
+    {
+      "id": "perf-b5174d34-4adf-4228-925e-94d1bbcf5195",
+      "user_id": "user-student-demo",
+      "topic_id": "top-cn-protocols",
+      "subject_id": "sub-cn",
+      "attempts_count": 2,
+      "correct_count": 0,
+      "accuracy_rate": 0,
+      "weakness_score": 1,
+      "last_attempted_at": "2026-10-14T17:07:54.278Z",
+      "updated_at": "2026-10-14T17:07:54.278Z"
+    },
+    {
+      "id": "perf-f35f862b-a2fb-4fb0-bef0-1786e6054aee",
+      "user_id": "user-student-demo",
+      "topic_id": "top-os-sched",
+      "subject_id": "sub-os",
+      "attempts_count": 1,
+      "correct_count": 0,
+      "accuracy_rate": 0,
+      "weakness_score": 1,
+      "last_attempted_at": "2026-10-14T17:07:54.251Z"
+    },
+    {
+      "id": "perf-33a9cc09-9f96-458b-9326-66cbb79c6b29",
+      "user_id": "user-student-demo",
+      "topic_id": "top-os-deadlock",
+      "subject_id": "sub-os",
+      "attempts_count": 1,
+      "correct_count": 0,
+      "accuracy_rate": 0,
+      "weakness_score": 1,
+      "last_attempted_at": "2026-10-14T17:07:54.257Z"
     }
   ],
   "xpHistory": [
@@ -15491,6 +17533,94 @@
       "action_type": "CUSTOM_PRACTICE_QUIZ",
       "reference_id": "asmt-sess-dba7471c-10b0-47f4-9dd9-7973ad45d1c6",
       "created_at": "2026-10-14T11:02:44.827Z"
+    },
+    {
+      "id": "xph-4ea34cff-d4f9-4436-ad30-f236556c5502",
+      "user_id": "user-66115d0b-eda4-4f00-805b-b298ac0ba8ef",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-14T12:09:19.754Z"
+    },
+    {
+      "id": "xph-e98d313b-345c-45c4-b92b-4270e290bc30",
+      "user_id": "user-4d81ecf2-41ae-41ec-949f-95e4d4b22cb2",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-14T12:09:21.016Z"
+    },
+    {
+      "id": "xph-72e943c4-c08c-444a-b19a-77eaf5026ca3",
+      "user_id": "user-bfce48f3-87d3-49bb-88b4-df4856085e19",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-14T12:09:21.314Z"
+    },
+    {
+      "id": "xph-3f96c023-11f0-4b58-a2e3-00afc93beffb",
+      "user_id": "user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-14T12:09:21.968Z"
+    },
+    {
+      "id": "5a1f00a2-8852-4a1a-9c66-606d4c62840f",
+      "user_id": "user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "reference_id": "prob-two-sum",
+      "amount": 50,
+      "action_type": "CODING_PROBLEM_SOLVED",
+      "created_at": "2026-10-14T12:09:28.268Z"
+    },
+    {
+      "id": "xph-78fbbafb-d9d1-4fc0-b43e-3cfd4bd9c58a",
+      "user_id": "user-student-demo",
+      "amount": 0,
+      "action_type": "CUSTOM_PRACTICE_QUIZ",
+      "reference_id": "asmt-sess-32478d25-8e51-4d1c-aa3f-5143849d6185",
+      "created_at": "2026-10-14T12:09:31.038Z"
+    },
+    {
+      "id": "xph-9dfdd7cd-51df-4ee4-988d-362e07ff4c29",
+      "user_id": "user-2147fd2c-0ac6-4c9a-85b1-ed61bbb762c3",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-14T17:07:41.058Z"
+    },
+    {
+      "id": "xph-f7dbcb4e-18c1-44c5-bbad-51ff9bb1f7a3",
+      "user_id": "user-305f62c5-e7c1-400e-a51d-1f7bcfc81233",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-14T17:07:42.412Z"
+    },
+    {
+      "id": "xph-55a8c805-21a6-4fbb-b7ce-c76714f8b548",
+      "user_id": "user-43c8de44-a7d5-4675-b9da-1691440f426d",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-14T17:07:42.662Z"
+    },
+    {
+      "id": "xph-97762346-b70c-4e8e-a93a-2d5e2f0232b2",
+      "user_id": "user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
+      "amount": 50,
+      "action_type": "WELCOME_BONUS",
+      "created_at": "2026-10-14T17:07:43.549Z"
+    },
+    {
+      "id": "83e91961-da22-4b7c-86db-2f5063afc52d",
+      "user_id": "user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
+      "reference_id": "prob-two-sum",
+      "amount": 50,
+      "action_type": "CODING_PROBLEM_SOLVED",
+      "created_at": "2026-10-14T17:07:51.035Z"
+    },
+    {
+      "id": "xph-a6368905-b0c9-49d8-bb57-1ec466862e23",
+      "user_id": "user-student-demo",
+      "amount": 0,
+      "action_type": "CUSTOM_PRACTICE_QUIZ",
+      "reference_id": "asmt-sess-f9860c41-c867-4432-af90-940177b3b903",
+      "created_at": "2026-10-14T17:07:54.290Z"
     }
   ],
   "streaks": [
@@ -15875,6 +18005,70 @@
     {
       "id": "streak-user-f4174953-c2dc-4fc5-b01e-83f643e7fbc1",
       "user_id": "user-f4174953-c2dc-4fc5-b01e-83f643e7fbc1",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-14",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-66115d0b-eda4-4f00-805b-b298ac0ba8ef",
+      "user_id": "user-66115d0b-eda4-4f00-805b-b298ac0ba8ef",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-14",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-4d81ecf2-41ae-41ec-949f-95e4d4b22cb2",
+      "user_id": "user-4d81ecf2-41ae-41ec-949f-95e4d4b22cb2",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-14",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-bfce48f3-87d3-49bb-88b4-df4856085e19",
+      "user_id": "user-bfce48f3-87d3-49bb-88b4-df4856085e19",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-14",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "user_id": "user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-14",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-2147fd2c-0ac6-4c9a-85b1-ed61bbb762c3",
+      "user_id": "user-2147fd2c-0ac6-4c9a-85b1-ed61bbb762c3",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-14",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-305f62c5-e7c1-400e-a51d-1f7bcfc81233",
+      "user_id": "user-305f62c5-e7c1-400e-a51d-1f7bcfc81233",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-14",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-43c8de44-a7d5-4675-b9da-1691440f426d",
+      "user_id": "user-43c8de44-a7d5-4675-b9da-1691440f426d",
+      "current_streak": 1,
+      "longest_streak": 1,
+      "last_activity_date": "2026-10-14",
+      "streak_freeze_count": 2
+    },
+    {
+      "id": "streak-user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
+      "user_id": "user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
       "current_streak": 1,
       "longest_streak": 1,
       "last_activity_date": "2026-10-14",
@@ -21130,6 +23324,706 @@
       "execution_time": 902,
       "memory_used": null,
       "submitted_at": "2026-10-14T11:02:43.527Z"
+    },
+    {
+      "id": "6abc953a-ceaf-4adb-bfb3-77e7bf18aa6a",
+      "user_id": "user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "problem_id": "prob-two-sum",
+      "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+      "language": "c",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 207,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 165,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 325,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 201,
+          "memoryKb": null,
+          "isHidden": true
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 121,
+          "memoryKb": null,
+          "isHidden": true
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 1019,
+      "memory_used": null,
+      "submitted_at": "2026-10-14T12:09:28.254Z"
+    },
+    {
+      "id": "4d54605e-d6ca-43ed-ae8f-27b858d59048",
+      "user_id": "user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "problem_id": "prob-two-sum",
+      "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+      "language": "c",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 310,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 312,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 130,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 278,
+          "memoryKb": null,
+          "isHidden": true
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 113,
+          "memoryKb": null,
+          "isHidden": true
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 1143,
+      "memory_used": null,
+      "submitted_at": "2026-10-14T12:09:28.817Z"
+    },
+    {
+      "id": "815c68f2-bed9-4b75-8da8-ebabef0c6096",
+      "user_id": "user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "problem_id": "prob-two-sum",
+      "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+      "language": "c",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 204,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 241,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 391,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 298,
+          "memoryKb": null,
+          "isHidden": true
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 205,
+          "memoryKb": null,
+          "isHidden": true
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 1339,
+      "memory_used": null,
+      "submitted_at": "2026-10-14T12:09:29.416Z"
+    },
+    {
+      "id": "a8f4893e-7f35-49c5-9b2c-f9c504661c33",
+      "user_id": "user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "problem_id": "prob-two-sum",
+      "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+      "language": "c",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 161,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 176,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 144,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 156,
+          "memoryKb": null,
+          "isHidden": true
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 150,
+          "memoryKb": null,
+          "isHidden": true
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 787,
+      "memory_used": null,
+      "submitted_at": "2026-10-14T12:09:29.435Z"
+    },
+    {
+      "id": "be7eee5c-ef12-47e7-bd89-4f1a8cd2a0aa",
+      "user_id": "user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "problem_id": "prob-two-sum",
+      "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+      "language": "c",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 402,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 210,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 193,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 321,
+          "memoryKb": null,
+          "isHidden": true
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 147,
+          "memoryKb": null,
+          "isHidden": true
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 1273,
+      "memory_used": null,
+      "submitted_at": "2026-10-14T12:09:29.838Z"
+    },
+    {
+      "id": "d5fd19ae-40b0-43a9-808d-4e252074819e",
+      "user_id": "user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
+      "problem_id": "prob-two-sum",
+      "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+      "language": "c",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 216,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 256,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 367,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 230,
+          "memoryKb": null,
+          "isHidden": true
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 411,
+          "memoryKb": null,
+          "isHidden": true
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 1480,
+      "memory_used": null,
+      "submitted_at": "2026-10-14T17:07:51.023Z"
+    },
+    {
+      "id": "6fbd4a5f-2435-4988-9a4a-9c21b014d848",
+      "user_id": "user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
+      "problem_id": "prob-two-sum",
+      "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+      "language": "c",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 402,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 207,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 244,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 178,
+          "memoryKb": null,
+          "isHidden": true
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 418,
+          "memoryKb": null,
+          "isHidden": true
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 1449,
+      "memory_used": null,
+      "submitted_at": "2026-10-14T17:07:51.858Z"
+    },
+    {
+      "id": "7ce5c762-ac52-4f68-bea8-c8be6731d5ef",
+      "user_id": "user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
+      "problem_id": "prob-two-sum",
+      "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+      "language": "c",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 172,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 413,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 357,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 284,
+          "memoryKb": null,
+          "isHidden": true
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 280,
+          "memoryKb": null,
+          "isHidden": true
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 1506,
+      "memory_used": null,
+      "submitted_at": "2026-10-14T17:07:51.875Z"
+    },
+    {
+      "id": "929cb1c2-29fd-4b29-979a-2c67f197c7f6",
+      "user_id": "user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
+      "problem_id": "prob-two-sum",
+      "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+      "language": "c",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 169,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 161,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 453,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 203,
+          "memoryKb": null,
+          "isHidden": true
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 172,
+          "memoryKb": null,
+          "isHidden": true
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 1158,
+      "memory_used": null,
+      "submitted_at": "2026-10-14T17:07:51.896Z"
+    },
+    {
+      "id": "9361de1e-a798-44a2-84b9-1903b4e49755",
+      "user_id": "user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
+      "problem_id": "prob-two-sum",
+      "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int nums[10005];\n    int n = 0;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    int target;\n    if (scanf(\"%d\", &target) != 1) return 0;\n\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}",
+      "language": "c",
+      "status": "ACCEPTED",
+      "results": [
+        {
+          "input": "2 7 11 15\n9",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 396,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 2 4\n6",
+          "expectedOutput": "1 2",
+          "actualOutput": "1 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 166,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "3 3\n6",
+          "expectedOutput": "0 1",
+          "actualOutput": "0 1",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 157,
+          "memoryKb": null,
+          "isHidden": false
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "1 4",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 194,
+          "memoryKb": null,
+          "isHidden": true
+        },
+        {
+          "input": "[Hidden Test Case]",
+          "expectedOutput": "[Hidden Server Output]",
+          "actualOutput": "0 2",
+          "passed": true,
+          "error": "",
+          "isInfrastructureError": false,
+          "executionTimeMs": 212,
+          "memoryKb": null,
+          "isHidden": true
+        }
+      ],
+      "passed_count": 5,
+      "total_count": 5,
+      "execution_time": 1125,
+      "memory_used": null,
+      "submitted_at": "2026-10-14T17:07:52.508Z"
     }
   ],
   "codingLanguages": [],
@@ -21779,6 +24673,120 @@
         }
       ],
       "updated_at": "2026-10-14T11:02:43.544Z"
+    },
+    {
+      "id": "c93c376a-2ee4-4be7-b7ab-9cffefbf6a33",
+      "assessment_id": "asmt-tcs-nqt-round1",
+      "user_id": "user-1ad5e0f6-3460-449c-b0c2-056b9abb30ad",
+      "start_time": "2026-10-14T12:09:29.848Z",
+      "duration_minutes": 45,
+      "status": "COMPLETED",
+      "answers": {},
+      "created_at": "2026-10-14T12:09:29.848Z",
+      "results": [
+        {
+          "problem_id": "prob-palindrome-string",
+          "title": "Valid Palindrome",
+          "difficulty": "Easy",
+          "language": "c",
+          "code": "",
+          "allPassed": false,
+          "passedCount": 0,
+          "totalCount": 3,
+          "score": 0,
+          "verdict": "NO_SUBMISSION",
+          "testResults": []
+        },
+        {
+          "problem_id": "prob-two-sum",
+          "title": "Two Sum",
+          "difficulty": "Easy",
+          "language": "c",
+          "code": "",
+          "allPassed": false,
+          "passedCount": 0,
+          "totalCount": 5,
+          "score": 0,
+          "verdict": "NO_SUBMISSION",
+          "testResults": []
+        }
+      ],
+      "score": 0,
+      "max_score": 100,
+      "percentage": 0,
+      "submitted_at": "2026-10-14T12:09:29.862Z",
+      "recommendations": [
+        {
+          "topic": "Two Pointers",
+          "recommendation": "Strengthen your foundational patterns in Two Pointers. Focus on boundary conditions and asymptotic complexity."
+        },
+        {
+          "topic": "Strings",
+          "recommendation": "Strengthen your foundational patterns in Strings. Focus on boundary conditions and asymptotic complexity."
+        },
+        {
+          "topic": "TCS NQT",
+          "recommendation": "Strengthen your foundational patterns in TCS NQT. Focus on boundary conditions and asymptotic complexity."
+        }
+      ],
+      "updated_at": "2026-10-14T12:09:29.862Z"
+    },
+    {
+      "id": "ad3eaa20-b7bd-4adc-b126-f616fe1e2334",
+      "assessment_id": "asmt-tcs-nqt-round1",
+      "user_id": "user-a5c72388-97bd-4551-8ad5-4aa27ef94f2e",
+      "start_time": "2026-10-14T17:07:52.528Z",
+      "duration_minutes": 45,
+      "status": "COMPLETED",
+      "answers": {},
+      "created_at": "2026-10-14T17:07:52.528Z",
+      "results": [
+        {
+          "problem_id": "prob-palindrome-string",
+          "title": "Valid Palindrome",
+          "difficulty": "Easy",
+          "language": "c",
+          "code": "",
+          "allPassed": false,
+          "passedCount": 0,
+          "totalCount": 3,
+          "score": 0,
+          "verdict": "NO_SUBMISSION",
+          "testResults": []
+        },
+        {
+          "problem_id": "prob-two-sum",
+          "title": "Two Sum",
+          "difficulty": "Easy",
+          "language": "c",
+          "code": "",
+          "allPassed": false,
+          "passedCount": 0,
+          "totalCount": 5,
+          "score": 0,
+          "verdict": "NO_SUBMISSION",
+          "testResults": []
+        }
+      ],
+      "score": 0,
+      "max_score": 100,
+      "percentage": 0,
+      "submitted_at": "2026-10-14T17:07:52.553Z",
+      "recommendations": [
+        {
+          "topic": "Two Pointers",
+          "recommendation": "Strengthen your foundational patterns in Two Pointers. Focus on boundary conditions and asymptotic complexity."
+        },
+        {
+          "topic": "Strings",
+          "recommendation": "Strengthen your foundational patterns in Strings. Focus on boundary conditions and asymptotic complexity."
+        },
+        {
+          "topic": "TCS NQT",
+          "recommendation": "Strengthen your foundational patterns in TCS NQT. Focus on boundary conditions and asymptotic complexity."
+        }
+      ],
+      "updated_at": "2026-10-14T17:07:52.553Z"
     }
   ],
   "adminInvitations": [
@@ -21921,6 +24929,34 @@
       "used_by": "user-dean-9d572df5-4cf3-41d3-b5a6-57308a16fd38",
       "used_at": "2026-10-14T11:02:33.570Z",
       "updated_at": "2026-10-14T11:02:33.570Z"
+    },
+    {
+      "id": "inv-8f4b3965-1ad1-4539-8322-4e871d6af647",
+      "token": "inv-008e653f9adb52d292f379daacb2f7c8",
+      "email": "faculty_inv_1791979759900@college.edu",
+      "designation": "Associate Placement Officer",
+      "department": "Training & Placement Cell",
+      "created_by": "user-admin-demo",
+      "is_used": true,
+      "expires_at": "2026-10-16T12:09:19.907Z",
+      "created_at": "2026-10-14T12:09:19.907Z",
+      "used_by": "user-dean-1c474f40-f8f9-4c22-852c-0f2a11928430",
+      "used_at": "2026-10-14T12:09:20.081Z",
+      "updated_at": "2026-10-14T12:09:20.082Z"
+    },
+    {
+      "id": "inv-0981162b-62f6-4834-82c5-8f07322be6e3",
+      "token": "inv-2b2d24ff6a867488a76bca164a9a8367",
+      "email": "faculty_inv_1791997661219@college.edu",
+      "designation": "Associate Placement Officer",
+      "department": "Training & Placement Cell",
+      "created_by": "user-admin-demo",
+      "is_used": true,
+      "expires_at": "2026-10-16T17:07:41.228Z",
+      "created_at": "2026-10-14T17:07:41.228Z",
+      "used_by": "user-dean-f40d1f63-2928-4340-9a15-838809c02423",
+      "used_at": "2026-10-14T17:07:41.384Z",
+      "updated_at": "2026-10-14T17:07:41.384Z"
     }
   ],
   "facultyApplications": []

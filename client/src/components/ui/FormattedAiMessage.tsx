@@ -5,7 +5,10 @@ import {
   Volume2,
   VolumeX,
   Terminal,
-  BookOpen
+  BookOpen,
+  Sparkles,
+  ArrowRight,
+  Lightbulb
 } from 'lucide-react';
 
 interface FormattedAiMessageProps {
@@ -15,6 +18,8 @@ interface FormattedAiMessageProps {
   isSpeaking?: boolean;
   onSpeak?: (text: string) => void;
   onStopSpeak?: () => void;
+  onPromptClick?: (prompt: string) => void;
+  showSuggestions?: boolean;
 }
 
 export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
@@ -23,7 +28,9 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
   speechText,
   isSpeaking,
   onSpeak,
-  onStopSpeak
+  onStopSpeak,
+  onPromptClick,
+  showSuggestions = true
 }) => {
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
   const [copiedMessage, setCopiedMessage] = useState(false);
@@ -173,15 +180,80 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
         continue;
       }
 
-      // Callout / Blockquote
+      // Callout / Blockquote / Highlights
       if (trimmed.startsWith('>')) {
         const quote = trimmed.replace(/^>\s*/, '');
+        const isNote = quote.toLowerCase().startsWith('[!note]') || quote.toLowerCase().startsWith('note:');
+        const isTip = quote.toLowerCase().startsWith('[!tip]') || quote.toLowerCase().startsWith('tip:') || quote.toLowerCase().startsWith('interview tip:');
+        const cleanQuote = quote.replace(/^\[!(note|tip|important|warning)\]\s*/i, '');
+
         elements.push(
-          <div key={`quote-${i}`} className="my-2.5 p-3 rounded-xl bg-slate-900/90 border-l-2 border-indigo-400 text-xs sm:text-sm text-slate-200 shadow-sm leading-relaxed">
-            {formatInline(quote)}
+          <div
+            key={`quote-${i}`}
+            className={`my-3 p-3.5 rounded-xl border text-xs sm:text-sm shadow-sm leading-relaxed ${
+              isTip
+                ? 'bg-amber-950/20 border-amber-500/40 text-amber-200'
+                : isNote
+                ? 'bg-indigo-950/20 border-indigo-500/40 text-indigo-200'
+                : 'bg-slate-900/90 border-l-2 border-indigo-400 text-slate-200'
+            }`}
+          >
+            <div className="flex items-start gap-2">
+              {isTip ? (
+                <Lightbulb size={15} className="text-amber-400 mt-0.5 shrink-0" />
+              ) : isNote ? (
+                <Sparkles size={15} className="text-indigo-400 mt-0.5 shrink-0" />
+              ) : null}
+              <div className="flex-1">{formatInline(cleanQuote)}</div>
+            </div>
           </div>
         );
         continue;
+      }
+
+      // Markdown Tables
+      if (trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.includes('|', 1)) {
+        const tableLines = [trimmed];
+        while (i + 1 < rawLines.length && rawLines[i + 1].trim().startsWith('|') && rawLines[i + 1].trim().endsWith('|')) {
+          i++;
+          tableLines.push(rawLines[i].trim());
+        }
+
+        if (tableLines.length >= 2) {
+          const headerRow = tableLines[0].split('|').slice(1, -1).map(c => c.trim());
+          const hasSeparator = /^\|[\s-:]+\|$/.test(tableLines[1].replace(/\|[\s-:]+/g, '|'));
+          const dataRows = (hasSeparator ? tableLines.slice(2) : tableLines.slice(1)).map(row =>
+            row.split('|').slice(1, -1).map(c => c.trim())
+          );
+
+          elements.push(
+            <div key={`table-${i}`} className="my-3.5 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/70 shadow-md">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-900/95 border-b border-slate-800 text-slate-300">
+                  <tr>
+                    {headerRow.map((cell, ci) => (
+                      <th key={ci} className="py-2.5 px-3 font-semibold text-[11px] uppercase tracking-wider text-indigo-300 border-r border-slate-800/80 last:border-r-0">
+                        {formatInline(cell)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/70 text-slate-200">
+                  {dataRows.map((rowCells, ri) => (
+                    <tr key={ri} className="hover:bg-slate-900/40 transition-colors">
+                      {rowCells.map((cell, ci) => (
+                        <td key={ci} className="py-2 px-3 text-xs border-r border-slate-800/50 last:border-r-0 font-normal">
+                          {formatInline(cell)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+          continue;
+        }
       }
 
       // Bullet List Items
@@ -242,6 +314,29 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
             <span key={i} className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-300 text-[10px] font-medium">
               {src}
             </span>
+          ))}
+        </div>
+      )}
+
+      {/* Interactive Follow-up Deep-Dive Chips */}
+      {onPromptClick && showSuggestions && !sanitizedText.toLowerCase().includes('connection hiccup') && (
+        <div className="pt-2.5 pb-1 flex flex-wrap items-center gap-1.5 animate-in fade-in">
+          <span className="text-[10px] uppercase font-bold text-slate-400 mr-1 flex items-center gap-1 select-none">
+            <Sparkles size={11} className="text-indigo-400" /> Deep Dive:
+          </span>
+          {[
+            'Show code implementation & dry run',
+            'Explain Time and Space Complexity trade-offs',
+            'What follow-up interview questions could be asked?'
+          ].map((promptText, pIdx) => (
+            <button
+              key={pIdx}
+              onClick={() => onPromptClick(promptText)}
+              className="px-2.5 py-1 rounded-full bg-slate-900/90 hover:bg-indigo-600/25 text-slate-300 hover:text-indigo-200 border border-slate-800 hover:border-indigo-500/50 text-[10px] font-medium transition-all cursor-pointer flex items-center gap-1 shadow-sm active:scale-95"
+            >
+              <span>{promptText}</span>
+              <ArrowRight size={10} className="text-slate-500" />
+            </button>
           ))}
         </div>
       )}

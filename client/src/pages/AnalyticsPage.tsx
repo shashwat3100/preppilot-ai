@@ -68,6 +68,99 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
     fetchAnalytics();
   }, []);
 
+  const handlePrintReport = () => {
+    const reportElem = document.getElementById('placement-report-print');
+    if (!reportElem) {
+      window.print();
+      return;
+    }
+
+    // Create an invisible iframe for isolated, high-fidelity printing without viewport clipping
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.visibility = 'hidden';
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentWindow?.document;
+    if (!iframeDoc) {
+      window.print();
+      return;
+    }
+
+    // Collect all stylesheets and style tags from current document
+    const headStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+      .map(el => el.outerHTML)
+      .join('\n');
+
+    iframeDoc.open();
+    iframeDoc.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <title>PrepPilot_AI_Placement_Readiness_Dossier</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          ${headStyles}
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 12mm 15mm;
+            }
+            html, body {
+              background: #ffffff !important;
+              color: #0f172a !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+            :root {
+              --surface-card: #ffffff;
+              --surface-elevated: #f8fafc;
+              --surface-border: #e2e8f0;
+              --text-primary: #0f172a;
+              --text-secondary: #334155;
+              --text-muted: #64748b;
+            }
+            * {
+              box-sizing: border-box;
+            }
+          </style>
+        </head>
+        <body class="p-6 bg-white text-slate-900">
+          <div style="max-width: 820px; margin: 0 auto;">
+            ${reportElem.innerHTML}
+          </div>
+        </body>
+      </html>
+    `);
+    iframeDoc.close();
+
+    // Trigger print after iframe renders styles
+    setTimeout(() => {
+      try {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      } catch (err) {
+        window.print();
+      }
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 5000);
+    }, 250);
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
@@ -750,8 +843,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
 
       {/* Official Institutional Placement Readiness Report Modal */}
       {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-          <div className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-2xl flex flex-col text-[var(--text-primary)]">
+        <div className="report-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+          <div className="report-modal-container relative w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-2xl flex flex-col text-[var(--text-primary)]">
             
             {/* Modal Controls Bar (Hidden on Print) */}
             <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 bg-[var(--surface-card)] border-b border-[var(--surface-border)] backdrop-blur no-print">
@@ -761,7 +854,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => window.print()}
+                  onClick={handlePrintReport}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
                 >
                   <Printer size={15} />
@@ -1073,24 +1166,57 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
       {/* Scoped Print CSS */}
       <style>{`
         @media print {
-          body * {
-            visibility: hidden;
+          @page {
+            size: A4 portrait;
+            margin: 12mm 15mm;
           }
-          #placement-report-print, #placement-report-print * {
-            visibility: visible;
+          html, body {
+            overflow: visible !important;
+            height: auto !important;
+            min-height: 100% !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          nav, header, aside, .no-print {
+            display: none !important;
+          }
+          .report-modal-overlay {
+            position: static !important;
+            inset: auto !important;
+            background: transparent !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            max-height: none !important;
+            height: auto !important;
+            display: block !important;
+          }
+          .report-modal-container {
+            position: static !important;
+            max-width: 100% !important;
+            max-height: none !important;
+            overflow: visible !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            padding: 0 !important;
+            display: block !important;
           }
           #placement-report-print {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 20px !important;
-            background: white !important;
-            color: black !important;
+            display: block !important;
+            visibility: visible !important;
+            width: 100% !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            padding: 0 !important;
           }
-          .no-print {
-            display: none !important;
+          #placement-report-print * {
+            visibility: visible !important;
           }
         }
       `}</style>
