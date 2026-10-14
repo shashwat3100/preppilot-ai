@@ -461,26 +461,44 @@ export const CompanyPrepPage: React.FC<CompanyPrepPageProps> = ({
                     </div>
                   </div>
 
-                  {/* Standard Recruitment Rounds Blueprint */}
-                  <div className="p-6 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-4">
-                    <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
-                      <Layers size={16} className="text-cyan-400" />
-                      <span>Sequential Recruitment Rounds Workflow</span>
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {companyDetails.hiring_rounds?.map((round: string, idx: number) => (
-                        <div key={idx} className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-1.5 shadow-sm">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-indigo-400 uppercase">Stage {idx + 1}</span>
-                            <span className="w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-[10px] font-bold">
-                              {idx + 1}
-                            </span>
+                  {/* Detailed Stage Blueprints */}
+                  {companyDetails.blueprint_stages && (
+                    <div className="p-6 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-4">
+                      <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+                        <Zap size={16} className="text-amber-400" />
+                        <span>Stage Breakdown & Detailed Time Allocations</span>
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        {companyDetails.blueprint_stages.map((stage: any, idx: number) => (
+                          <div key={idx} className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-xs text-[var(--text-primary)]">{stage.name}</span>
+                              <span className="text-[11px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-semibold">{stage.duration}</span>
+                            </div>
+                            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">{stage.topics}</p>
                           </div>
-                          <h4 className="text-xs font-bold text-[var(--text-primary)]">{round}</h4>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Recruiter Strategy & Tips */}
+                  {companyDetails.tips && companyDetails.tips.length > 0 && (
+                    <div className="p-6 rounded-2xl bg-[var(--surface-card)] border border-indigo-500/20 space-y-3">
+                      <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+                        <Sparkles size={16} className="text-indigo-400" />
+                        <span>Senior Placement Advisory & Cracking Strategy</span>
+                      </h3>
+                      <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
+                        {companyDetails.tips.map((tip: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" />
+                            <span>{tip}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               )}
 

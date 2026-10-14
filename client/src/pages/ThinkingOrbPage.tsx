@@ -205,6 +205,12 @@ export default function ThinkingOrbPage() {
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Active Mode Pill */}
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border bg-slate-900 border-slate-800 text-slate-300">
+              <span className={`w-2 h-2 rounded-full ${apiKey || hasSystemKey ? 'bg-emerald-400 animate-pulse' : 'bg-cyan-400'}`} />
+              <span>{apiKey || hasSystemKey ? 'Live GenAI Mode' : 'Curriculum RAG Grounded'}</span>
+            </div>
+
             {/* Model Settings Button */}
             <button
               onClick={() => {
@@ -350,10 +356,27 @@ export default function ThinkingOrbPage() {
                             <span className="text-indigo-400 font-medium">
                               • {msg.model || selectedModel}
                             </span>
-                            {msg.isLiveApi && (
-                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            {msg.isLiveApi ? (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                 Live GenAI API
                               </span>
+                            ) : (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                                Grounded RAG & Syllabus Demo Mode
+                              </span>
+                            )}
+                            {(msg.text.includes("connection hiccup") || msg.text.includes("Please retry")) && (
+                              <button
+                                onClick={() => {
+                                  const prevUserMsg = [...conversation.slice(0, index)].reverse().find(m => m.sender === 'user');
+                                  if (prevUserMsg) {
+                                    sendQuery(prevUserMsg.text, prevUserMsg.isVoiceInput);
+                                  }
+                                }}
+                                className="text-[10px] px-2 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 cursor-pointer transition-colors"
+                              >
+                                ↻ Retry Question
+                              </button>
                             )}
                           </>
                         )}

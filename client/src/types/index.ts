@@ -206,6 +206,7 @@ export interface AnalyticsData {
     longest_streak: number;
   };
   placement_readiness?: {
+    has_activity?: boolean;
     score: number;
     percentile: number;
     tier_fit: string;

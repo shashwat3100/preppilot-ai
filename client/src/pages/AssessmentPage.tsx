@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
 import { useVoice } from '../context/VoiceContext';
@@ -27,17 +27,33 @@ import {
   FileCode2,
   BookOpen,
   ChevronRight,
+  ChevronLeft,
   Check,
-  Loader2
+  Loader2,
+  HelpCircle,
+  BarChart3,
+  ListOrdered,
+  Building2,
+  Sliders,
+  Send,
+  X
 } from 'lucide-react';
+
+interface QuestionOption {
+  id: string;
+  option_key: string;
+  option_text: string;
+}
 
 interface Question {
   id: string;
   question: string;
-  options: Array<{ id: string; option_key: string; option_text: string }>;
+  options: QuestionOption[];
   subject_name?: string;
   topic_name?: string;
+  difficulty?: string;
   explanation?: string;
+  correct_answer?: string;
 }
 
 interface CodingProblem {
@@ -50,394 +66,801 @@ interface CodingProblem {
   testCaseCount: number;
 }
 
+interface AssessmentCard {
+  id: string;
+  type: string;
+  title: string;
+  category: string;
+  questionCount: number;
+  availableQuestions?: number;
+  durationMinutes: number;
+  description: string;
+  passingPercent: number;
+  subjects: string[];
+  hasCodingSection?: boolean;
+}
+
+const DEFAULT_ASSESSMENTS: AssessmentCard[] = [
+  {
+    id: 'asmt-core-cs',
+    type: 'core-cs',
+    title: 'Core Computer Science Comprehensive Assessment',
+    category: 'Core Computer Science',
+    questionCount: 20,
+    durationMinutes: 25,
+    description: 'Comprehensive 20-question evaluation covering Operating Systems (paging, deadlocks, scheduling), DBMS (normalization, ACID, indexing), Computer Networks (OSI, TCP/IP, DNS), and OOP principles.',
+    passingPercent: 65,
+    subjects: ['Operating Systems', 'DBMS', 'Computer Networks', 'OOP']
+  },
+  {
+    id: 'asmt-tcs-nqt',
+    type: 'tcs-nqt',
+    title: 'TCS-Style National Qualifier Mock Assessment',
+    category: 'Company Recruitment',
+    questionCount: 30,
+    durationMinutes: 45,
+    description: 'Authentic 30-question screening test following TCS NQT patterns: Quantitative Aptitude (work/time, speeds, ratios, percentages), Logical Reasoning (syllogisms, clocks, seating), and Technical CS Foundations.',
+    passingPercent: 60,
+    subjects: ['Quantitative Aptitude', 'Logical Reasoning', 'C / C++ Basics', 'Core CS']
+  },
+  {
+    id: 'asmt-dsa-mastery',
+    type: 'dsa-mastery',
+    title: 'Data Structures & Algorithms Mastery Test',
+    category: 'Algorithms & Problem Solving',
+    questionCount: 15,
+    durationMinutes: 30,
+    description: 'Focused 15-question technical drill covering Binary Trees & BSTs, Graph Traversals (BFS/DFS), Hash Tables, Min/Max Heaps, Dynamic Programming, and Asymptotic Complexity.',
+    passingPercent: 70,
+    subjects: ['Data Structures & Algorithms']
+  },
+  {
+    id: 'asmt-full-simulation',
+    type: 'full-simulation',
+    title: 'Full Campus Placement Simulation (Quiz + Live Coding)',
+    category: 'Comprehensive Screening',
+    questionCount: 10,
+    hasCodingSection: true,
+    durationMinutes: 35,
+    description: 'Dual-section evaluation simulating Tier-1 corporate drives: 10 technical MCQs followed by a live programming challenge evaluated against automated test cases.',
+    passingPercent: 70,
+    subjects: ['Core Engineering', 'Data Structures & Algorithms']
+  }
+];
+
 export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ onReturnToDashboard }) => {
   const { user, refreshUser } = useAuth();
-  const { speakText, stopSpeaking, isSpeaking, openVoiceModal } = useVoice();
+  const { speakText, stopSpeaking, isSpeaking } = useVoice();
 
-  // Test stage: 'intro' | 'quiz' | 'coding' | 'result'
-  const [stage, setStage] = useState<'intro' | 'quiz' | 'coding' | 'result'>('intro');
+  // Test stage: 'catalog' | 'quiz' | 'coding' | 'result'
+  const [stage, setStage] = useState<'catalog' | 'quiz' | 'coding' | 'result'>('catalog');
 
-  // Quiz state
-  const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
-  const [quizIndex, setQuizIndex] = useState(0);
-  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
-  const [quizResultScore, setQuizResultScore] = useState<any>(null);
+  // Available Assessments Catalog
+  const [catalog, setCatalog] = useState<AssessmentCard[]>(DEFAULT_ASSESSMENTS);
+  const [selectedAssessment, setSelectedAssessment] = useState<AssessmentCard | null>(null);
 
-  // Coding state
+  // Active Assessment State
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState<number>(0);
+  const [totalDurationSeconds, setTotalDurationSeconds] = useState<number>(0);
+  const [startTime, setStartTime] = useState<number>(0);
+  const [loadingAssessment, setLoadingAssessment] = useState(false);
+  const [submittingAssessment, setSubmittingAssessment] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+
+  // Results State
+  const [gradedResult, setGradedResult] = useState<any | null>(null);
+  const [reviewFilter, setReviewFilter] = useState<'all' | 'correct' | 'incorrect' | 'unattempted'>('all');
+
+  // Live Coding Section (for Full Simulation)
   const [codingProblem, setCodingProblem] = useState<CodingProblem | null>(null);
   const [codingLanguage, setCodingLanguage] = useState('python');
   const [codingCode, setCodingCode] = useState('');
   const [runningCode, setRunningCode] = useState(false);
-  const [submittingCode, setSubmittingCode] = useState(false);
   const [runOutput, setRunOutput] = useState('');
   const [runError, setRunError] = useState('');
   const [testResults, setTestResults] = useState<any[]>([]);
-  const [codingSubmitted, setCodingSubmitted] = useState(false);
   const [codingPassCount, setCodingPassCount] = useState(0);
   const [codingTotalCount, setCodingTotalCount] = useState(0);
 
-  // Overall test timers
-  const [overallStartTime, setOverallStartTime] = useState<number>(0);
-  const [elapsedTimer, setElapsedTimer] = useState<number>(0);
-  const [loadingInitial, setLoadingInitial] = useState(false);
-
   // Voice Assessment Debrief
-  const [isDiagnosingVoice, setIsDiagnosingVoice] = useState(false);
   const [voiceDebrief, setVoiceDebrief] = useState<{
     speech_text: string;
     overview: string;
     recommendations: string[];
   } | null>(null);
 
-  // Load test assets on start
-  const handleStartAssessment = async () => {
-    setLoadingInitial(true);
-    try {
-      // 1. Fetch adaptive questions for Section 1
-      const quizRes = await api.startAdaptiveDailyQuiz(4);
-      if (quizRes.success && quizRes.quiz && quizRes.quiz.questions) {
-        setQuizQuestions(quizRes.quiz.questions);
-      }
-
-      // 2. Fetch coding problem for Section 2
-      const problemsRes = await api.getCodingProblems();
-      if (problemsRes.problems && problemsRes.problems.length > 0) {
-        // Pick an unbiased problem (e.g. Two Sum or Valid Parentheses)
-        const chosen = problemsRes.problems.find((p: any) => p.id === 'prob-two-sum') || problemsRes.problems[0];
-        setCodingProblem(chosen);
-        setCodingCode(chosen.starterCode?.python || 'def solve():\n    pass\n\nsolve()');
-      }
-
-      setOverallStartTime(Date.now());
-      setStage('quiz');
-    } catch (err) {
-      console.error('Failed to initialize placement assessment:', err);
-    } finally {
-      setLoadingInitial(false);
-    }
-  };
-
-  // Timer interval
+  // Load live assessment catalog on mount
   useEffect(() => {
-    if (stage === 'intro' || stage === 'result' || !overallStartTime) return;
-    const interval = setInterval(() => {
-      setElapsedTimer(Math.floor((Date.now() - overallStartTime) / 1000));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [stage, overallStartTime]);
+    const fetchCatalog = async () => {
+      try {
+        const res = await api.getQuizAssessments();
+        if (res.success && res.assessments && res.assessments.length > 0) {
+          setCatalog(res.assessments);
+        }
+      } catch (e) {
+        // Fallback to DEFAULT_ASSESSMENTS
+      }
+    };
+    fetchCatalog();
+  }, []);
 
-  const formatSeconds = (sec: number) => {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
+  // Restore active assessment progress from localStorage if present
+  useEffect(() => {
+    if (!user?.id || stage !== 'catalog') return;
+    try {
+      const savedKey = `preppilot_active_asmt_${user.id}`;
+      const saved = localStorage.getItem(savedKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.sessionId && parsed.questions?.length > 0) {
+          const elapsed = Math.floor((Date.now() - parsed.startTime) / 1000);
+          const remaining = Math.max(0, parsed.totalDurationSeconds - elapsed);
+          if (remaining > 0) {
+            setSessionId(parsed.sessionId);
+            setSelectedAssessment(parsed.selectedAssessment);
+            setQuestions(parsed.questions);
+            setAnswers(parsed.answers || {});
+            setCurrentIndex(parsed.currentIndex || 0);
+            setTimeRemainingSeconds(remaining);
+            setTotalDurationSeconds(parsed.totalDurationSeconds);
+            setStartTime(parsed.startTime);
+            setStage('quiz');
+          } else {
+            localStorage.removeItem(savedKey);
+          }
+        }
+      }
+    } catch (e) {}
+  }, [user?.id, stage]);
+
+  // Autosave progress during active quiz attempt
+  useEffect(() => {
+    if (stage === 'quiz' && user?.id && sessionId && questions.length > 0) {
+      try {
+        const savedKey = `preppilot_active_asmt_${user.id}`;
+        localStorage.setItem(savedKey, JSON.stringify({
+          sessionId,
+          selectedAssessment,
+          questions,
+          answers,
+          currentIndex,
+          startTime,
+          totalDurationSeconds
+        }));
+      } catch (e) {}
+    }
+  }, [stage, user?.id, sessionId, questions, answers, currentIndex, startTime, totalDurationSeconds, selectedAssessment]);
+
+  // Countdown Timer Hook
+  useEffect(() => {
+    if (stage !== 'quiz' && stage !== 'coding') return;
+    if (timeRemainingSeconds <= 0 && stage === 'quiz') {
+      // Auto-submit on expiry
+      handleAutoSubmitOnExpiry();
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimeRemainingSeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          handleAutoSubmitOnExpiry();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [stage, timeRemainingSeconds]);
+
+  // Auto-submit when countdown hits zero
+  const handleAutoSubmitOnExpiry = useCallback(() => {
+    if (submittingAssessment) return;
+    handleFinalSubmit(true);
+  }, [submittingAssessment, answers, questions, sessionId]);
+
+  // Format seconds into MM:SS
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Handle MCQ answer selection
-  const handleSelectQuizOption = (questionId: string, optionKey: string) => {
-    setQuizAnswers(prev => ({ ...prev, [questionId]: optionKey }));
-  };
+  // Start selected assessment
+  const handleStartAssessment = async (asmt: AssessmentCard) => {
+    setSelectedAssessment(asmt);
+    setLoadingAssessment(true);
 
-  // Finish Section 1 (MCQ) & advance to Section 2 (Coding)
-  const handleFinishQuizSection = () => {
-    // Calculate preliminary MCQ score
-    let correct = 0;
-    quizQuestions.forEach(q => {
-      // If student answer matches
-      if (quizAnswers[q.id]) {
-        correct++;
+    try {
+      const res = await api.startQuizAssessment(asmt.type || asmt.id);
+      if (res.success && res.assessment) {
+        const asmtData = res.assessment;
+        setSessionId(asmtData.session_id);
+        setQuestions(asmtData.questions || []);
+        setAnswers({});
+        setCurrentIndex(0);
+
+        const durationSec = (asmtData.duration_minutes || asmt.durationMinutes || 25) * 60;
+        setTimeRemainingSeconds(durationSec);
+        setTotalDurationSeconds(durationSec);
+        setStartTime(Date.now());
+
+        // If Full Placement Simulation, fetch coding problem
+        if (asmt.hasCodingSection) {
+          const problemsRes = await api.getCodingProblems();
+          if (problemsRes.problems && problemsRes.problems.length > 0) {
+            const prob = problemsRes.problems[0];
+            setCodingProblem(prob);
+            setCodingCode(prob.starterCode?.python || 'def solve():\n    pass\n\nsolve()');
+          }
+        }
+
+        setStage('quiz');
+      } else {
+        alert(res.message || 'Failed to initialize assessment questions. Please try again.');
       }
-    });
-    setQuizResultScore({
-      total: quizQuestions.length,
-      answered: Object.keys(quizAnswers).length
-    });
-    setStage('coding');
+    } catch (err: any) {
+      console.error('Error starting assessment:', err);
+      alert('Network error initializing assessment. Please ensure backend is active.');
+    } finally {
+      setLoadingAssessment(false);
+    }
   };
 
-  // Handle Code Run (Sample)
-  const handleRunCode = async (codeVal: string, lang: string) => {
+  // Handle Option Selection
+  const handleSelectOption = (optionKey: string) => {
+    if (!questions[currentIndex]) return;
+    const qId = questions[currentIndex].id;
+    setAnswers(prev => ({ ...prev, [qId]: optionKey }));
+  };
+
+  // Final Submit Action
+  const handleFinalSubmit = async (isExpired = false) => {
+    if (submittingAssessment || !sessionId) return;
+    setSubmittingAssessment(true);
+    setShowSubmitModal(false);
+
+    try {
+      const formattedAnswers = questions.map(q => ({
+        question_id: q.id,
+        answer: answers[q.id] || '',
+        time_spent: 30
+      }));
+
+      const elapsedSeconds = totalDurationSeconds - timeRemainingSeconds;
+      const res = await api.submitQuiz(sessionId, formattedAnswers, Math.max(1, elapsedSeconds));
+
+      // Clean up localStorage active attempt
+      if (user?.id) {
+        localStorage.removeItem(`preppilot_active_asmt_${user.id}`);
+      }
+
+      if (res.success && res.result) {
+        setGradedResult(res.result);
+        await refreshUser();
+
+        // If this is full simulation with coding, advance to coding challenge
+        if (selectedAssessment?.hasCodingSection && codingProblem) {
+          setStage('coding');
+        } else {
+          setStage('result');
+          triggerCelebration();
+          buildVoiceDebrief(res.result);
+        }
+      } else {
+        alert(res.message || 'Error grading assessment submission.');
+      }
+    } catch (err: any) {
+      console.error('Error submitting assessment:', err);
+      alert('Error submitting assessment. Please check connection and try again.');
+    } finally {
+      setSubmittingAssessment(false);
+    }
+  };
+
+  // Confetti celebration
+  const triggerCelebration = () => {
+    try {
+      confetti({
+        particleCount: 110,
+        spread: 75,
+        origin: { y: 0.6 }
+      });
+    } catch (e) {}
+  };
+
+  // Build Voice Debrief
+  const buildVoiceDebrief = (result: any) => {
+    const accuracy = result.accuracy_rate || 0;
+    const correct = result.correct_count || 0;
+    const total = result.total_questions || questions.length;
+    const passing = (selectedAssessment?.passingPercent || 65);
+    const passed = accuracy >= passing;
+
+    const script = `Greetings ${user?.name || 'Candidate'}! You have completed the ${selectedAssessment?.title || 'Placement Assessment'}. You scored ${correct} out of ${total} questions, achieving an accuracy of ${accuracy} percent. ${passed ? 'You have successfully cleared the placement benchmark!' : 'This assessment highlighted a few core concepts for revision.'} Keep practicing to maximize your campus placement clearance.`;
+
+    setVoiceDebrief({
+      speech_text: script,
+      overview: `${passed ? 'Cleared' : 'Needs Preparation'} • Score: ${correct}/${total} (${accuracy}%) • Time: ${formatTime(result.time_taken_seconds || 0)}`,
+      recommendations: result.weak_topics?.length > 0
+        ? result.weak_topics.map((t: string) => `Review fundamental concepts in ${t}`)
+        : [
+            'Maintain regular daily timed practice sessions',
+            'Focus on edge-case scenarios under interview constraints',
+            'Consult the PrepPilot Voice Assistant for viva revision'
+          ]
+    });
+  };
+
+  // Run Code in Coding Section
+  const handleRunCodingChallenge = async () => {
+    if (!codingProblem || runningCode) return;
     setRunningCode(true);
     setRunOutput('');
     setRunError('');
-    setTestResults([]);
+
     try {
-      const res = await api.runCode(codeVal, lang, '');
-      if (res.success) {
-        setRunOutput(res.output || '(Execution finished with no stdout)');
-      } else {
-        setRunError(res.error || 'Execution failed');
+      const res = await api.runCode(codingCode, codingLanguage);
+      if (res.output) setRunOutput(res.output);
+      if (res.error) setRunError(res.error);
+      if (res.testResults) {
+        setTestResults(res.testResults);
+        const passed = res.testResults.filter((r: any) => r.passed).length;
+        setCodingPassCount(passed);
+        setCodingTotalCount(res.testResults.length);
       }
-    } catch (err) {
-      setRunError('Failed to execute code runner.');
+    } catch (err: any) {
+      setRunError(err.message || 'Execution error');
     } finally {
       setRunningCode(false);
     }
   };
 
-  // Handle Code Submit (Grading against unbiased test cases)
-  const handleSubmitCode = async (codeVal: string, lang: string) => {
-    if (!codingProblem) return;
-    setSubmittingCode(true);
-    setRunOutput('');
-    setRunError('');
-    try {
-      const res = await api.submitCode(codingProblem.id, codeVal, lang);
-      if (res.submission) {
-        setTestResults(res.submission.results || []);
-        setCodingPassCount(res.passedCount || 0);
-        setCodingTotalCount(res.totalCount || 0);
-        setCodingSubmitted(true);
-      } else if (res.error) {
-        setRunError(res.error);
-      }
-    } catch (err) {
-      setRunError('Failed to grade test cases.');
-    } finally {
-      setSubmittingCode(false);
-    }
-  };
-
-  // Complete Full Assessment and show Result Scorecard
-  const handleCompleteAssessment = async () => {
+  // Submit Final Full Simulation
+  const handleCompleteFullSimulation = () => {
     setStage('result');
-    await refreshUser();
-
-    // Trigger celebration
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
-
-    // Auto-generate Voice Debrief script
-    const mcqAccuracy = Math.round((Object.keys(quizAnswers).length / Math.max(1, quizQuestions.length)) * 100);
-    const codingClearance = codingTotalCount > 0 ? Math.round((codingPassCount / codingTotalCount) * 100) : 100;
-    const overallScore = Math.round((mcqAccuracy * 0.4) + (codingClearance * 0.6));
-
-    const voiceScript = `Greetings ${user?.name || 'Candidate'}! Here is your complete Placement Examination debrief. In this unbiased assessment, your overall Placement Readiness Index is ${overallScore} percent. In Section 1, Technical MCQs, you attempted ${Object.keys(quizAnswers).length} of ${quizQuestions.length} questions. In Section 2, Hands-on Programming, your solution cleared ${codingPassCount} out of ${codingTotalCount || codingProblem?.testCaseCount || 5} automated test cases with zero human bias. For your next interview, keep sharpening edge-case handling in algorithms and maintain your daily practice!`;
-
-    setVoiceDebrief({
-      speech_text: voiceScript,
-      overview: `Unbiased automated evaluation completed. Overall Placement Readiness Index: ${overallScore}%. Automated test cases clearance: ${codingPassCount}/${codingTotalCount || 5}.`,
-      recommendations: [
-        'Review edge-case input handling in standard DSA problems',
-        'Practice timed problem solving under interview conditions',
-        'Consult PrepPilot Voice Assistant for viva concept revisions'
-      ]
-    });
-  };
-
-  // Toggle voice playback
-  const handleToggleVoiceDebrief = () => {
-    if (isSpeaking) {
-      stopSpeaking();
-    } else if (voiceDebrief?.speech_text) {
-      speakText(voiceDebrief.speech_text);
+    triggerCelebration();
+    if (gradedResult) {
+      buildVoiceDebrief(gradedResult);
     }
   };
 
-  /* ------------------------------------------------------------------ */
-  /*  RENDER: Intro Screen                                              */
-  /* ------------------------------------------------------------------ */
-  if (stage === 'intro') {
+  // Reset Assessment State
+  const handleResetToCatalog = () => {
+    if (user?.id) {
+      localStorage.removeItem(`preppilot_active_asmt_${user.id}`);
+    }
+    stopSpeaking();
+    setStage('catalog');
+    setSelectedAssessment(null);
+    setSessionId(null);
+    setQuestions([]);
+    setAnswers({});
+    setCurrentIndex(0);
+    setGradedResult(null);
+    setCodingProblem(null);
+  };
+
+  /* ================================================================== */
+  /*  RENDER 1: Assessment Catalog & Selection Screen                   */
+  /* ================================================================== */
+  if (stage === 'catalog') {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12 space-y-8 animate-in fade-in duration-300">
-        <div className="text-center space-y-3">
-          <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 text-cyan-400 border border-cyan-500/30 mb-2">
-            <ShieldCheck size={40} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in">
+        {/* Hero Header */}
+        <div className="text-center space-y-3 max-w-3xl mx-auto">
+          <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 text-cyan-400 border border-cyan-500/30 mb-1">
+            <ShieldCheck size={36} />
           </div>
           <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/15 text-cyan-500 dark:text-cyan-300 border border-cyan-500/30 inline-block">
-            Campus Placement Simulation 2026
+            Campus Placement Assessment Engine
           </span>
-          <h1 className="text-3xl sm:text-4xl font-black text-[var(--text-primary)] tracking-tight">
-            Full Placement Assessment (Quiz + Live Coding)
+          <h1 className="text-2xl sm:text-4xl font-black text-[var(--text-primary)] tracking-tight">
+            Standardized Placement Screening Tests
           </h1>
-          <p className="text-sm text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
-            Experience an authentic, 100% objective technical screening drive. This assessment evaluates both theoretical engineering aptitude and live hands-on code clearance against strict, unbiased automated test cases.
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+            Choose an official timed assessment matching actual corporate drive formats. Each test features verified question counts, strict countdown timing, and automated scoring with comprehensive answer explanations.
           </p>
         </div>
 
-        {/* Structure Breakdown Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-6 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
-                <BookOpen size={20} />
+        {/* Assessment Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {catalog.map(asmt => (
+            <div
+              key={asmt.id}
+              className="p-6 sm:p-7 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm hover:border-indigo-500/40 transition-all flex flex-col justify-between space-y-5"
+            >
+              <div className="space-y-4">
+                {/* Header Row */}
+                <div className="flex items-start justify-between gap-3">
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-indigo-500/15 text-indigo-400 border border-indigo-500/25">
+                    {asmt.category}
+                  </span>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-muted)]">
+                    <Clock size={14} className="text-cyan-400" />
+                    <span>{asmt.durationMinutes} Minutes</span>
+                  </div>
+                </div>
+
+                {/* Title & Description */}
+                <div>
+                  <h3 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">
+                    {asmt.title}
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)] mt-2 leading-relaxed">
+                    {asmt.description}
+                  </p>
+                </div>
+
+                {/* Key Metrics Pill Row */}
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  <div className="p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-center">
+                    <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Questions</span>
+                    <span className="text-sm font-extrabold text-[var(--text-primary)]">{asmt.questionCount} MCQs</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-center">
+                    <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Time Limit</span>
+                    <span className="text-sm font-extrabold text-cyan-400">{asmt.durationMinutes} mins</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-center">
+                    <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Cutoff</span>
+                    <span className="text-sm font-extrabold text-emerald-400">{asmt.passingPercent}%</span>
+                  </div>
+                </div>
+
+                {/* Subject Tags */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {asmt.subjects.map(s => (
+                    <span key={s} className="px-2 py-0.5 rounded-md bg-[var(--surface-elevated)] text-[var(--text-muted)] text-[10px] font-semibold border border-[var(--surface-border)]">
+                      {s}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div>
-                <h3 className="text-base font-bold text-[var(--text-primary)]">Section 1: Technical & Aptitude Quiz</h3>
-                <span className="text-xs text-[var(--text-secondary)]">4 Core CS Questions • 5 Minutes</span>
+
+              {/* Start Button */}
+              <div className="pt-3 border-t border-[var(--surface-border)]">
+                <button
+                  onClick={() => handleStartAssessment(asmt)}
+                  disabled={loadingAssessment}
+                  className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {loadingAssessment && selectedAssessment?.id === asmt.id ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin text-white" />
+                      <span>Loading Question Bank...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play size={14} className="fill-current" />
+                      <span>Start {asmt.questionCount}-Question Assessment</span>
+                      <ArrowRight size={14} />
+                    </>
+                  )}
+                </button>
               </div>
             </div>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              Covers Operating Systems, DBMS normalization, Computer Networks, and Data Structures. Objectively evaluates fundamental concepts essential for technical interviews.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-cyan-500/15 text-cyan-500 dark:text-cyan-400 border border-cyan-500/30">
-                <Code2 size={20} />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-[var(--text-primary)]">Section 2: Live Programming Test</h3>
-                <span className="text-xs text-[var(--text-secondary)]">1 Hands-on Challenge • Test Cases Driven</span>
-              </div>
-            </div>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              Solve an algorithmic problem in C, C++, Python, or Java. Complete description, constraints, and automated execution against public and hidden test cases. Zero human bias.
-            </p>
-          </div>
-        </div>
-
-        {/* Fairness & AI Voice Debrief Guarantee */}
-        <div className="p-5 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 flex items-start gap-3.5">
-          <Sparkles size={22} className="text-cyan-400 flex-shrink-0 mt-0.5" />
-          <div className="text-xs space-y-1">
-            <span className="font-bold text-white text-sm block">Objective Scoring & Voice Mentor Guarantee</span>
-            <p className="text-slate-300 leading-relaxed">
-              Your test code executes in a sandboxed runtime against automated test suites. At the conclusion, the <strong>PrepPilot AI Voice Mentor</strong> provides a personalized spoken debrief, dissecting your performance and giving actionable interview advice.
-            </p>
-          </div>
-        </div>
-
-        {/* Start Button */}
-        <div className="flex items-center justify-center pt-2">
-          <button
-            onClick={handleStartAssessment}
-            disabled={loadingInitial}
-            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-extrabold text-sm shadow-xl shadow-indigo-600/30 flex items-center gap-3 transform hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-60"
-          >
-            {loadingInitial ? (
-              <>
-                <Loader2 size={18} className="animate-spin text-white" />
-                <span>Initializing Assessment Environment...</span>
-              </>
-            ) : (
-              <>
-                <Play size={18} className="fill-white" />
-                <span>Begin Assessment Now</span>
-                <ArrowRight size={18} />
-              </>
-            )}
-          </button>
+          ))}
         </div>
       </div>
     );
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  RENDER: Section 1 - Technical Quiz                                */
-  /* ------------------------------------------------------------------ */
+  /* ================================================================== */
+  /*  RENDER 2: Active Timed MCQ Assessment View                        */
+  /* ================================================================== */
   if (stage === 'quiz') {
-    const currentQ = quizQuestions[quizIndex];
-    if (!currentQ) return null;
+    const currentQ = questions[currentIndex];
+    const isAnswered = currentQ && Boolean(answers[currentQ.id]);
+    const answeredCount = Object.keys(answers).length;
+    const isTimeLow = timeRemainingSeconds <= 120; // less than 2 mins
 
     return (
-      <div className="max-w-3xl mx-auto px-4 py-8 space-y-6 animate-in fade-in duration-200">
-        {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900 border border-slate-800">
-          <div className="flex items-center gap-3">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              Section 1 of 2: Quiz
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-in fade-in">
+        {/* Top Sticky Test Header */}
+        <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] flex flex-wrap items-center justify-between gap-4 shadow-sm">
+          <div className="space-y-0.5">
+            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">
+              {selectedAssessment?.category || 'Timed Assessment'}
             </span>
-            <span className="text-xs font-semibold text-slate-400">
-              Question {quizIndex + 1} of {quizQuestions.length}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
-            <Clock size={14} />
-            <span>Time Elapsed: {formatSeconds(elapsedTimer)}</span>
-          </div>
-        </div>
-
-        {/* Question Card */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-6">
-          <div className="space-y-2">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              {currentQ.subject_name || 'Core Engineering'} • {currentQ.topic_name || 'Concept'}
-            </span>
-            <h2 className="text-lg sm:text-xl font-bold text-white leading-snug">
-              {currentQ.question}
+            <h2 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
+              {selectedAssessment?.title || 'Placement Assessment'}
             </h2>
           </div>
 
-          {/* Options */}
-          <div className="space-y-3">
-            {currentQ.options?.map((opt) => {
-              const selected = quizAnswers[currentQ.id] === opt.option_key;
-              return (
-                <button
-                  key={opt.id || opt.option_key}
-                  onClick={() => handleSelectQuizOption(currentQ.id, opt.option_key)}
-                  className={`w-full p-4 rounded-2xl text-left text-sm font-medium transition-all flex items-center justify-between border cursor-pointer ${
-                    selected
-                      ? 'bg-indigo-600/20 border-cyan-500 text-white shadow-md shadow-indigo-600/20'
-                      : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:bg-slate-800/60 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold ${
-                      selected ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400'
-                    }`}>
-                      {opt.option_key}
-                    </span>
-                    <span>{opt.option_text}</span>
-                  </div>
-                  {selected && <Check size={18} className="text-cyan-400" />}
-                </button>
-              );
-            })}
-          </div>
+          {/* Center Timer & Counters */}
+          <div className="flex items-center gap-3">
+            {/* Countdown Display */}
+            <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-extrabold transition-colors ${
+              isTimeLow
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                : 'bg-[var(--surface-elevated)] text-[var(--text-primary)] border-[var(--surface-border)]'
+            }`}>
+              <Clock size={15} className={isTimeLow ? 'text-rose-400' : 'text-cyan-400'} />
+              <span>Time Left: {formatTime(timeRemainingSeconds)}</span>
+            </div>
 
-          {/* Navigation Controls */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+            {/* Answered Progress Counter */}
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--surface-elevated)] text-xs font-semibold text-[var(--text-secondary)] border border-[var(--surface-border)]">
+              <CheckCircle2 size={14} className="text-emerald-400" />
+              <span>{answeredCount} / {questions.length} Answered</span>
+            </div>
+
+            {/* Submit Action Button */}
             <button
-              onClick={() => setQuizIndex(prev => Math.max(0, prev - 1))}
-              disabled={quizIndex === 0}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white disabled:opacity-30 cursor-pointer"
+              onClick={() => setShowSubmitModal(true)}
+              disabled={submittingAssessment}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold shadow-md shadow-emerald-600/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              Previous Question
+              <Send size={13} />
+              <span>Submit Test</span>
             </button>
-
-            {quizIndex < quizQuestions.length - 1 ? (
-              <button
-                onClick={() => setQuizIndex(prev => prev + 1)}
-                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2 cursor-pointer"
-              >
-                <span>Next Question</span>
-                <ChevronRight size={14} />
-              </button>
-            ) : (
-              <button
-                onClick={handleFinishQuizSection}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white text-xs font-extrabold shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer"
-              >
-                <span>Complete Section 1 & Proceed to Coding</span>
-                <ArrowRight size={14} />
-              </button>
-            )}
           </div>
         </div>
+
+        {/* Main Workspace: Left Question Area + Right Question Palette */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left: Active Question Card */}
+          <div className="lg:col-span-8 space-y-6">
+            {currentQ ? (
+              <div className="p-6 sm:p-8 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-6 shadow-sm">
+                {/* Question Info Bar */}
+                <div className="flex items-center justify-between border-b border-[var(--surface-border)] pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-400 font-extrabold text-xs">
+                      Q{currentIndex + 1}
+                    </span>
+                    <span className="text-xs font-bold text-[var(--text-muted)]">
+                      {currentQ.subject_name || 'Engineering'} • {currentQ.topic_name || 'Technical'}
+                    </span>
+                  </div>
+
+                  <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
+                    isAnswered
+                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                      : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                  }`}>
+                    {isAnswered ? 'Answered' : 'Unattempted'}
+                  </span>
+                </div>
+
+                {/* Question Text */}
+                <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] leading-relaxed">
+                  {currentQ.question}
+                </h3>
+
+                {/* Answer Options */}
+                <div className="space-y-3">
+                  {currentQ.options?.map(opt => {
+                    const isSelected = answers[currentQ.id] === opt.option_key;
+                    return (
+                      <button
+                        key={opt.id || opt.option_key}
+                        type="button"
+                        onClick={() => handleSelectOption(opt.option_key)}
+                        className={`w-full p-4 rounded-2xl text-left text-sm font-medium transition-all flex items-center justify-between border cursor-pointer ${
+                          isSelected
+                            ? 'bg-indigo-600/15 border-indigo-500 text-[var(--text-primary)] shadow-sm'
+                            : 'bg-[var(--surface-elevated)] border-[var(--surface-border)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${
+                            isSelected
+                              ? 'bg-indigo-600 text-white'
+                              : 'bg-[var(--surface-card)] text-[var(--text-muted)] border border-[var(--surface-border)]'
+                          }`}>
+                            {opt.option_key}
+                          </span>
+                          <span className="leading-snug">{opt.option_text}</span>
+                        </div>
+                        {isSelected && <Check size={18} className="text-indigo-400 flex-shrink-0 ml-2" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Question Bottom Navigation Controls */}
+                <div className="flex items-center justify-between pt-4 border-t border-[var(--surface-border)]">
+                  <button
+                    onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
+                    disabled={currentIndex === 0}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] disabled:opacity-30 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <ChevronLeft size={14} />
+                    <span>Previous</span>
+                  </button>
+
+                  <span className="text-xs text-[var(--text-muted)] font-semibold">
+                    {currentIndex + 1} of {questions.length}
+                  </span>
+
+                  {currentIndex < questions.length - 1 ? (
+                    <button
+                      onClick={() => setCurrentIndex(prev => prev + 1)}
+                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm shadow-indigo-600/20"
+                    >
+                      <span>Next</span>
+                      <ChevronRight size={14} />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowSubmitModal(true)}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm shadow-emerald-600/20"
+                    >
+                      <span>Review & Submit</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="p-8 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] text-center space-y-2">
+                <AlertTriangle size={24} className="text-amber-400 mx-auto" />
+                <p className="text-sm font-semibold text-[var(--text-primary)]">No question loaded.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Question Navigation Palette */}
+          <div className="lg:col-span-4 space-y-4">
+            <div className="p-5 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-[var(--surface-border)] pb-3">
+                <h4 className="text-xs font-extrabold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
+                  <ListOrdered size={15} className="text-indigo-400" />
+                  <span>Question Palette</span>
+                </h4>
+                <span className="text-xs font-bold text-emerald-400">
+                  {answeredCount}/{questions.length} Done
+                </span>
+              </div>
+
+              {/* Legend */}
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-[var(--text-muted)] pb-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-md bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold">✓</div>
+                  <span>Answered</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-md bg-[var(--surface-elevated)] border border-[var(--surface-border)]" />
+                  <span>Unattempted</span>
+                </div>
+              </div>
+
+              {/* Number Buttons Grid */}
+              <div className="grid grid-cols-5 gap-2 max-h-[380px] overflow-y-auto pr-1">
+                {questions.map((q, idx) => {
+                  const answered = Boolean(answers[q.id]);
+                  const isCurrent = idx === currentIndex;
+
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => setCurrentIndex(idx)}
+                      className={`h-9 rounded-xl text-xs font-extrabold flex items-center justify-center transition-all cursor-pointer ${
+                        isCurrent
+                          ? 'ring-2 ring-indigo-500 text-white bg-indigo-600 shadow-md shadow-indigo-600/30'
+                          : answered
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30'
+                          : 'bg-[var(--surface-elevated)] text-[var(--text-secondary)] border border-[var(--surface-border)] hover:bg-[var(--surface-hover)]'
+                      }`}
+                      title={`Jump to Question ${idx + 1}`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Submit Button in Palette */}
+              <button
+                onClick={() => setShowSubmitModal(true)}
+                className="w-full mt-2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+              >
+                <Send size={13} />
+                <span>Submit Assessment</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Confirmation Modal */}
+        {showSubmitModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
+            <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] max-w-md w-full rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 animate-in zoom-in-95">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/25">
+                    <HelpCircle size={22} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-[var(--text-primary)]">Confirm Assessment Submission</h3>
+                    <p className="text-xs text-[var(--text-muted)]">Are you sure you want to finish your attempt?</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSubmitModal(false)}
+                  className="p-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-[var(--text-secondary)]">Total Questions:</span>
+                  <span className="font-bold text-[var(--text-primary)]">{questions.length}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-[var(--text-secondary)]">Questions Answered:</span>
+                  <span className="font-bold text-emerald-400">{answeredCount}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-[var(--text-secondary)]">Unattempted:</span>
+                  <span className="font-bold text-amber-400">{questions.length - answeredCount}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-[var(--text-secondary)]">Time Remaining:</span>
+                  <span className="font-bold text-cyan-400">{formatTime(timeRemainingSeconds)}</span>
+                </div>
+              </div>
+
+              {questions.length - answeredCount > 0 && (
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs">
+                  <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
+                  <span>You still have {questions.length - answeredCount} unattempted questions. Submitting now will grade unanswered questions as incorrect.</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSubmitModal(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] cursor-pointer"
+                >
+                  Keep Answering
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleFinalSubmit(false)}
+                  disabled={submittingAssessment}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer disabled:opacity-50"
+                >
+                  {submittingAssessment ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>Grading...</span>
+                    </>
+                  ) : (
+                    <span>Yes, Submit Assessment</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  RENDER: Section 2 - Live Programming Test                         */
-  /* ------------------------------------------------------------------ */
+  /* ================================================================== */
+  /*  RENDER 3: Live Coding Section (for Full Simulation)               */
+  /* ================================================================== */
   if (stage === 'coding') {
     if (!codingProblem) return null;
 
     return (
       <div className="h-[calc(100vh-4rem)] flex flex-col bg-slate-950 overflow-hidden">
-        {/* Top Assessment Header */}
+        {/* Top Header */}
         <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-3">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-              Section 2: Live Programming
+              Section 2: Live Programming Challenge
             </span>
             <span className="text-xs font-bold text-white">{codingProblem.title}</span>
             <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold border border-amber-500/30">
@@ -448,79 +871,47 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <Clock size={13} className="text-cyan-400" />
-              <span>{formatSeconds(elapsedTimer)}</span>
+              <span>Time Remaining: {formatTime(timeRemainingSeconds)}</span>
             </div>
 
             <button
-              onClick={handleCompleteAssessment}
-              className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-500 hover:from-emerald-500 hover:to-cyan-400 text-white text-xs font-extrabold shadow-md shadow-emerald-600/20 flex items-center gap-1.5 cursor-pointer"
+              onClick={handleCompleteFullSimulation}
+              className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 flex items-center gap-1.5 cursor-pointer"
             >
-              <span>Submit Entire Assessment</span>
-              <CheckCircle2 size={14} />
+              <CheckCircle2 size={13} />
+              <span>Finish Full Simulation</span>
             </button>
           </div>
         </div>
 
-        {/* Split Screen: Problem Description (Left) + Monaco Editor (Right) */}
-        <div className="flex-1 flex flex-col lg:flex-row min-h-0">
-          {/* Left: Problem Details */}
-          <div className="w-full lg:w-2/5 p-5 border-b lg:border-b-0 lg:border-r border-slate-800 overflow-y-auto space-y-4 bg-slate-950/60">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Problem Statement</span>
-              <h2 className="text-xl font-bold text-white">{codingProblem.title}</h2>
+        {/* Workspace */}
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+          {/* Problem Description Pane */}
+          <div className="w-full lg:w-2/5 p-6 border-r border-slate-800 overflow-y-auto space-y-4 bg-slate-900/60">
+            <div>
+              <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Problem Description</span>
+              <h2 className="text-lg font-bold text-white mt-1">{codingProblem.title}</h2>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed whitespace-pre-line">{codingProblem.description}</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 leading-relaxed whitespace-pre-wrap font-sans">
-              {codingProblem.description}
-            </div>
-
-            {/* Constraints */}
             {codingProblem.constraints && (
-              <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs space-y-1">
-                <span className="font-bold text-indigo-300 uppercase tracking-wider text-[10px]">Constraints</span>
-                <pre className="text-slate-400 font-mono text-[11px] whitespace-pre-wrap">{codingProblem.constraints}</pre>
-              </div>
-            )}
-
-            {/* Test Case Clearance Status Banner */}
-            {codingSubmitted && (
-              <div className={`p-4 rounded-2xl border ${
-                codingPassCount === codingTotalCount
-                  ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
-                  : 'bg-amber-950/40 border-amber-500/40 text-amber-200'
-              }`}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-xs flex items-center gap-1.5">
-                    {codingPassCount === codingTotalCount ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
-                    {codingPassCount === codingTotalCount ? 'All Test Cases Passed!' : 'Partial Clearance'}
-                  </span>
-                  <span className="font-extrabold text-sm">{codingPassCount}/{codingTotalCount} Passed</span>
-                </div>
-                <p className="text-[11px] text-slate-300">
-                  {codingPassCount === codingTotalCount
-                    ? '100% objective clearance achieved. Zero human bias.'
-                    : 'Some test cases did not match expected output. You can edit code and re-submit or proceed.'}
-                </p>
+              <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <span className="text-xs font-bold text-slate-400">Constraints</span>
+                <p className="text-xs text-slate-300 font-mono whitespace-pre-line">{codingProblem.constraints}</p>
               </div>
             )}
           </div>
 
-          {/* Right: Code Editor & Execution Runner */}
-          <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-900">
+          {/* Code Editor Pane */}
+          <div className="flex-1 flex flex-col h-full bg-slate-950">
             <CodeEditor
               language={codingLanguage}
-              onLanguageChange={(lang: string) => {
-                setCodingLanguage(lang);
-                if (codingProblem.starterCode?.[lang]) {
-                  setCodingCode(codingProblem.starterCode[lang]);
-                }
-              }}
+              onLanguageChange={setCodingLanguage}
               code={codingCode}
-              onCodeChange={(val: string) => setCodingCode(val)}
-              onRun={handleRunCode}
-              onSubmit={handleSubmitCode}
+              onCodeChange={setCode => setCodingCode(setCode)}
+              onRun={handleRunCodingChallenge}
+              onSubmit={handleRunCodingChallenge}
               running={runningCode}
-              submitting={submittingCode}
               runOutput={runOutput}
               runError={runError}
               testResults={testResults}
@@ -532,182 +923,223 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
     );
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  RENDER: Section 3 - Final Unified Scorecard & Voice Debrief       */
-  /* ------------------------------------------------------------------ */
-  const mcqAnsweredCount = Object.keys(quizAnswers).length;
-  const totalMcq = quizQuestions.length || 4;
-  const mcqAccuracy = Math.round((mcqAnsweredCount / totalMcq) * 100);
-  const codingTotal = codingTotalCount || codingProblem?.testCaseCount || 5;
-  const codingClearance = codingTotal > 0 ? Math.round((codingPassCount / codingTotal) * 100) : 100;
-  const overallIndex = Math.round((mcqAccuracy * 0.4) + (codingClearance * 0.6));
+  /* ================================================================== */
+  /*  RENDER 4: Detailed Results & Question-by-Question Review          */
+  /* ================================================================== */
+  if (stage === 'result') {
+    const accuracy = gradedResult?.accuracy_rate ?? 0;
+    const correctCount = gradedResult?.correct_count ?? 0;
+    const totalCount = gradedResult?.total_questions ?? questions.length;
+    const timeTaken = gradedResult?.time_taken_seconds ?? 0;
+    const passingCutoff = selectedAssessment?.passingPercent ?? 65;
+    const isPassed = accuracy >= passingCutoff;
+    const gradedList: any[] = gradedResult?.graded_questions ?? [];
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-10 space-y-8 animate-in zoom-in-95 duration-300">
-      <div className="text-center space-y-3">
-        <div className="inline-flex p-3 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-2">
-          <Award size={40} />
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-[var(--text-primary)] tracking-tight">
-          Placement Assessment Evaluation Complete
-        </h1>
-        <p className="text-sm text-[var(--text-secondary)] max-w-xl mx-auto">
-          Comprehensive report synthesized from Section 1 (Technical MCQs) and Section 2 (Automated Code Test Case Clearance).
-        </p>
-      </div>
+    const filteredReview = gradedList.filter(item => {
+      if (reviewFilter === 'correct') return item.is_correct;
+      if (reviewFilter === 'incorrect') return !item.is_correct && Boolean(item.chosen_answer);
+      if (reviewFilter === 'unattempted') return !item.chosen_answer;
+      return true;
+    });
 
-      {/* KPI Score Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] text-center">
-          <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-1">Placement Readiness</span>
-          <span className="text-3xl font-extrabold text-cyan-500 dark:text-cyan-400">{overallIndex}%</span>
-          <span className="text-[11px] text-[var(--text-muted)] block mt-1">Weighted Composite</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] text-center">
-          <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-1">MCQ Completed</span>
-          <span className="text-3xl font-extrabold text-indigo-400">{mcqAnsweredCount}/{totalMcq}</span>
-          <span className="text-[11px] text-[var(--text-muted)] block mt-1">{mcqAccuracy}% Attempt Rate</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] text-center">
-          <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-1">Test Cases Cleared</span>
-          <span className="text-3xl font-extrabold text-emerald-500 dark:text-emerald-400">{codingPassCount}/{codingTotal}</span>
-          <span className="text-[11px] text-[var(--text-muted)] block mt-1">Zero-Bias Automated</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] text-center">
-          <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-1">Total Time</span>
-          <span className="text-3xl font-extrabold text-amber-500 dark:text-amber-400">{formatSeconds(elapsedTimer)}</span>
-          <span className="text-[11px] text-[var(--text-muted)] block mt-1">Full Timed Drive</span>
-        </div>
-      </div>
-
-      {/* ============================================================== */}
-      {/* PREPPILOT VOICE ASSISTANT DEBRIEF CARD                         */}
-      {/* ============================================================== */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-950 border border-cyan-500/40 p-6 sm:p-7 shadow-2xl shadow-indigo-950/40">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1.5">
-                <Sparkles size={13} className="text-cyan-400 animate-pulse" />
-                PrepPilot Voice Officer Debrief
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in">
+        {/* Scorecard Hero */}
+        <div className="p-6 sm:p-8 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--surface-border)] pb-6">
+            <div className="space-y-1">
+              <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block">
+                Official Scorecard & Evaluation Report
               </span>
-              {isSpeaking && (
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1.5 animate-pulse">
-                  <Volume2 size={12} />
-                  Speaking Assessment Review
-                </span>
-              )}
+              <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
+                {selectedAssessment?.title || 'Placement Assessment'}
+              </h1>
+              <p className="text-xs text-[var(--text-secondary)]">
+                Evaluation completed on {new Date().toLocaleDateString(undefined, { dateStyle: 'long' })}
+              </p>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-              Personalized Audio Feedback on Your Quiz & Coding Test
-            </h2>
-
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Listen to a comprehensive voice breakdown of your test. PrepPilot evaluates your MCQ attempts, dissects code test case performance, and outlines exact preparation steps before your on-campus placement interview.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                onClick={handleToggleVoiceDebrief}
-                className="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-indigo-600 to-indigo-700 hover:from-cyan-400 hover:to-indigo-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-cyan-500/20 flex items-center gap-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer"
-              >
-                {isSpeaking ? (
-                  <>
-                    <VolumeX size={16} />
-                    <span>Pause / Stop Voice Debrief</span>
-                  </>
-                ) : (
-                  <>
-                    <Mic size={16} className="animate-pulse" />
-                    <span>Listen to Voice Officer Debrief</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={openVoiceModal}
-                className="px-4 py-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-colors flex items-center gap-2 cursor-pointer"
-              >
-                <Bot size={15} className="text-cyan-400" />
-                <span>Ask Voice Assistant Viva Doubts</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/70 border border-slate-800 min-w-[180px] text-center">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
-              isSpeaking
-                ? 'bg-gradient-to-br from-cyan-500 to-indigo-600 text-white shadow-xl shadow-cyan-500/50 scale-110 animate-pulse'
-                : 'bg-slate-900 text-slate-400 border border-slate-800'
+            <div className={`px-4 py-2 rounded-2xl text-xs font-black border flex items-center gap-2 self-start sm:self-auto ${
+              isPassed
+                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
             }`}>
-              {isSpeaking ? <Volume2 size={26} /> : <Mic size={26} />}
+              {isPassed ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+              <span>{isPassed ? 'CLEARED BENCHMARK' : 'NEEDS REINFORCEMENT'}</span>
             </div>
-            <span className="text-xs font-bold text-white mt-3 block">
-              {isSpeaking ? 'Voice Active' : 'Ready to Speak'}
-            </span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">
-              {isSpeaking ? 'Candidate review in progress' : 'Tap to hear debrief'}
-            </span>
+          </div>
+
+          {/* Metric Tiles */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-4 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-center">
+              <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Score</span>
+              <span className="text-2xl font-black text-indigo-400">{correctCount} / {totalCount}</span>
+            </div>
+            <div className="p-4 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-center">
+              <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Accuracy</span>
+              <span className="text-2xl font-black text-emerald-400">{accuracy}%</span>
+            </div>
+            <div className="p-4 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-center">
+              <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Time Taken</span>
+              <span className="text-2xl font-black text-cyan-400">{formatTime(timeTaken)}</span>
+            </div>
+            <div className="p-4 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-center">
+              <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Cutoff Required</span>
+              <span className="text-2xl font-black text-slate-300">{passingCutoff}%</span>
+            </div>
+          </div>
+
+          {/* Voice Assessment Debrief Script */}
+          {voiceDebrief && (
+            <div className="p-5 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-indigo-300 text-xs font-bold">
+                  <Bot size={16} />
+                  <span>AI Placement Debrief</span>
+                </div>
+                <button
+                  onClick={() => isSpeaking ? stopSpeaking() : speakText(voiceDebrief.speech_text)}
+                  className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                >
+                  {isSpeaking ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                  <span>{isSpeaking ? 'Mute Audio' : 'Listen to Debrief'}</span>
+                </button>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">{voiceDebrief.overview}</p>
+            </div>
+          )}
+
+          {/* Action Row */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <button
+              onClick={handleResetToCatalog}
+              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+              <RotateCcw size={14} />
+              <span>Choose Another Assessment</span>
+            </button>
+
+            <button
+              onClick={onReturnToDashboard}
+              className="px-5 py-2.5 rounded-xl bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] text-[var(--text-primary)] text-xs font-bold border border-[var(--surface-border)] flex items-center gap-2 cursor-pointer"
+            >
+              <LayoutDashboard size={14} />
+              <span>Return to Dashboard</span>
+            </button>
           </div>
         </div>
 
-        {/* Written Debrief Summary */}
-        {voiceDebrief && (
-          <div className="mt-6 pt-5 border-t border-slate-800/80 space-y-4">
-            <div className="p-4 rounded-2xl bg-slate-950/80 border border-cyan-500/20 text-xs space-y-1.5">
-              <span className="font-extrabold text-cyan-300 flex items-center gap-1.5">
-                <Sparkles size={14} /> Evaluation Summary:
-              </span>
-              <p className="text-slate-200 leading-relaxed">{voiceDebrief.overview}</p>
+        {/* Detailed Question Review Section */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+                <BookOpen size={18} className="text-indigo-400" />
+                <span>Detailed Question-by-Question Review ({gradedList.length})</span>
+              </h2>
+              <p className="text-xs text-[var(--text-secondary)]">
+                Inspect your submitted answers against correct answer keys with comprehensive technical explanations.
+              </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 text-xs space-y-2">
-              <span className="font-extrabold text-indigo-300 flex items-center gap-1.5">
-                <BookOpen size={14} /> Recommended Action Items:
-              </span>
-              <ul className="space-y-1.5 text-slate-300">
-                {voiceDebrief.recommendations.map((rec, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <CheckCircle2 size={13} className="text-cyan-400 mt-0.5 flex-shrink-0" />
-                    <span>{rec}</span>
-                  </li>
-                ))}
-              </ul>
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] overflow-x-auto">
+              {(['all', 'incorrect', 'correct', 'unattempted'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setReviewFilter(tab)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer whitespace-nowrap ${
+                    reviewFilter === tab
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Return & Retake Controls */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-        <button
-          onClick={onReturnToDashboard}
-          className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors flex items-center gap-2 cursor-pointer"
-        >
-          <LayoutDashboard size={16} />
-          <span>Return to Dashboard</span>
-        </button>
+          {/* Question List */}
+          <div className="space-y-4">
+            {filteredReview.map((item, idx) => {
+              const isCorrect = item.is_correct;
+              const unattempted = !item.chosen_answer;
 
-        <button
-          onClick={() => {
-            setStage('intro');
-            setQuizAnswers({});
-            setTestResults([]);
-            setCodingPassCount(0);
-            setCodingSubmitted(false);
-          }}
-          className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 cursor-pointer"
-        >
-          <RotateCcw size={16} />
-          <span>Retake Another Placement Assessment</span>
-        </button>
+              return (
+                <div
+                  key={item.question_id || idx}
+                  className="p-5 sm:p-6 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-3.5 shadow-xs"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-lg bg-[var(--surface-elevated)] border border-[var(--surface-border)] flex items-center justify-center text-xs font-bold text-[var(--text-muted)]">
+                        {idx + 1}
+                      </span>
+                      <span className="text-xs font-bold text-[var(--text-muted)]">
+                        {item.subject_name || 'Engineering'} • {item.topic_name || 'Core'}
+                      </span>
+                    </div>
+
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1.5 ${
+                      isCorrect
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                        : unattempted
+                        ? 'bg-slate-500/15 text-slate-400 border-slate-500/30'
+                        : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                    }`}>
+                      {isCorrect ? <CheckCircle2 size={13} /> : unattempted ? <Clock size={13} /> : <XCircle size={13} />}
+                      <span>{isCorrect ? 'Correct' : unattempted ? 'Unattempted' : 'Incorrect'}</span>
+                    </span>
+                  </div>
+
+                  {/* Question */}
+                  <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)] leading-snug">
+                    {item.question}
+                  </h4>
+
+                  {/* Answer Comparison */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                    <div className={`p-3 rounded-xl border ${
+                      isCorrect
+                        ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-300'
+                        : unattempted
+                        ? 'bg-slate-800/40 border-slate-700 text-slate-400'
+                        : 'bg-rose-500/10 border-rose-500/25 text-rose-300'
+                    }`}>
+                      <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] block mb-0.5">Your Answer:</span>
+                      <span className="font-bold">{item.chosen_answer ? `Option ${item.chosen_answer}` : 'No option selected'}</span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300">
+                      <span className="text-[10px] uppercase font-bold text-emerald-400 block mb-0.5">Correct Answer:</span>
+                      <span className="font-bold">Option {item.correct_answer}</span>
+                    </div>
+                  </div>
+
+                  {/* Explanation */}
+                  {item.explanation && (
+                    <div className="p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-1 text-xs">
+                      <span className="font-bold text-indigo-400 block">Explanation:</span>
+                      <p className="text-[var(--text-secondary)] leading-relaxed">{item.explanation}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {filteredReview.length === 0 && (
+              <div className="p-8 text-center rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] text-xs text-[var(--text-muted)]">
+                No questions found matching the selected filter ({reviewFilter}).
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 };
 
 export default AssessmentPage;

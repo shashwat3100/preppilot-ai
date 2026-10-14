@@ -456,6 +456,220 @@ export class QuizEngine {
         : 'Identified concepts requiring revision. We have automatically calibrated your next Adaptive Daily Quiz to reinforce these topics.'
     };
   }
+
+  /**
+   * Returns available assessments with live question counts from database
+   */
+  static getAssessmentCatalog() {
+    const allQuestions = db.getAll('questions');
+
+    const coreCsSubjects = new Set(['sub-os', 'sub-dbms', 'sub-cn', 'sub-oop']);
+    const coreCsAvail = allQuestions.filter(q => coreCsSubjects.has(q.subject_id)).length;
+
+    const tcsAvail = allQuestions.filter(q =>
+      q.subject_id === 'sub-aptitude' ||
+      q.company_id === 'comp-tcs' ||
+      q.subject_id === 'sub-dsa' ||
+      q.subject_id === 'sub-oop' ||
+      q.subject_id === 'sub-dbms'
+    ).length;
+
+    const dsaAvail = allQuestions.filter(q => q.subject_id === 'sub-dsa').length;
+
+    return [
+      {
+        id: 'asmt-core-cs',
+        type: 'core-cs',
+        title: 'Core Computer Science Comprehensive Assessment',
+        category: 'Core Computer Science',
+        question_count: 20,
+        questionCount: 20,
+        availableQuestions: coreCsAvail,
+        duration_minutes: 25,
+        durationMinutes: 25,
+        description: 'Comprehensive 20-question evaluation across Operating Systems, DBMS Normalization, Computer Networks, and Object-Oriented Principles.',
+        passingPercent: 65,
+        subjects: ['Operating Systems', 'Database Management Systems', 'Computer Networks', 'Object Oriented Programming']
+      },
+      {
+        id: 'asmt-tcs-nqt',
+        type: 'tcs-nqt',
+        title: 'TCS-Style National Qualifier Mock Assessment',
+        category: 'Company Recruitment',
+        question_count: 30,
+        questionCount: 30,
+        availableQuestions: tcsAvail,
+        duration_minutes: 45,
+        durationMinutes: 45,
+        description: 'Authentic 30-question screening test following TCS NQT patterns: Quantitative Aptitude, Logical Reasoning, and Technical CS Foundations.',
+        passingPercent: 60,
+        subjects: ['General Aptitude & Reasoning', 'Data Structures & Algorithms', 'C / C++ Fundamentals']
+      },
+      {
+        id: 'asmt-dsa-mastery',
+        type: 'dsa-mastery',
+        title: 'Data Structures & Algorithms Mastery Test',
+        category: 'Algorithms & Problem Solving',
+        question_count: 15,
+        questionCount: 15,
+        availableQuestions: dsaAvail,
+        duration_minutes: 30,
+        durationMinutes: 30,
+        description: 'Focused 15-question technical drill covering Trees, Graphs, Hashing, Heaps, and Time/Space Complexity.',
+        passingPercent: 70,
+        subjects: ['Data Structures & Algorithms']
+      },
+      {
+        id: 'asmt-full-simulation',
+        type: 'full-simulation',
+        title: 'Full Campus Placement Simulation (Quiz + Live Coding)',
+        category: 'Comprehensive Screening',
+        question_count: 10,
+        questionCount: 10,
+        hasCodingSection: true,
+        duration_minutes: 35,
+        durationMinutes: 35,
+        description: 'Dual-section evaluation simulating corporate drives: 10 technical MCQs followed by a live programming challenge evaluated against automated test cases.',
+        passingPercent: 70,
+        subjects: ['Core Engineering', 'Data Structures & Algorithms']
+      }
+    ];
+  }
+
+  /**
+   * Generates a timed assessment session with exact requested question counts
+   */
+  static generateAssessment(userId, assessmentType = 'core-cs') {
+    const user = db.get('users', userId);
+    if (!user) throw new Error('User not found');
+
+    const allQuestions = db.getAll('questions');
+    let targetQuestions = [];
+    let requiredCount = 20;
+    let durationMinutes = 25;
+    let assessmentTitle = 'Core Computer Science Comprehensive Assessment';
+    let category = 'Core Computer Science';
+
+    const normalizedType = (assessmentType || '').toLowerCase().replace(/^asmt-/, '');
+
+    if (normalizedType.includes('core') || normalizedType === 'core-cs' || normalizedType === 'core-cs-full') {
+      requiredCount = 20;
+      durationMinutes = 25;
+      assessmentTitle = 'Core Computer Science Comprehensive Assessment';
+      category = 'Core Computer Science';
+      const coreSubjects = new Set(['sub-os', 'sub-dbms', 'sub-cn', 'sub-oop']);
+      targetQuestions = allQuestions.filter(q => coreSubjects.has(q.subject_id));
+      if (targetQuestions.length < requiredCount) {
+        targetQuestions = allQuestions.filter(q => q.subject_id !== 'sub-aptitude');
+      }
+    } else if (normalizedType.includes('tcs') || normalizedType === 'tcs-nqt' || normalizedType === 'tcs-nqt-simulation') {
+      requiredCount = 30;
+      durationMinutes = 45;
+      assessmentTitle = 'TCS-Style National Qualifier Mock Assessment';
+      category = 'Company Recruitment';
+      targetQuestions = allQuestions.filter(q =>
+        q.subject_id === 'sub-aptitude' ||
+        q.company_id === 'comp-tcs' ||
+        q.subject_id === 'sub-dsa' ||
+        q.subject_id === 'sub-oop' ||
+        q.subject_id === 'sub-dbms' ||
+        q.subject_id === 'sub-os' ||
+        q.subject_id === 'sub-cn'
+      );
+    } else if (normalizedType.includes('dsa') || normalizedType === 'dsa-mastery' || normalizedType === 'dsa-fundamentals') {
+      requiredCount = 15;
+      durationMinutes = 30;
+      assessmentTitle = 'Data Structures & Algorithms Mastery Test';
+      category = 'Algorithms & Problem Solving';
+      targetQuestions = allQuestions.filter(q => q.subject_id === 'sub-dsa');
+    } else if (normalizedType.includes('simulation') || normalizedType === 'full-simulation') {
+      requiredCount = 10;
+      durationMinutes = 35;
+      assessmentTitle = 'Full Campus Placement Simulation (Quiz + Live Coding)';
+      category = 'Comprehensive Screening';
+      targetQuestions = allQuestions.filter(q => q.subject_id !== 'sub-aptitude');
+    } else {
+      targetQuestions = allQuestions;
+      requiredCount = 15;
+      durationMinutes = 20;
+    }
+
+    if (targetQuestions.length === 0) {
+      throw new Error(`No questions available for assessment type: ${assessmentType}`);
+    }
+
+    // Shuffle questions
+    const shuffled = [...targetQuestions].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, Math.min(requiredCount, shuffled.length));
+
+    const sessionId = `asmt-sess-${crypto.randomUUID()}`;
+    const session = {
+      id: sessionId,
+      user_id: userId,
+      mode: 'TIMED_ASSESSMENT',
+      assessment_type: assessmentType,
+      assessment_title: assessmentTitle,
+      category,
+      duration_minutes: durationMinutes,
+      status: 'IN_PROGRESS',
+      total_questions: selected.length,
+      correct_count: 0,
+      score: 0.0,
+      xp_earned: 0,
+      time_taken_seconds: 0,
+      created_at: new Date().toISOString(),
+      completed_at: null
+    };
+
+    db.insert('quizSessions', session);
+
+    // Save session questions
+    const allOptions = db.getAll('questionOptions');
+    selected.forEach((q, idx) => {
+      db.insert('quizQuestions', {
+        id: `qq-${sessionId}-${idx + 1}`,
+        session_id: sessionId,
+        question_id: q.id,
+        sequence_order: idx + 1,
+        user_answer: null,
+        is_correct: null,
+        time_spent_seconds: 0
+      });
+    });
+
+    const populatedQuestions = selected.map((q, idx) => {
+      const subject = db.get('subjects', q.subject_id);
+      const topic = db.get('topics', q.topic_id);
+      const options = allOptions.filter(o => o.question_id === q.id);
+
+      return {
+        id: q.id,
+        sequence: idx + 1,
+        question: q.question,
+        question_type: q.question_type,
+        difficulty: q.difficulty,
+        subject_name: subject?.name || 'Computer Science',
+        topic_name: topic?.name || 'General',
+        expected_time: q.expected_time,
+        xp_value: q.xp_value,
+        options: options.map(o => ({
+          id: o.id,
+          option_key: o.option_key,
+          option_text: o.option_text
+        }))
+      };
+    });
+
+    return {
+      session_id: sessionId,
+      assessment_type: assessmentType,
+      title: assessmentTitle,
+      category,
+      duration_minutes: durationMinutes,
+      total_questions: populatedQuestions.length,
+      questions: populatedQuestions
+    };
+  }
 }
 
 export default QuizEngine;

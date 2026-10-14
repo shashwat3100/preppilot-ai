@@ -234,11 +234,20 @@ router.get('/', authenticate, (req, res) => {
 
     // Placement Readiness & Company Eligibility Diagnostics
     const codingSolvedCount = solvedProblemIds.size;
-    const accuracyWeight = (overallAccuracy || 0) * 0.40;
-    const codingWeight = Math.min(100, (codingSolvedCount / 8) * 100) * 0.35;
-    const consistencyWeight = Math.min(100, ((streak?.current_streak || 0) * 12) + (avgTimePerQuestion <= 50 ? 30 : 15)) * 0.25;
-    const readinessScore = Math.min(99, Math.max(15, Math.round(accuracyWeight + codingWeight + consistencyWeight)));
-    const cohortPercentile = Math.min(99, Math.max(25, Math.round(50 + (readinessScore - 50) * 0.85)));
+    const hasActivity = totalAttempted > 0 || codingSolvedCount > 0;
+
+    let readinessScore = 0;
+    let cohortPercentile = 0;
+    let tierFit = 'Diagnostic Assessment Required';
+
+    if (hasActivity) {
+      const accuracyWeight = (overallAccuracy || 0) * 0.40;
+      const codingWeight = Math.min(100, (codingSolvedCount / 8) * 100) * 0.35;
+      const consistencyWeight = Math.min(100, ((streak?.current_streak || 0) * 12) + (avgTimePerQuestion <= 50 ? 30 : 15)) * 0.25;
+      readinessScore = Math.min(99, Math.max(5, Math.round(accuracyWeight + codingWeight + consistencyWeight)));
+      cohortPercentile = Math.min(99, Math.max(5, Math.round(50 + (readinessScore - 50) * 0.85)));
+      tierFit = readinessScore >= 80 ? 'Tier-1 Product & Super Dream' : readinessScore >= 65 ? 'Premium IT & Consulting' : 'Mass IT & Services';
+    }
 
     const recruiterBenchmarks = [
       {
@@ -292,6 +301,19 @@ router.get('/', authenticate, (req, res) => {
     ];
 
     const companyEligibility = recruiterBenchmarks.map(bm => {
+      if (!hasActivity) {
+        return {
+          company_name: bm.company_name,
+          tier: bm.tier,
+          cutoff_accuracy: bm.cutoff_accuracy,
+          min_coding_solved: bm.min_coding_solved,
+          current_accuracy: 0,
+          current_coding_solved: 0,
+          status: 'NEEDS_PREPARATION',
+          match_score: 0
+        };
+      }
+
       const meetsAccuracy = overallAccuracy >= bm.cutoff_accuracy;
       const meetsCoding = codingSolvedCount >= bm.min_coding_solved;
       let status = 'NEEDS_PREPARATION';
@@ -333,9 +355,10 @@ router.get('/', authenticate, (req, res) => {
           longest_streak: streak?.longest_streak || 0
         },
         placement_readiness: {
+          has_activity: hasActivity,
           score: readinessScore,
           percentile: cohortPercentile,
-          tier_fit: readinessScore >= 80 ? 'Tier-1 Product & Super Dream' : readinessScore >= 65 ? 'Premium IT & Consulting' : 'Mass IT & Services',
+          tier_fit: tierFit,
           company_eligibility: companyEligibility
         },
         subject_accuracy: subjectAccuracy,

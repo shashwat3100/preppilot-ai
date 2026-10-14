@@ -306,7 +306,15 @@ const CodingPracticePage: React.FC = () => {
     };
   }, []);
 
-  // 4. Code Draft Autosaving & Loading
+  const DEFAULT_LANGUAGE_STARTERS: Record<string, string> = {
+    c: `#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    // Write your C solution here\n    \n    return 0;\n}`,
+    cpp: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    \n    // Write your C++ solution here\n    \n    return 0;\n}`,
+    python: `def solve():\n    # Write your Python solution here\n    pass\n\nif __name__ == "__main__":\n    solve()`,
+    java: `import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // Write your Java solution here\n    }\n}`,
+    javascript: `// Write your JavaScript solution here\nfunction solve() {\n    \n}\n\nsolve();`
+  };
+
+  // 4. Code Draft Autosaving & Loading (Strict language-isolated states)
   const loadCodeForProblemAndLanguage = useCallback((prob: CodingProblem, lang: string) => {
     try {
       const storageKey = getDraftStorageKey(user?.id, prob.id, lang);
@@ -317,9 +325,9 @@ const CodingPracticePage: React.FC = () => {
         return;
       }
     } catch (e) {
-      // Storage unavailable or blocked
+      // Storage unavailable
     }
-    const initialStarter = prob.starterCode?.[lang] || prob.starterCode?.c || '';
+    const initialStarter = prob.starterCode?.[lang] || DEFAULT_LANGUAGE_STARTERS[lang] || DEFAULT_LANGUAGE_STARTERS.python;
     setCode(initialStarter);
     setDraftSavedTimestamp(null);
   }, [user?.id]);
@@ -332,7 +340,7 @@ const CodingPracticePage: React.FC = () => {
         localStorage.setItem(storageKey, newCode);
         setDraftSavedTimestamp('Autosaved');
       } catch (e) {
-        // Storage quota or error
+        // Storage quota
       }
     }
   }, [selectedProblem, language, user?.id]);
@@ -362,13 +370,22 @@ const CodingPracticePage: React.FC = () => {
     }
   }, [language, loadCodeForProblemAndLanguage]);
 
-  // 6. Language Switcher (Preserves Drafts)
+  // 6. Language Switcher (Preserves Drafts without cross-language corruption)
   const handleLanguageChange = useCallback((newLang: string) => {
+    if (newLang === language) return;
+    // 1. Immediately persist current code for existing language
+    if (selectedProblem && code) {
+      try {
+        const storageKey = getDraftStorageKey(user?.id, selectedProblem.id, language);
+        localStorage.setItem(storageKey, code);
+      } catch (e) {}
+    }
+    // 2. Set new language and load its draft or starter
     setLanguage(newLang);
     if (selectedProblem) {
       loadCodeForProblemAndLanguage(selectedProblem, newLang);
     }
-  }, [selectedProblem, loadCodeForProblemAndLanguage]);
+  }, [selectedProblem, language, code, user?.id, loadCodeForProblemAndLanguage]);
 
   // 7. Reset Code with Confirmation
   const confirmResetCode = useCallback(() => {
@@ -377,7 +394,7 @@ const CodingPracticePage: React.FC = () => {
       const storageKey = getDraftStorageKey(user?.id, selectedProblem.id, language);
       localStorage.removeItem(storageKey);
     } catch (e) {}
-    const starter = selectedProblem.starterCode?.[language] || selectedProblem.starterCode?.c || '';
+    const starter = selectedProblem.starterCode?.[language] || DEFAULT_LANGUAGE_STARTERS[language] || DEFAULT_LANGUAGE_STARTERS.python;
     setCode(starter);
     setDraftSavedTimestamp('Reset to Default');
     setShowResetConfirmModal(false);

@@ -19,6 +19,30 @@ router.post('/adaptive-daily', authenticate, (req, res) => {
   }
 });
 
+// GET /api/quiz/assessments (Catalog with live counts)
+router.get('/assessments', authenticate, (req, res) => {
+  try {
+    const catalog = QuizEngine.getAssessmentCatalog();
+    return res.json({ success: true, assessments: catalog });
+  } catch (err) {
+    console.error('[Assessment Catalog Error]:', err);
+    return res.status(500).json({ success: false, message: 'Failed to load assessment catalog.' });
+  }
+});
+
+// POST /api/quiz/assessments/:type/start (Starts timed assessment with exact question quota)
+router.post('/assessments/:type/start', authenticate, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const assessmentType = req.params.type;
+    const assessment = QuizEngine.generateAssessment(userId, assessmentType);
+    return res.json({ success: true, assessment });
+  } catch (err) {
+    console.error('[Start Assessment Error]:', err);
+    return res.status(400).json({ success: false, message: err.message || 'Failed to initialize assessment.' });
+  }
+});
+
 // POST /api/quiz/custom
 router.post('/custom', authenticate, (req, res) => {
   try {

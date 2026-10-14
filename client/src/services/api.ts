@@ -94,6 +94,21 @@ export const api = {
   },
 
   // Quiz
+  getQuizAssessments: async () => {
+    const res = await fetch(`${API_BASE}/quiz/assessments`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  startQuizAssessment: async (type: string) => {
+    const res = await fetch(`${API_BASE}/quiz/assessments/${type}/start`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
   startAdaptiveDailyQuiz: async (count = 5) => {
     const res = await fetch(`${API_BASE}/quiz/adaptive-daily`, {
       method: 'POST',

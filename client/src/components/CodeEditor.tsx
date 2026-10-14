@@ -18,21 +18,25 @@ import {
   VolumeX,
   Mic,
   AlignLeft,
-  Edit3
+  Edit3,
+  Copy,
+  Check
 } from 'lucide-react';
 
 const DEFAULT_CODE: Record<string, string> = {
   c: `#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    // Write your C solution here\n    \n    return 0;\n}`,
   cpp: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    \n    // Write your C++ solution here\n    \n    return 0;\n}`,
   python: `def solve():\n    # Write your Python solution here\n    pass\n\nif __name__ == "__main__":\n    solve()`,
-  java: `import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // Write your Java solution here\n    }\n}`
+  java: `import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // Write your Java solution here\n    }\n}`,
+  javascript: `// Write your JavaScript solution here\nfunction solve() {\n    \n}\n\nsolve();`
 };
 
-const LANGUAGE_CONFIG: Record<string, { monaco: string; label: string; icon: string }> = {
-  c: { monaco: 'c', label: 'C', icon: '💻' },
-  cpp: { monaco: 'cpp', label: 'C++', icon: '⚙️' },
-  python: { monaco: 'python', label: 'Python', icon: '🐍' },
-  java: { monaco: 'java', label: 'Java', icon: '☕' }
+const LANGUAGE_CONFIG: Record<string, { monaco: string; label: string; icon: string; filename: string }> = {
+  c: { monaco: 'c', label: 'C', icon: '💻', filename: 'solution.c' },
+  cpp: { monaco: 'cpp', label: 'C++', icon: '⚙️', filename: 'solution.cpp' },
+  python: { monaco: 'python', label: 'Python', icon: '🐍', filename: 'solution.py' },
+  java: { monaco: 'java', label: 'Java', icon: '☕', filename: 'Solution.java' },
+  javascript: { monaco: 'javascript', label: 'JavaScript', icon: '🟨', filename: 'solution.js' }
 };
 
 export interface CodeEditorProps {
@@ -159,6 +163,20 @@ export function CodeEditor({
     editorRef.current?.editor?.getAction('editor.action.formatDocument')?.run();
   }, []);
 
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCode = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(currentCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      // Fallback
+    }
+  }, [currentCode]);
+
+  const activeConfig = LANGUAGE_CONFIG[currentLanguage] || LANGUAGE_CONFIG.python;
+
   return (
     <div className="flex flex-col h-full bg-[var(--surface-card)] rounded-xl overflow-hidden border border-[var(--surface-border)]">
       {/* Top Editor Toolbar */}
@@ -177,6 +195,31 @@ export function CodeEditor({
               </option>
             ))}
           </select>
+
+          {/* Active File Name Indicator */}
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--surface-card)] border border-[var(--surface-border)] text-[11px] font-mono text-[var(--text-muted)]">
+            <FileCode2 size={13} className="text-indigo-400" />
+            <span>{activeConfig.filename}</span>
+          </div>
+
+          {/* Copy Code button */}
+          <button
+            onClick={handleCopyCode}
+            className="px-2.5 py-1.5 bg-[var(--surface-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs rounded-lg hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] transition-colors flex items-center gap-1.5 cursor-pointer"
+            title="Copy Code to Clipboard"
+          >
+            {copied ? (
+              <>
+                <Check size={13} className="text-emerald-400" />
+                <span className="text-emerald-400 font-bold">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy size={13} />
+                <span className="hidden sm:inline">Copy</span>
+              </>
+            )}
+          </button>
 
           {/* Reset Code button */}
           <button

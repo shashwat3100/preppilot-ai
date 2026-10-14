@@ -17,7 +17,8 @@ const JUDGE0_LANGUAGE_IDS = {
   c: 50,      // C (GCC 9.2.0)
   cpp: 54,    // C++ (GCC 9.2.0)
   python: 71, // Python (3.8.1)
-  java: 62    // Java (OpenJDK 13.0.1)
+  java: 62,   // Java (OpenJDK 13.0.1)
+  javascript: 63 // JavaScript (Node.js 12.14.0)
 };
 
 // Local runner configurations
@@ -55,6 +56,12 @@ const LANGUAGE_CONFIG = {
       const dir = path.dirname(filePath);
       return { command: 'javac', args: [filePath], exePath: path.join(dir, className), className };
     }
+  },
+  javascript: {
+    extension: '.js',
+    command: 'node',
+    args: (filePath) => [filePath],
+    compile: null
   }
 };
 

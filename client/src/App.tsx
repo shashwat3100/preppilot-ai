@@ -21,6 +21,8 @@ const ThinkingOrbPage = React.lazy(() => import('./pages/ThinkingOrbPage'));
 import api from './services/api';
 import type { QuizSession } from './types';
 
+import { APP_CONFIG } from './config/app.config';
+
 const VALID_TABS = new Set([
   'dashboard',
   'adaptive-quiz',
@@ -38,10 +40,25 @@ const VALID_TABS = new Set([
   'register'
 ]);
 
+const resolveRoute = (raw: string): string => {
+  const clean = raw.replace(/^#\/?/, '').replace(/^\//, '').trim().toLowerCase();
+  if (APP_CONFIG.routes.aliases[clean]) {
+    return APP_CONFIG.routes.aliases[clean];
+  }
+  return VALID_TABS.has(clean) ? clean : 'dashboard';
+};
+
 const getTabFromHash = (): string => {
   if (typeof window === 'undefined') return 'dashboard';
-  const clean = window.location.hash.replace(/^#\/?/, '').trim();
-  return VALID_TABS.has(clean) ? clean : 'dashboard';
+  const hashPart = window.location.hash.replace(/^#\/?/, '').trim();
+  if (hashPart) {
+    return resolveRoute(hashPart);
+  }
+  const pathPart = window.location.pathname.replace(/^\//, '').trim();
+  if (pathPart && pathPart !== 'index.html') {
+    return resolveRoute(pathPart);
+  }
+  return 'dashboard';
 };
 
 const MainApp: React.FC = () => {
