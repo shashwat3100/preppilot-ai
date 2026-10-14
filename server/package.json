@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/index.js",
+    "test": "node tests/security_and_reliability.test.js",
     "build": "node -e \"console.log('Server ready')\"",
     "start": "node src/index.js",
     "seed": "node src/database/seed.js"

@@ -23,7 +23,12 @@ import {
   Award,
   HelpCircle,
   X,
-  Sparkles
+  Sparkles,
+  Play,
+  Briefcase,
+  Layers,
+  Clock,
+  Compass
 } from 'lucide-react';
 
 interface DashboardPageProps {
@@ -32,6 +37,7 @@ interface DashboardPageProps {
   onStartAssessment?: () => void;
   onExploreCompanies: () => void;
   onViewAnalytics: () => void;
+  onNavigateToCoding?: () => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
@@ -39,7 +45,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onStartCustomQuiz,
   onStartAssessment,
   onExploreCompanies,
-  onViewAnalytics
+  onViewAnalytics,
+  onNavigateToCoding
 }) => {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -75,7 +82,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       <div className="flex-1 flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
-          <span className="text-xs font-semibold text-[var(--text-secondary)]">Loading your personalized dashboard...</span>
+          <span className="text-xs font-semibold text-[var(--text-secondary)]">Assembling your personalized placement command center...</span>
         </div>
       </div>
     );
@@ -83,13 +90,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   const isNewStudent = (stats?.total_questions_attempted || 0) === 0;
   const prepScore = stats?.preparation_score !== undefined ? stats.preparation_score : 0;
+  const companyNameMap: Record<string, string> = {
+    'comp-tcs': 'TCS',
+    'comp-infosys': 'Infosys',
+    'comp-wipro': 'Wipro',
+    'comp-accenture': 'Accenture',
+    'comp-capgemini': 'Capgemini',
+    'comp-cognizant': 'Cognizant',
+    'comp-deloitte': 'Deloitte',
+    'comp-amazon': 'Amazon',
+    'comp-microsoft': 'Microsoft',
+    'comp-google': 'Google'
+  };
+
   const targetCompanies = user?.target_companies && user.target_companies.length > 0
-    ? user.target_companies.join(', ')
-    : 'Campus Recruiters';
+    ? user.target_companies.map(c => companyNameMap[c] || c.replace(/^comp-/, '').toUpperCase()).join(', ')
+    : 'TCS, Infosys, Amazon, Accenture';
   const targetRole = user?.job_role_title || 'Software Development Engineer (SDE)';
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-150">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in duration-150">
       {/* Active Campus Placement Drive Announcements */}
       {announcements.length > 0 && (
         <div className="space-y-3">
@@ -127,91 +147,164 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       )}
 
-      {/* Hero Welcome Banner & Primary Action (Continue Today's Plan) */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-900/30 via-[var(--surface-card)] to-[var(--surface-card)] border border-[var(--surface-border)] p-6 sm:p-8 shadow-sm">
+      {/* Hero Welcome Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950/40 via-[var(--surface-card)] to-[var(--surface-card)] border border-[var(--surface-border)] p-6 sm:p-8 shadow-xl">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2.5 max-w-2xl">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
-                {user?.branch_code || 'B.Tech'} • {user?.year || '4th Year'}
+          <div className="space-y-3 max-w-2xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+                {user?.branch_code || 'B.Tech IT'} • {user?.year || '4th Year'}
               </span>
               <span className="text-xs text-[var(--text-secondary)] font-medium">
-                Class of {user?.graduation_year || 2026}
+                Batch of {user?.graduation_year || 2026}
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                Lvl {stats?.current_level || 1} • {stats?.total_xp || 0} XP
               </span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
-              Welcome back, {user?.name || 'Student'}
+              Welcome back, {user?.name || 'Engineer'}
             </h1>
 
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
               Target Track: <span className="font-semibold text-indigo-400">{targetRole}</span> at{' '}
-              <span className="font-semibold text-[var(--text-primary)]">{targetCompanies}</span>. Your syllabus-grounded daily study plan is ready.
+              <span className="font-semibold text-[var(--text-primary)]">{targetCompanies}</span>. Your syllabus-grounded daily recommendations and coding tracks are live.
             </p>
           </div>
 
-          {/* Action Hub: Continue Plan Prominent */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
-            {/* Primary Action */}
+          {/* Action Hub - 3 Balanced Professional Actions */}
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 w-full lg:w-72 shrink-0">
+            {/* Primary Action Button */}
             <button
               onClick={onStartAdaptiveQuiz}
-              className="px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+              className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-indigo-600/25 flex items-center justify-between transition-all transform hover:-translate-y-0.5 cursor-pointer group"
             >
-              <span>Continue Today's Plan</span>
-              <ArrowRight size={16} />
+              <span className="flex items-center gap-2">
+                <Sparkles size={16} className="text-cyan-200" />
+                <span>Continue Today's Plan</span>
+              </span>
+              <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
             </button>
 
-            {/* Secondary Actions */}
-            <button
-              onClick={onStartCustomQuiz}
-              className="px-4 py-3 sm:py-3.5 rounded-xl bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] text-[var(--text-primary)] text-xs sm:text-sm font-semibold border border-[var(--surface-border)] transition-colors flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Sliders size={15} />
-              <span>Custom Drill</span>
-            </button>
-
-            {onStartAssessment && (
+            {/* Secondary Dual Action Row */}
+            <div className="grid grid-cols-2 gap-2 w-full">
               <button
-                onClick={onStartAssessment}
-                className="px-4 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-emerald-600/90 to-cyan-600/90 hover:from-emerald-500 hover:to-cyan-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/15 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                onClick={() => {
+                  if (onStartAssessment) onStartAssessment();
+                  else onStartAdaptiveQuiz();
+                }}
+                className="px-3 py-2.5 rounded-xl bg-[var(--surface-elevated)] hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 font-bold text-xs border border-emerald-500/20 hover:border-emerald-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <Code2 size={15} />
-                <span>Mock Placement Test</span>
+                <Code2 size={14} />
+                <span>Mock Test</span>
               </button>
-            )}
+
+              <button
+                onClick={onStartCustomQuiz}
+                className="px-3 py-2.5 rounded-xl bg-[var(--surface-elevated)] hover:bg-indigo-500/10 text-[var(--text-secondary)] hover:text-indigo-300 font-bold text-xs border border-[var(--surface-border)] hover:border-indigo-500/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Sliders size={14} />
+                <span>Custom Drill</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* First-Use Onboarding State for New Students */}
-      {isNewStudent && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400 shrink-0">
-              <Sparkles size={20} />
+      {/* QUICK LAUNCH ACTION CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div
+          onClick={onStartAdaptiveQuiz}
+          className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] hover:border-indigo-500/40 hover:bg-[var(--surface-hover)] transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
+        >
+          <div className="space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Brain size={20} />
             </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
-                Welcome to PrepPilot AI! Establish Your Baseline
+            <h3 className="text-sm font-extrabold text-[var(--text-primary)] group-hover:text-indigo-400 transition-colors">
+              Adaptive Daily Quiz
+            </h3>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Personalized 5-question multi-factor drill targeting your detected weak syllabus concepts.
+            </p>
+          </div>
+          <div className="pt-4 flex items-center text-xs font-bold text-indigo-400">
+            <span>Launch Drill</span>
+            <ChevronRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
+        {onNavigateToCoding && (
+          <div
+            onClick={onNavigateToCoding}
+            className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] hover:border-cyan-500/40 hover:bg-[var(--surface-hover)] transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Code2 size={20} />
+              </div>
+              <h3 className="text-sm font-extrabold text-[var(--text-primary)] group-hover:text-cyan-400 transition-colors">
+                Coding & Compiler Arena
               </h3>
-              <p className="text-xs text-[var(--text-secondary)]">
-                Complete your first 5-question Adaptive Quiz or solve a Coding challenge to calibrate your placement readiness index and unlock tailored AI recommendations.
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                LeetCode-style problems tagged for TCS, Infosys, Amazon with Python, C++, Java runners.
               </p>
             </div>
+            <div className="pt-4 flex items-center text-xs font-bold text-cyan-400">
+              <span>Enter Arena</span>
+              <ChevronRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
-          <button
-            onClick={onStartAdaptiveQuiz}
-            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shrink-0 cursor-pointer transition-colors shadow-sm"
-          >
-            Start Diagnostic Quiz
-          </button>
+        )}
+
+        <div
+          onClick={onExploreCompanies}
+          className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] hover:border-purple-500/40 hover:bg-[var(--surface-hover)] transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
+        >
+          <div className="space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Building2 size={20} />
+            </div>
+            <h3 className="text-sm font-extrabold text-[var(--text-primary)] group-hover:text-purple-400 transition-colors">
+              Company Blueprints & Tiers
+            </h3>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Recruitment rounds, CTC packages (up to 45 LPA), syllabus roadmaps, and authentic pattern questions.
+            </p>
+          </div>
+          <div className="pt-4 flex items-center text-xs font-bold text-purple-400">
+            <span>Explore 10 Recruiter Tracks</span>
+            <ChevronRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+          </div>
         </div>
-      )}
+
+        <div
+          onClick={onViewAnalytics}
+          className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] hover:border-emerald-500/40 hover:bg-[var(--surface-hover)] transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
+        >
+          <div className="space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <TrendingUp size={20} />
+            </div>
+            <h3 className="text-sm font-extrabold text-[var(--text-primary)] group-hover:text-emerald-400 transition-colors">
+              Placement Diagnostics
+            </h3>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Campus percentile benchmarks, company cutoff eligibility matrix, and speed velocity telemetry.
+            </p>
+          </div>
+          <div className="pt-4 flex items-center text-xs font-bold text-emerald-400">
+            <span>View Full Report</span>
+            <ChevronRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+      </div>
 
       {/* PrepPilot Dedicated AI Assistant Card */}
       <PrepPilotCard />
 
-      {/* 4 Compact Metric Cards (4-Column Desktop, 2-Column Tablet, Stacked Mobile) */}
+      {/* 4 Compact Metric KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Placement Readiness */}
         <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm flex flex-col justify-between">
@@ -219,7 +312,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <span className="text-xs font-semibold uppercase tracking-wider">Placement Readiness</span>
             <button
               onClick={() => setShowReadinessExplainer(true)}
-              className="text-[var(--text-muted)] hover:text-indigo-400 p-0.5 rounded transition-colors"
+              className="text-[var(--text-muted)] hover:text-indigo-400 p-0.5 rounded transition-colors cursor-pointer"
               title="How is readiness calculated?"
             >
               <HelpCircle size={15} />
@@ -229,7 +322,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <span className="text-3xl font-extrabold text-[var(--text-primary)]">{prepScore}%</span>
             {isNewStudent ? (
               <span className="text-xs text-indigo-400 font-semibold flex items-center">
-                New Student
+                New Candidate
               </span>
             ) : (
               <span className="text-xs text-emerald-500 font-semibold flex items-center">
@@ -317,7 +410,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               </h2>
             </div>
             <span className="text-xs text-[var(--text-muted)] hidden sm:inline">
-              Adaptive Syllabus Scored
+              Multi-Factor Adaptive Scored
             </span>
           </div>
 
@@ -387,13 +480,55 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
         {/* Right Column: Weak Topics, Strong Topics & Companies */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Weak Topics (Requiring Attention) */}
+          {/* Target Companies Overview */}
           <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Building2 size={18} className="text-indigo-400" />
+                <h3 className="text-sm font-bold text-[var(--text-primary)] tracking-wide">
+                  Target Recruiters Track
+                </h3>
+              </div>
+              <button
+                onClick={onExploreCompanies}
+                className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <span>View All 10</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+
+            <div className="space-y-2.5">
+              {stats?.target_companies && stats.target_companies.length > 0 ? (
+                stats.target_companies.map((c) => (
+                  <div
+                    key={c.id}
+                    onClick={onExploreCompanies}
+                    className="p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] hover:border-indigo-500/40 transition-all cursor-pointer flex items-center justify-between group"
+                  >
+                    <div>
+                      <h4 className="text-xs font-bold text-[var(--text-primary)] group-hover:text-indigo-400 transition-colors">{c.name}</h4>
+                      <span className="text-[10px] text-[var(--text-muted)]">{c.tier}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-indigo-400">{c.accuracy}% acc</span>
+                      <span className="block text-[10px] text-[var(--text-muted)]">{c.attempted_count} solved</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-[var(--text-muted)] italic">No target companies specified.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Weak Topics (Requiring Attention) */}
+          <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-amber-500/20 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle size={18} className="text-amber-500" />
                 <h3 className="text-sm font-bold text-[var(--text-primary)] tracking-wide">
-                  Topics Requiring Revision
+                  Topics Requiring Attention
                 </h3>
               </div>
               <span className="text-[11px] text-[var(--text-muted)]">Priority items</span>
@@ -423,7 +558,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
 
           {/* Mastered Concepts */}
-          <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-xs space-y-4">
+          <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-emerald-500/20 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={18} className="text-emerald-500" />
@@ -456,47 +591,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               )}
             </div>
           </div>
-
-          {/* Target Companies Overview */}
-          <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Building2 size={18} className="text-indigo-400" />
-                <h3 className="text-sm font-bold text-[var(--text-primary)] tracking-wide">
-                  Target Company Readiness
-                </h3>
-              </div>
-              <button
-                onClick={onExploreCompanies}
-                className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <span>View All</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
-
-            <div className="space-y-2.5">
-              {stats?.target_companies && stats.target_companies.length > 0 ? (
-                stats.target_companies.map((c) => (
-                  <div
-                    key={c.id}
-                    className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] flex items-center justify-between"
-                  >
-                    <div>
-                      <h4 className="text-xs font-bold text-[var(--text-primary)]">{c.name}</h4>
-                      <span className="text-[10px] text-[var(--text-muted)]">{c.tier}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs font-bold text-indigo-400">{c.accuracy}% acc</span>
-                      <span className="block text-[10px] text-[var(--text-muted)]">{c.attempted_count} solved</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-[var(--text-muted)] italic">No target companies specified.</p>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -513,7 +607,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               </div>
               <button
                 onClick={() => setShowReadinessExplainer(false)}
-                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -538,14 +632,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 </div>
               </div>
               <p className="text-[11px] text-[var(--text-muted)] italic">
-                Note: This estimate tracks preparation progress across Pune University (SPPU) syllabus standards and Tier-1 IT patterns, and does not guarantee placement hiring outcomes.
+                Note: This estimate tracks preparation progress across curriculum standards and Tier-1 IT patterns, providing feedback for ongoing placement preparation.
               </p>
             </div>
 
             <div className="flex justify-end pt-2 border-t border-[var(--surface-border)]">
               <button
                 onClick={() => setShowReadinessExplainer(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer"
               >
                 Understood
               </button>
@@ -564,7 +658,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               </h3>
               <button
                 onClick={() => setSelectedQuestionModal(null)}
-                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -599,7 +693,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div className="flex justify-end pt-2 border-t border-[var(--surface-border)]">
               <button
                 onClick={() => setSelectedQuestionModal(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer"
               >
                 Close
               </button>

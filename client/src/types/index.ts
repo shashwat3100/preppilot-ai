@@ -205,6 +205,21 @@ export interface AnalyticsData {
     current_streak: number;
     longest_streak: number;
   };
+  placement_readiness?: {
+    score: number;
+    percentile: number;
+    tier_fit: string;
+    company_eligibility: Array<{
+      company_name: string;
+      tier: string;
+      cutoff_accuracy: number;
+      min_coding_solved: number;
+      current_accuracy: number;
+      current_coding_solved: number;
+      status: 'ELIGIBLE' | 'BORDERLINE' | 'NEEDS_PREPARATION';
+      match_score: number;
+    }>;
+  };
   subject_accuracy: Array<{ name: string; fullName: string; attempted: number; accuracy: number }>;
   topic_accuracy: Array<{ name: string; attempted: number; accuracy: number }>;
   company_accuracy: Array<{ name: string; attempted: number; available: number; accuracy: number }>;

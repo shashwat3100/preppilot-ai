@@ -1,4 +1,21 @@
-const API_BASE = '/api';
+const getApiBase = (): string => {
+  // If running via Vite dev server proxy (port 5173), use relative '/api'
+  if (typeof window !== 'undefined' && window.location.port === '5173') {
+    return '/api';
+  }
+  // If explicitly configured via Vite env
+  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  // When running via VS Code "Go Live" (Live Server ports like 5500, 5501, etc.)
+  // or opening via file/static server on localhost/127.0.0.1, direct API calls to the Express backend
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:5000/api';
+  }
+  return '/api';
+};
+
+const API_BASE = getApiBase();
 
 const safeJson = async (res: Response) => {
   try {

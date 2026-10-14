@@ -73,8 +73,8 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onGoToLog
       setError('Please fill in all core credentials (name, email, and password).');
       return;
     }
-    if (password.length < 4) {
-      setError('Password must be at least 4 characters long.');
+    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+      setError('Password must be at least 8 characters long and contain both letters and numbers.');
       return;
     }
 

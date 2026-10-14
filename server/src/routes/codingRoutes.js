@@ -272,29 +272,29 @@ router.post('/submit', authenticate, codeExecutionLimiter, async (req, res) => {
 
   db.insert('codingSubmissions', submission);
 
-  // Award XP only if this problem was not previously solved by this user
+  // Award XP exactly once if this problem has not previously been awarded to this user
   if (allPassed) {
-    const priorSolved = db.find('codingSubmissions', s =>
-      s.user_id === req.user.id &&
-      s.problem_id === problemId &&
-      s.status === 'ACCEPTED' &&
-      s.id !== submission.id
+    const existingProblemXp = db.find('xpHistory', x =>
+      x.user_id === req.user.id &&
+      x.reference_id === problemId &&
+      x.action_type === 'CODING_PROBLEM_SOLVED'
     );
 
-    if (priorSolved.length === 0) {
+    if (existingProblemXp.length === 0) {
       const xpGain = problem.difficulty === 'Easy' ? 50 : problem.difficulty === 'Medium' ? 100 : 150;
       const user = db.get('users', req.user.id);
       if (user) {
-        db.update('users', req.user.id, {
-          total_xp: (user.total_xp || 0) + xpGain,
-          last_active_date: new Date().toISOString().split('T')[0]
-        });
         db.insert('xpHistory', {
           id: uuidv4(),
           user_id: req.user.id,
+          reference_id: problemId,
           amount: xpGain,
           action_type: 'CODING_PROBLEM_SOLVED',
           created_at: new Date().toISOString()
+        });
+        db.update('users', req.user.id, {
+          total_xp: (user.total_xp || 0) + xpGain,
+          last_active_date: new Date().toISOString().split('T')[0]
         });
       }
     }
@@ -439,6 +439,9 @@ router.post('/assessments/:id/start', authenticate, (req, res) => {
   res.status(201).json({ attempt, isResumed: false });
 });
 
+// In-flight submission mutex to prevent concurrent submission races
+const activeAssessmentSubmissions = new Set();
+
 // Submit timed assessment (SECURE & IDEMPOTENT)
 router.post('/assessments/:id/submit', authenticate, assessmentSubmissionLimiter, async (req, res) => {
   const { attemptId, answers } = req.body;
@@ -465,146 +468,169 @@ router.post('/assessments/:id/submit', authenticate, assessmentSubmissionLimiter
     });
   }
 
-  // 2. SERVER-SIDE EXPIRATION: Enforce deadline strictly on the server
-  const startTime = new Date(attempt.start_time).getTime();
-  const expiryTime = startTime + (attempt.duration_minutes * 60 * 1000) + 60000; // 60s grace
-  const now = Date.now();
-
-  if (now > expiryTime) {
-    db.update('codingAssessmentAttempts', attemptId, {
-      status: 'TIMED_OUT',
-      submitted_at: new Date().toISOString()
-    });
-    return res.status(400).json({
-      error: 'Assessment deadline has expired. Submissions can no longer be accepted.',
-      timedOut: true
+  // Concurrency Guard: Reject simultaneous processing of the same attempt
+  if (activeAssessmentSubmissions.has(attemptId)) {
+    return res.status(409).json({
+      error: 'Assessment submission is currently being evaluated. Please wait for completion.',
+      isProcessing: true
     });
   }
 
-  // 3. EXECUTE & JUDGE EACH PROBLEM
-  const problemResults = [];
-  let totalScore = 0;
-  const pointsPerProblem = Math.floor((assessment.total_marks || 100) / (assessment.problem_ids.length || 1));
-  const maxScore = pointsPerProblem * assessment.problem_ids.length;
-  const weakTopics = new Set();
+  activeAssessmentSubmissions.add(attemptId);
 
-  for (const pid of assessment.problem_ids) {
-    const problem = db.get('codingProblems', pid);
-    const ans = (answers && answers[pid]) || { code: '', language: 'c' };
-    const testCases = db.find('codingTestCases', tc => tc.problem_id === pid);
+  try {
+    // 2. SERVER-SIDE EXPIRATION: Enforce deadline strictly on the server
+    const startTime = new Date(attempt.start_time).getTime();
+    const expiryTime = startTime + (attempt.duration_minutes * 60 * 1000) + 60000; // 60s grace
+    const now = Date.now();
 
-    let probResult = {
-      problem_id: pid,
-      title: problem ? problem.title : 'Problem',
-      difficulty: problem ? problem.difficulty : 'Medium',
-      language: ans.language || 'c',
-      code: ans.code || '',
-      allPassed: false,
-      passedCount: 0,
-      totalCount: testCases.length,
-      score: 0,
-      verdict: 'NO_SUBMISSION',
-      testResults: []
-    };
-
-    if (ans.code && ans.code.trim() && testCases.length > 0) {
-      const evalRes = await runTestCases(ans.code, ans.language || 'c', testCases);
-      const passedRatio = evalRes.totalCount > 0 ? (evalRes.passedCount / evalRes.totalCount) : 0;
-      const problemScore = Math.round(passedRatio * pointsPerProblem);
-      totalScore += problemScore;
-
-      let verdict = evalRes.allPassed ? 'ACCEPTED' : 'WRONG_ANSWER';
-      if (evalRes.results.some(r => r.timedOut)) verdict = 'TIME_LIMIT_EXCEEDED';
-      else if (evalRes.results.some(r => r.compileError)) verdict = 'COMPILATION_ERROR';
-      else if (evalRes.results.some(r => r.error && !r.timedOut)) verdict = 'RUNTIME_ERROR';
-
-      probResult = {
-        ...probResult,
-        allPassed: evalRes.allPassed,
-        passedCount: evalRes.passedCount,
-        totalCount: evalRes.totalCount,
-        score: problemScore,
-        verdict,
-        testResults: evalRes.results
-      };
-
-      if (!evalRes.allPassed && problem && problem.tags) {
-        problem.tags.forEach(t => weakTopics.add(t));
-      }
-
-      // Log to codingSubmissions for user history
-      const sub = {
-        id: uuidv4(),
-        user_id: req.user.id,
-        problem_id: pid,
-        code: ans.code,
-        language: ans.language || 'c',
-        status: verdict,
-        results: evalRes.results,
-        passed_count: evalRes.passedCount,
-        total_count: evalRes.totalCount,
-        execution_time: evalRes.totalExecutionTimeMs || 0,
-        memory_used: null,
-        assessment_id: assessment.id,
+    if (now > expiryTime) {
+      db.update('codingAssessmentAttempts', attemptId, {
+        status: 'TIMED_OUT',
         submitted_at: new Date().toISOString()
+      });
+      return res.status(400).json({
+        error: 'Assessment deadline has expired. Submissions can no longer be accepted.',
+        timedOut: true
+      });
+    }
+
+    // 3. EXECUTE & JUDGE EACH PROBLEM
+    const problemResults = [];
+    let totalScore = 0;
+    const pointsPerProblem = Math.floor((assessment.total_marks || 100) / (assessment.problem_ids.length || 1));
+    const maxScore = pointsPerProblem * assessment.problem_ids.length;
+    const weakTopics = new Set();
+
+    for (const pid of assessment.problem_ids) {
+      const problem = db.get('codingProblems', pid);
+      const ans = (answers && answers[pid]) || { code: '', language: 'c' };
+      const testCases = db.find('codingTestCases', tc => tc.problem_id === pid);
+
+      let probResult = {
+        problem_id: pid,
+        title: problem ? problem.title : 'Problem',
+        difficulty: problem ? problem.difficulty : 'Medium',
+        language: ans.language || 'c',
+        code: ans.code || '',
+        allPassed: false,
+        passedCount: 0,
+        totalCount: testCases.length,
+        score: 0,
+        verdict: 'NO_SUBMISSION',
+        testResults: []
       };
-      db.insert('codingSubmissions', sub);
-    } else {
-      if (problem && problem.tags) {
-        problem.tags.forEach(t => weakTopics.add(t));
+
+      if (ans.code && ans.code.trim() && testCases.length > 0) {
+        const evalRes = await runTestCases(ans.code, ans.language || 'c', testCases);
+        const passedRatio = evalRes.totalCount > 0 ? (evalRes.passedCount / evalRes.totalCount) : 0;
+        const problemScore = Math.round(passedRatio * pointsPerProblem);
+        totalScore += problemScore;
+
+        let verdict = evalRes.allPassed ? 'ACCEPTED' : 'WRONG_ANSWER';
+        if (evalRes.results.some(r => r.timedOut)) verdict = 'TIME_LIMIT_EXCEEDED';
+        else if (evalRes.results.some(r => r.compileError)) verdict = 'COMPILATION_ERROR';
+        else if (evalRes.results.some(r => r.error && !r.timedOut)) verdict = 'RUNTIME_ERROR';
+
+        probResult = {
+          ...probResult,
+          allPassed: evalRes.allPassed,
+          passedCount: evalRes.passedCount,
+          totalCount: evalRes.totalCount,
+          score: problemScore,
+          verdict,
+          testResults: evalRes.results
+        };
+
+        if (!evalRes.allPassed && problem && problem.tags) {
+          problem.tags.forEach(t => weakTopics.add(t));
+        }
+
+        // Log to codingSubmissions for user history
+        const sub = {
+          id: uuidv4(),
+          user_id: req.user.id,
+          problem_id: pid,
+          code: ans.code,
+          language: ans.language || 'c',
+          status: verdict,
+          results: evalRes.results,
+          passed_count: evalRes.passedCount,
+          total_count: evalRes.totalCount,
+          execution_time: evalRes.totalExecutionTimeMs || 0,
+          memory_used: null,
+          assessment_id: assessment.id,
+          submitted_at: new Date().toISOString()
+        };
+        db.insert('codingSubmissions', sub);
+      } else {
+        if (problem && problem.tags) {
+          problem.tags.forEach(t => weakTopics.add(t));
+        }
+      }
+
+      problemResults.push(probResult);
+    }
+
+    // 4. GENERATE WEAK-TOPIC RECOMMENDATIONS
+    const recommendations = Array.from(weakTopics).slice(0, 3).map(topic => ({
+      topic,
+      recommendation: `Strengthen your foundational patterns in ${topic}. Focus on boundary conditions and asymptotic complexity.`
+    }));
+
+    const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+
+    // 5. UPDATE ATTEMPT RECORD TO COMPLETED (ATOMICALLY)
+    const updatedAttempt = db.update('codingAssessmentAttempts', attemptId, {
+      status: 'COMPLETED',
+      answers: answers || {},
+      results: problemResults,
+      score: totalScore,
+      max_score: maxScore,
+      percentage,
+      submitted_at: new Date().toISOString(),
+      recommendations
+    });
+
+    // 6. AWARD XP EXACTLY ONCE (Deduplicated via reference_id in xpHistory)
+    if (totalScore > 0) {
+      const existingAttemptXp = db.find('xpHistory', x =>
+        x.user_id === req.user.id &&
+        x.reference_id === attemptId &&
+        x.action_type === 'CODING_ASSESSMENT_COMPLETED'
+      );
+
+      if (existingAttemptXp.length === 0) {
+        db.insert('xpHistory', {
+          id: uuidv4(),
+          user_id: req.user.id,
+          reference_id: attemptId,
+          amount: totalScore,
+          action_type: 'CODING_ASSESSMENT_COMPLETED',
+          created_at: new Date().toISOString()
+        });
+        const user = db.get('users', req.user.id);
+        if (user) {
+          db.update('users', req.user.id, {
+            total_xp: (user.total_xp || 0) + totalScore,
+            last_active_date: new Date().toISOString().split('T')[0]
+          });
+        }
       }
     }
 
-    problemResults.push(probResult);
+    return res.json({
+      attempt: updatedAttempt,
+      results: problemResults,
+      score: totalScore,
+      maxScore,
+      percentage,
+      recommendations,
+      isAlreadyCompleted: false
+    });
+  } finally {
+    activeAssessmentSubmissions.delete(attemptId);
   }
-
-  // 4. GENERATE WEAK-TOPIC RECOMMENDATIONS
-  const recommendations = Array.from(weakTopics).slice(0, 3).map(topic => ({
-    topic,
-    recommendation: `Strengthen your foundational patterns in ${topic}. Focus on boundary conditions and asymptotic complexity.`
-  }));
-
-  const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
-
-  // 5. UPDATE ATTEMPT RECORD TO COMPLETED (ATOMICALLY)
-  const updatedAttempt = db.update('codingAssessmentAttempts', attemptId, {
-    status: 'COMPLETED',
-    answers: answers || {},
-    results: problemResults,
-    score: totalScore,
-    max_score: maxScore,
-    percentage,
-    submitted_at: new Date().toISOString(),
-    recommendations
-  });
-
-  // 6. AWARD XP ONCE FOR VALID FIRST TIME ASSESSMENT COMPLETION
-  if (totalScore > 0) {
-    const user = db.get('users', req.user.id);
-    if (user) {
-      db.update('users', req.user.id, {
-        total_xp: (user.total_xp || 0) + totalScore,
-        last_active_date: new Date().toISOString().split('T')[0]
-      });
-      db.insert('xpHistory', {
-        id: uuidv4(),
-        user_id: req.user.id,
-        amount: totalScore,
-        action_type: 'CODING_ASSESSMENT_COMPLETED',
-        created_at: new Date().toISOString()
-      });
-    }
-  }
-
-  res.json({
-    attempt: updatedAttempt,
-    results: problemResults,
-    score: totalScore,
-    maxScore,
-    percentage,
-    recommendations,
-    isAlreadyCompleted: false
-  });
 });
 
 // Single assessment attempt result

@@ -232,6 +232,94 @@ router.get('/', authenticate, (req, res) => {
       }
     });
 
+    // Placement Readiness & Company Eligibility Diagnostics
+    const codingSolvedCount = solvedProblemIds.size;
+    const accuracyWeight = (overallAccuracy || 0) * 0.40;
+    const codingWeight = Math.min(100, (codingSolvedCount / 8) * 100) * 0.35;
+    const consistencyWeight = Math.min(100, ((streak?.current_streak || 0) * 12) + (avgTimePerQuestion <= 50 ? 30 : 15)) * 0.25;
+    const readinessScore = Math.min(99, Math.max(15, Math.round(accuracyWeight + codingWeight + consistencyWeight)));
+    const cohortPercentile = Math.min(99, Math.max(25, Math.round(50 + (readinessScore - 50) * 0.85)));
+
+    const recruiterBenchmarks = [
+      {
+        company_name: 'TCS (NQT Ninja / Digital / Prime)',
+        cutoff_accuracy: 60,
+        min_coding_solved: 2,
+        tier: 'Service / Digital IT'
+      },
+      {
+        company_name: 'Infosys (SE / DSE / SP)',
+        cutoff_accuracy: 65,
+        min_coding_solved: 2,
+        tier: 'Service / Digital IT'
+      },
+      {
+        company_name: 'Accenture (ASE / Cloud Associate)',
+        cutoff_accuracy: 65,
+        min_coding_solved: 2,
+        tier: 'Consulting & IT'
+      },
+      {
+        company_name: 'Wipro (Elite NTH / Turbo)',
+        cutoff_accuracy: 60,
+        min_coding_solved: 2,
+        tier: 'IT Services'
+      },
+      {
+        company_name: 'Deloitte (Technology Analyst)',
+        cutoff_accuracy: 72,
+        min_coding_solved: 3,
+        tier: 'Consulting'
+      },
+      {
+        company_name: 'Amazon (SDE-1 Campus)',
+        cutoff_accuracy: 80,
+        min_coding_solved: 5,
+        tier: 'Product (Tier-1)'
+      },
+      {
+        company_name: 'Microsoft (Software Engineer)',
+        cutoff_accuracy: 82,
+        min_coding_solved: 5,
+        tier: 'Product (Tier-1)'
+      },
+      {
+        company_name: 'Google (Software Engineer L3)',
+        cutoff_accuracy: 85,
+        min_coding_solved: 6,
+        tier: 'Product (Tier-1)'
+      }
+    ];
+
+    const companyEligibility = recruiterBenchmarks.map(bm => {
+      const meetsAccuracy = overallAccuracy >= bm.cutoff_accuracy;
+      const meetsCoding = codingSolvedCount >= bm.min_coding_solved;
+      let status = 'NEEDS_PREPARATION';
+      let matchScore = 0;
+
+      if (meetsAccuracy && meetsCoding) {
+        status = 'ELIGIBLE';
+        matchScore = Math.min(98, 70 + (overallAccuracy - bm.cutoff_accuracy) + (codingSolvedCount - bm.min_coding_solved) * 5);
+      } else if (meetsAccuracy || meetsCoding || overallAccuracy >= (bm.cutoff_accuracy - 10)) {
+        status = 'BORDERLINE';
+        matchScore = Math.max(45, Math.min(69, 50 + (overallAccuracy - bm.cutoff_accuracy)));
+      } else {
+        status = 'NEEDS_PREPARATION';
+        matchScore = Math.max(20, Math.min(44, 30 + (overallAccuracy - bm.cutoff_accuracy)));
+      }
+
+      return {
+        company_name: bm.company_name,
+        tier: bm.tier,
+        cutoff_accuracy: bm.cutoff_accuracy,
+        min_coding_solved: bm.min_coding_solved,
+        current_accuracy: overallAccuracy,
+        current_coding_solved: codingSolvedCount,
+        status,
+        match_score: Math.round(matchScore)
+      };
+    });
+
     return res.json({
       success: true,
       analytics: {
@@ -243,6 +331,12 @@ router.get('/', authenticate, (req, res) => {
           avg_time_per_question: avgTimePerQuestion,
           current_streak: streak?.current_streak || 0,
           longest_streak: streak?.longest_streak || 0
+        },
+        placement_readiness: {
+          score: readinessScore,
+          percentile: cohortPercentile,
+          tier_fit: readinessScore >= 80 ? 'Tier-1 Product & Super Dream' : readinessScore >= 65 ? 'Premium IT & Consulting' : 'Mass IT & Services',
+          company_eligibility: companyEligibility
         },
         subject_accuracy: subjectAccuracy,
         topic_accuracy: topicAccuracy,

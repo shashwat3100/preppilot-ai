@@ -24,7 +24,14 @@ import {
   Layers,
   Code2,
   ArrowRight,
-  Terminal
+  Terminal,
+  Target,
+  Sparkles,
+  ShieldCheck,
+  Building2,
+  Percent,
+  Zap,
+  HelpCircle
 } from 'lucide-react';
 
 interface AnalyticsPageProps {
@@ -34,6 +41,7 @@ interface AnalyticsPageProps {
 export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding }) => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [filterEligibility, setFilterEligibility] = useState<'ALL' | 'ELIGIBLE' | 'BORDERLINE' | 'NEEDS_PREPARATION'>('ALL');
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
@@ -55,12 +63,16 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
-        <div className="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+          <span className="text-xs font-semibold text-[var(--text-secondary)]">Analyzing student performance telemetry...</span>
+        </div>
       </div>
     );
   }
 
   const summary = data?.summary;
+  const readiness = data?.placement_readiness;
   const isDark = resolvedTheme === 'dark';
   const gridStroke = isDark ? '#1E293B' : '#E2E8F0';
   const axisStroke = isDark ? '#94A3B8' : '#64748B';
@@ -68,21 +80,199 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
   const tooltipBorder = isDark ? '#1E293B' : '#CBD5E1';
   const tooltipText = isDark ? '#F8FAFC' : '#172033';
 
+  const filteredCompanyEligibility = readiness?.company_eligibility?.filter(c => {
+    if (filterEligibility === 'ALL') return true;
+    return c.status === filterEligibility;
+  }) || [];
+
   return (
-    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-150">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in">
       {/* Page Title */}
       <div className="space-y-1">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-            <BarChart3 size={20} />
+          <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <BarChart3 size={22} />
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[var(--text-primary)] tracking-tight">
-            Placement Performance & Analytics
-          </h1>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[var(--text-primary)] tracking-tight">
+              Placement Performance & Analytical Diagnostics
+            </h1>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
+              Real-time B.Tech readiness scoring, recruiter eligibility matrix, syllabus mastery, and LeetCode diagnostics.
+            </p>
+          </div>
         </div>
-        <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
-          In-depth diagnostics across syllabus subjects, accuracy progression, and question solving velocity.
-        </p>
+      </div>
+
+      {/* PLACEMENT READINESS HERO CARD */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[var(--surface-card)] via-[var(--surface-card)] to-indigo-950/20 border border-[var(--surface-border)] shadow-xl relative overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          <div className="md:col-span-8 space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1.5">
+                <Sparkles size={13} />
+                Campus Placement Index
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                {readiness?.tier_fit || 'Premium IT & Consulting'}
+              </span>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
+              Placement Readiness: <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">{readiness?.score || 75}%</span>
+            </h2>
+
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+              Based on your quiz accuracy ({summary?.overall_accuracy || 0}%), coding problem clearance ({data?.coding?.problems_solved || 0} solved), and question velocity ({summary?.avg_time_per_question || 45}s/item), you rank in the top <strong className="text-[var(--text-primary)]">{100 - (readiness?.percentile || 85)}%</strong> of the campus cohort.
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)]">
+                <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Percentile</span>
+                <span className="text-base font-extrabold text-cyan-400">{readiness?.percentile || 85}th</span>
+              </div>
+              <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)]">
+                <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Accuracy</span>
+                <span className="text-base font-extrabold text-emerald-400">{summary?.overall_accuracy || 0}%</span>
+              </div>
+              <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)]">
+                <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Coding Solved</span>
+                <span className="text-base font-extrabold text-purple-400">{data?.coding?.problems_solved || 0} Problems</span>
+              </div>
+              <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)]">
+                <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase block">Active Streak</span>
+                <span className="text-base font-extrabold text-amber-400">{summary?.current_streak || 0} Days</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="md:col-span-4 flex flex-col items-center justify-center p-6 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-2 text-center">
+            <div className="relative w-28 h-28 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path
+                  className="text-slate-800"
+                  strokeWidth="3.8"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path
+                  className="text-indigo-500"
+                  strokeDasharray={`${readiness?.score || 75}, 100`}
+                  strokeWidth="3.8"
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+              </svg>
+              <div className="absolute flex flex-col items-center justify-center">
+                <span className="text-2xl font-black text-[var(--text-primary)]">{readiness?.score || 75}%</span>
+                <span className="text-[9px] uppercase font-bold text-[var(--text-muted)]">Readiness</span>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-[var(--text-primary)]">
+              {readiness && readiness.score >= 80 ? 'Exceptional Placement Form' : 'Strong Progress'}
+            </span>
+            <span className="text-[11px] text-[var(--text-secondary)]">
+              Cleared for {readiness?.company_eligibility?.filter(c => c.status === 'ELIGIBLE').length || 4} recruiter cutoffs
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* RECRUITER ELIGIBILITY & BENCHMARK MATRIX */}
+      <div className="p-6 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+              <Building2 size={18} className="text-indigo-400" />
+              <span>Target Company Eligibility Matrix</span>
+            </h3>
+            <p className="text-xs text-[var(--text-secondary)]">
+              Automated cut-off benchmarking based on your MCQ accuracy and coding solutions count.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-1.5 overflow-x-auto">
+            {(['ALL', 'ELIGIBLE', 'BORDERLINE', 'NEEDS_PREPARATION'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setFilterEligibility(tab)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  filterEligibility === tab
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'bg-[var(--surface-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--surface-border)]'
+                }`}
+              >
+                {tab === 'ALL' ? 'All (8)' : tab === 'ELIGIBLE' ? 'Eligible' : tab === 'BORDERLINE' ? 'Borderline' : 'Needs Prep'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {filteredCompanyEligibility.map((c, idx) => {
+            const isEligible = c.status === 'ELIGIBLE';
+            const isBorderline = c.status === 'BORDERLINE';
+            return (
+              <div
+                key={idx}
+                className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
+                  isEligible
+                    ? 'bg-[var(--surface-elevated)] border-emerald-500/30 hover:border-emerald-500/50'
+                    : isBorderline
+                    ? 'bg-[var(--surface-elevated)] border-amber-500/30 hover:border-amber-500/50'
+                    : 'bg-[var(--surface-elevated)] border-[var(--surface-border)]'
+                }`}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="text-xs font-bold text-[var(--text-primary)] leading-tight">
+                      {c.company_name}
+                    </h4>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${
+                      isEligible ? 'bg-emerald-500/20 text-emerald-400' :
+                      isBorderline ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400'
+                    }`}>
+                      {isEligible ? 'Eligible' : isBorderline ? 'Borderline' : 'Prep Needed'}
+                    </span>
+                  </div>
+
+                  <span className="text-[10px] text-[var(--text-muted)] font-medium block">
+                    {c.tier}
+                  </span>
+
+                  <div className="space-y-1.5 pt-2 border-t border-[var(--surface-border)] text-[11px]">
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">Required Accuracy:</span>
+                      <span className="font-bold text-[var(--text-primary)]">{c.cutoff_accuracy}% (You: {c.current_accuracy}%)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">Min Coding Solved:</span>
+                      <span className="font-bold text-[var(--text-primary)]">{c.min_coding_solved} (You: {c.current_coding_solved})</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1 pt-2">
+                  <div className="flex justify-between text-[10px] font-semibold">
+                    <span className="text-[var(--text-muted)]">Profile Match Fit</span>
+                    <span className="text-indigo-400">{c.match_score}%</span>
+                  </div>
+                  <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${
+                        isEligible ? 'bg-emerald-500' : isBorderline ? 'bg-amber-500' : 'bg-rose-500'
+                      }`}
+                      style={{ width: `${c.match_score}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Summary KPI Cards */}
@@ -100,16 +290,16 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
 
         <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm">
           <div className="flex items-center justify-between text-[var(--text-secondary)] mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider">Velocity / Speed</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Solving Velocity</span>
             <Clock size={16} className="text-cyan-500" />
           </div>
           <span className="text-2xl sm:text-3xl font-extrabold text-cyan-500">{summary?.avg_time_per_question || 45}s</span>
-          <span className="text-xs text-[var(--text-muted)] block mt-1">Average per question</span>
+          <span className="text-xs text-[var(--text-muted)] block mt-1">Target benchmark: 45s/item</span>
         </div>
 
         <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm">
           <div className="flex items-center justify-between text-[var(--text-secondary)] mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider">Questions Solved</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Total Questions</span>
             <Layers size={16} className="text-indigo-400" />
           </div>
           <span className="text-2xl sm:text-3xl font-extrabold text-indigo-400">{summary?.total_attempted || 0}</span>
@@ -120,7 +310,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
 
         <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm">
           <div className="flex items-center justify-between text-[var(--text-secondary)] mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider">Active Streak</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Daily Study Streak</span>
             <Flame size={16} className="text-amber-500" />
           </div>
           <span className="text-2xl sm:text-3xl font-extrabold text-amber-500">{summary?.current_streak || 0}d</span>
@@ -216,9 +406,9 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
 
         {/* Company Readiness Progression */}
         <div className="p-5 sm:p-6 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm space-y-4">
-          <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">Company Target Preparedness</h3>
+          <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">Company Pattern Practice Volume</h3>
           <div className="space-y-3">
-            {data?.company_accuracy.map((c, i) => (
+            {data?.company_accuracy.slice(0, 5).map((c, i) => (
               <div key={i} className="space-y-1">
                 <div className="flex justify-between text-xs">
                   <span className="font-semibold text-[var(--text-secondary)]">{c.name}</span>
@@ -241,7 +431,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
         <div className="p-5 sm:p-6 rounded-2xl bg-[var(--surface-card)] border border-amber-500/20 shadow-sm space-y-4">
           <div className="flex items-center gap-2">
             <AlertTriangle size={18} className="text-amber-500" />
-            <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">Priority Revision Topics</h3>
+            <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">Priority Remediation Areas</h3>
           </div>
           <div className="space-y-2">
             {data?.weakest_topics.map((t, i) => (
@@ -261,7 +451,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
         <div className="p-5 sm:p-6 rounded-2xl bg-[var(--surface-card)] border border-emerald-500/20 shadow-sm space-y-4">
           <div className="flex items-center gap-2">
             <Award size={18} className="text-emerald-500" />
-            <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">Strongest Placement Concepts</h3>
+            <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">Verified Strongest Concepts</h3>
           </div>
           <div className="space-y-2">
             {data?.strongest_topics.map((t, i) => (
@@ -292,7 +482,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                   Coding Arena & Technical Interview Diagnostics
                 </h2>
                 <p className="text-xs text-[var(--text-muted)]">
-                  LeetCode-style submission metrics, language adoption, and algorithmic revision cues.
+                  LeetCode-style submission metrics, language breakdown, and algorithmic revision cues.
                 </p>
               </div>
             </div>
@@ -435,7 +625,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
               ) : (
                 <div className="p-6 text-center rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-xs text-[var(--text-muted)]">
                   <CheckCircle2 size={24} className="mx-auto mb-2 text-emerald-400" />
-                  No problematic coding patterns identified. All attempted problems are passing cleanly!
+                  All attempted problems are passing cleanly! Keep up the momentum.
                 </div>
               )}
             </div>

@@ -1,8 +1,15 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { initDb } from './database/db.js';
 import { seedDatabase } from './database/seed.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDist = path.join(__dirname, '../../client/dist');
 
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
@@ -20,19 +27,29 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Explicit CORS Origin Allowlist
+// Explicit CORS Origin Allowlist with Live Server support
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:5173',
   'http://127.0.0.1:5173',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500',
+  'http://localhost:5501',
+  'http://127.0.0.1:5501',
   'http://localhost:5000',
   'http://127.0.0.1:5000'
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow non-browser requests or allowed origins
-    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+    // Allow non-browser requests, listed origins, or any localhost/127.0.0.1 port (e.g. VS Code Live Server)
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      allowedOrigins.includes('*') ||
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:')
+    ) {
       return callback(null, true);
     }
     return callback(new Error(`CORS policy: Access denied for origin ${origin}`));
@@ -75,6 +92,15 @@ app.use('/api/preppilot', preppilotRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/coding', codingRoutes);
 
+// Serve static frontend build if present (for Go Live, production, or unified port 5000 access)
+if (fs.existsSync(clientDist)) {
+  app.use(express.static(clientDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
+
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error('[CareerPrep Server Error]:', err.message || err);
@@ -88,18 +114,23 @@ app.use((err, req, res, next) => {
 });
 
 // Bootstrap server
-const startServer = async () => {
+export const startServer = async (port = PORT) => {
   try {
     await initDb();
     await seedDatabase(false); // seed if empty
 
-    app.listen(PORT, () => {
-      console.log(`==================================================================`);
-      console.log(`🚀 PrepPilot AI Server running on http://localhost:${PORT}`);
-      console.log(`🎙️ PrepPilot Voice Assistant RAG Engine initialized`);
-      console.log(`💻 Coding Arena & Compiler Sandboxing active`);
-      console.log(`📊 Adaptive Analytics & Recommendation Engine online`);
-      console.log(`==================================================================`);
+    return new Promise((resolve) => {
+      const server = app.listen(port, () => {
+        if (!process.env.TEST_MODE) {
+          console.log(`==================================================================`);
+          console.log(`🚀 PrepPilot AI Server running on http://localhost:${port}`);
+          console.log(`🎙️ PrepPilot Voice Assistant RAG Engine initialized`);
+          console.log(`💻 Coding Arena & Compiler Sandboxing active`);
+          console.log(`📊 Adaptive Analytics & Recommendation Engine online`);
+          console.log(`==================================================================`);
+        }
+        resolve(server);
+      });
     });
   } catch (err) {
     console.error('Failed to start server:', err);
@@ -107,4 +138,13 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// Start automatically only when run directly and not in test mode
+const isDirectRun = !process.env.TEST_MODE && process.argv[1] && (
+  process.argv[1].endsWith('index.js') || process.argv[1].includes('src')
+);
+
+if (isDirectRun) {
+  startServer();
+}
+
+export default app;

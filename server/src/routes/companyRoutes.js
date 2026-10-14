@@ -9,9 +9,13 @@ router.get('/', (req, res) => {
   const companies = db.getAll('companies');
   const allQuestions = db.getAll('questions');
   const allSubjects = db.getAll('subjects');
+  const allCodingProblems = db.getAll('codingProblems') || [];
 
   const enriched = companies.map(c => {
     const compQuestions = allQuestions.filter(q => q.company_id === c.id);
+    const compCoding = allCodingProblems.filter(p => 
+      p.company_id === c.id || (p.tags && p.tags.some(t => t.toLowerCase().includes(c.name.toLowerCase())))
+    );
     const subjectIds = new Set(compQuestions.map(q => q.subject_id));
     const availableSubjects = allSubjects
       .filter(s => subjectIds.has(s.id))
@@ -20,6 +24,7 @@ router.get('/', (req, res) => {
     return {
       ...c,
       question_count: compQuestions.length,
+      coding_problem_count: compCoding.length,
       available_subjects: availableSubjects.length > 0 ? availableSubjects : ['Core DSA', 'DBMS', 'OOP', 'Aptitude'],
       difficulty_level: c.tier.includes('FAANG') ? 'Advanced' : 'Moderate to High'
     };
@@ -56,13 +61,21 @@ router.get('/:id', (req, res) => {
     };
   });
 
+  const allCodingProblems = db.getAll('codingProblems') || [];
+  const compCodingProblems = allCodingProblems.filter(p => 
+    p.company_id === company.id || 
+    (p.tags && p.tags.some(t => t.toLowerCase().includes(company.name.toLowerCase())))
+  );
+
   return res.json({
     success: true,
     company: {
       ...company,
       questions: questionsWithDetails,
+      coding_problems: compCodingProblems,
       relevant_subjects: relevantSubjects,
-      total_pattern_questions: compQuestions.length
+      total_pattern_questions: compQuestions.length,
+      total_coding_problems: compCodingProblems.length
     }
   });
 });

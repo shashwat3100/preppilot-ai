@@ -97,6 +97,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('careerprep_token');
     setToken(null);
     setUser(null);
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#/login';
+    }
   };
 
   const isAdmin = user?.role === 'ADMIN';

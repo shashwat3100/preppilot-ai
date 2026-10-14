@@ -52,25 +52,51 @@ const MainApp: React.FC = () => {
   // Synchronize hash with back/forward history navigation
   React.useEffect(() => {
     const handleHashChange = () => {
-      const target = getTabFromHash();
+      let target = getTabFromHash();
+      if (user?.role === 'STUDENT' && target === 'admin') {
+        target = 'dashboard';
+        window.location.hash = '#/dashboard';
+      } else if (user?.role === 'ADMIN' && (target === 'dashboard' || target === 'login' || target === 'register')) {
+        target = 'admin';
+        window.location.hash = '#/admin';
+      }
       setCurrentTab(target);
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [user]);
 
   const handleSelectTab = (tab: string) => {
+    // Role-based security routing:
+    // If student attempts to access admin, strictly force to dashboard
+    if (user?.role === 'STUDENT' && tab === 'admin') {
+      tab = 'dashboard';
+    }
+    // If admin is at student dashboard, default to admin panel
+    if (user?.role === 'ADMIN' && tab === 'dashboard') {
+      tab = 'admin';
+    }
     setCurrentTab(tab);
     if (tab !== 'quiz_active') {
       window.location.hash = `#/${tab}`;
     }
   };
 
+  // Strict role-based landing and route protection
   React.useEffect(() => {
-    if (user && user.role === 'ADMIN' && currentTab === 'dashboard') {
-      handleSelectTab('admin');
+    if (!user) return;
+    if (user.role === 'ADMIN') {
+      // Admin accounts MUST open admin panel on login or if on student dashboard
+      if (currentTab === 'dashboard' || currentTab === 'login' || currentTab === 'register') {
+        handleSelectTab('admin');
+      }
+    } else if (user.role === 'STUDENT') {
+      // Student accounts MUST open student dashboard on login and NEVER access admin panel
+      if (currentTab === 'admin' || currentTab === 'login' || currentTab === 'register') {
+        handleSelectTab('dashboard');
+      }
     }
-  }, [user]);
+  }, [user, currentTab]);
 
   if (loading) {
     return (
@@ -196,12 +222,15 @@ const MainApp: React.FC = () => {
       ) : currentTab === 'assessment' ? (
         <AssessmentPage onReturnToDashboard={() => handleSelectTab('dashboard')} />
       ) : currentTab === 'companies' ? (
-        <CompanyPrepPage onStartCompanyQuiz={handleLaunchCompanyQuiz} />
+        <CompanyPrepPage 
+          onStartCompanyQuiz={handleLaunchCompanyQuiz} 
+          onNavigateToCoding={() => handleSelectTab('coding-practice')}
+        />
       ) : currentTab === 'analytics' ? (
         <AnalyticsPage onNavigateToCoding={() => handleSelectTab('coding-practice')} />
       ) : currentTab === 'preppilot-studio' ? (
         <PrepPilotPage />
-      ) : currentTab === 'admin' ? (
+      ) : currentTab === 'admin' && user?.role === 'ADMIN' ? (
         <AdminDashboardPage />
       ) : currentTab === 'profile' ? (
         <ProfilePage />
@@ -216,6 +245,7 @@ const MainApp: React.FC = () => {
           onStartAssessment={() => handleSelectTab('assessment')}
           onExploreCompanies={() => handleSelectTab('companies')}
           onViewAnalytics={() => handleSelectTab('analytics')}
+          onNavigateToCoding={() => handleSelectTab('coding-practice')}
         />
       )}
 

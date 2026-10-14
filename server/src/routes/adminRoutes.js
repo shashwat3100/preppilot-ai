@@ -788,4 +788,85 @@ router.delete('/faculty/:id', (req, res) => {
   return res.json({ success: true, message: `Administrative Dean privileges for ${user.name} have been revoked.` });
 });
 
+// Issue cryptographically secure administrator invitation token
+router.post('/faculty/invite', (req, res) => {
+  try {
+    const { email, designation, department, expiresInHours = 48 } = req.body;
+    const token = `inv-${crypto.randomBytes(16).toString('hex')}`;
+    const cleanEmail = email ? email.trim().toLowerCase() : null;
+
+    const invitation = {
+      id: `inv-${crypto.randomUUID()}`,
+      token,
+      email: cleanEmail,
+      designation: designation ? designation.trim() : 'Placement Faculty Coordinator',
+      department: department ? department.trim() : 'Training & Placement Cell',
+      created_by: req.user.id,
+      is_used: false,
+      expires_at: new Date(Date.now() + Number(expiresInHours) * 3600 * 1000).toISOString(),
+      created_at: new Date().toISOString()
+    };
+
+    db.insert('adminInvitations', invitation);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Secure administrator invitation token generated successfully.',
+      invitation: {
+        token,
+        email: invitation.email,
+        expires_at: invitation.expires_at,
+        designation: invitation.designation,
+        department: invitation.department
+      }
+    });
+  } catch (err) {
+    console.error('[Admin Invite Error]:', err);
+    return res.status(500).json({ success: false, message: 'Server error generating invitation token.' });
+  }
+});
+
+// List all faculty access applications
+router.get('/faculty/applications', (req, res) => {
+  const applications = db.getAll('facultyApplications');
+  applications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  return res.json({ success: true, applications });
+});
+
+// Approve a faculty access application
+router.post('/faculty/applications/:id/approve', (req, res) => {
+  const app = db.get('facultyApplications', req.params.id);
+  if (!app) {
+    return res.status(404).json({ success: false, message: 'Application not found.' });
+  }
+
+  // Generate an invitation token for the applicant
+  const token = `inv-${crypto.randomBytes(16).toString('hex')}`;
+  const invitation = {
+    id: `inv-${crypto.randomUUID()}`,
+    token,
+    email: app.email,
+    designation: app.designation,
+    department: app.department,
+    created_by: req.user.id,
+    is_used: false,
+    expires_at: new Date(Date.now() + 72 * 3600 * 1000).toISOString(),
+    created_at: new Date().toISOString()
+  };
+
+  db.insert('adminInvitations', invitation);
+  db.update('facultyApplications', app.id, {
+    status: 'APPROVED',
+    invitation_token: token,
+    approved_by: req.user.id,
+    approved_at: new Date().toISOString()
+  });
+
+  return res.json({
+    success: true,
+    message: `Application for ${app.name} approved. Invitation token issued.`,
+    invitation_token: token
+  });
+});
+
 export default router;

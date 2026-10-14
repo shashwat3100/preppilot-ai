@@ -32,7 +32,9 @@ let store = {
   codingLanguages: [],
   codingBookmarks: [],
   codingAssessments: [],
-  codingAssessmentAttempts: []
+  codingAssessmentAttempts: [],
+  adminInvitations: [],
+  facultyApplications: []
 };
 
 // Load existing data if available

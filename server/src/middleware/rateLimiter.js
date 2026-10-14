@@ -3,7 +3,7 @@ export function createRateLimiter({ windowMs = 60 * 1000, maxRequests = 60, mess
   const requests = new Map();
 
   // Periodically clean up old IP records to prevent memory leak
-  setInterval(() => {
+  const cleanupInterval = setInterval(() => {
     const now = Date.now();
     for (const [key, timestamps] of requests.entries()) {
       const validTimestamps = timestamps.filter(ts => now - ts < windowMs);
@@ -14,6 +14,7 @@ export function createRateLimiter({ windowMs = 60 * 1000, maxRequests = 60, mess
       }
     }
   }, windowMs * 2);
+  if (cleanupInterval.unref) cleanupInterval.unref();
 
   return (req, res, next) => {
     const rawIp = req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';

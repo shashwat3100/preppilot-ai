@@ -64,21 +64,31 @@ export const EXECUTION_LIMITS = {
   maxInputLength: 32 * 1024,     // 32 KB
   timeoutMs: 5000,               // 5 seconds wall-clock
   compileTimeoutMs: 10000,       // 10 seconds compilation limit
-  maxOutputBytes: 1024 * 1024,   // 1 MB output limit
-  maxConcurrentJobs: 3           // concurrency limit for local runner
+  maxOutputBytes: 512 * 1024,    // 512 KB output limit per channel
+  maxConcurrentJobs: 3,          // concurrency limit for local runner
+  maxQueueSize: 10               // maximum pending requests in runner queue
 };
 
-// Concurrency queue for local runner
+// Concurrency queue with backpressure for local runner
 let activeLocalJobs = 0;
 const localJobQueue = [];
 
 function acquireLocalSlot() {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     if (activeLocalJobs < EXECUTION_LIMITS.maxConcurrentJobs) {
       activeLocalJobs++;
       resolve();
+    } else if (localJobQueue.length >= EXECUTION_LIMITS.maxQueueSize) {
+      reject(new Error('Execution queue capacity reached. Please retry in a few moments.'));
     } else {
-      localJobQueue.push(resolve);
+      const queueTimeoutHandle = setTimeout(() => {
+        const idx = localJobQueue.findIndex(item => item.resolve === resolve);
+        if (idx !== -1) {
+          localJobQueue.splice(idx, 1);
+          reject(new Error('Execution request timed out waiting for an available runner slot.'));
+        }
+      }, 10000); // 10s wait in queue
+      localJobQueue.push({ resolve, timeoutHandle: queueTimeoutHandle });
     }
   });
 }
@@ -87,8 +97,9 @@ function releaseLocalSlot() {
   activeLocalJobs--;
   if (localJobQueue.length > 0) {
     const next = localJobQueue.shift();
+    clearTimeout(next.timeoutHandle);
     activeLocalJobs++;
-    next();
+    next.resolve();
   }
 }
 
@@ -116,7 +127,7 @@ function cleanupRunDir(runDir) {
 }
 
 // --------------------------------------------------------------------
-// Judge0 Sandboxed Execution (if configured in environment)
+// Judge0 Sandboxed Execution (External Trusted Provider)
 // --------------------------------------------------------------------
 async function runWithJudge0(code, language, input = '') {
   const apiUrl = process.env.JUDGE0_API_URL.replace(/\/$/, '');
@@ -151,27 +162,38 @@ async function runWithJudge0(code, language, input = '') {
   });
 
   if (!response.ok) {
-    throw new Error(`Judge0 API error: HTTP ${response.status}`);
+    const errText = await response.text().catch(() => '');
+    const isInfra = response.status >= 500 || response.status === 404 || response.status === 429;
+    const err = new Error(`Judge0 API error (HTTP ${response.status}): ${errText.slice(0, 200)}`);
+    err.isInfrastructureError = isInfra;
+    throw err;
   }
 
   const result = await response.json();
   const stdout = (result.stdout || '').trim();
   const stderr = (result.stderr || result.compile_output || '').trim();
   const statusId = result.status?.id;
+  const statusDesc = result.status?.description || '';
 
-  // Status IDs: 3 = Accepted, 4 = Wrong Answer, 5 = Time Limit Exceeded, 6 = Compilation Error, 7-12 = Runtime Errors
+  // Status IDs:
+  // 3 = Accepted, 4 = Wrong Answer, 5 = Time Limit Exceeded, 6 = Compilation Error
+  // 7-12 = Runtime Errors (SIGSEGV, NZEC, etc.)
+  // 13 = Internal Error, 14 = Exec Format Error
+  const isAccepted = statusId === 3;
   const isTLE = statusId === 5;
   const isCompileError = statusId === 6;
   const isRuntimeError = statusId >= 7 && statusId <= 12;
-  const isSuccess = statusId === 3 || statusId === 4;
+  const isInfraError = statusId === 13 || statusId === 14;
 
   return {
-    success: isSuccess && !stderr,
+    success: isAccepted && !stderr,
     output: stdout,
     error: stderr,
+    verdict: statusDesc || (isAccepted ? 'Accepted' : 'Failed'),
     timedOut: isTLE,
     compileError: isCompileError,
     runtimeError: isRuntimeError,
+    isInfrastructureError: isInfraError,
     executionTimeMs: result.time ? Math.round(Number(result.time) * 1000) : 0,
     memoryKb: result.memory || null,
     isSandboxed: true,
@@ -218,21 +240,41 @@ async function compileCode(filePath, config, language) {
       exePath = path.join(runDir, 'Main');
     }
 
-    const proc = spawn(command, args, { cwd: runDir, timeout: EXECUTION_LIMITS.compileTimeoutMs });
+    const proc = spawn(command, args, { cwd: runDir });
 
     let stderr = '';
-    proc.stderr.on('data', (data) => { stderr += data.toString(); });
+    let timedOut = false;
+    let outputExceeded = false;
+
+    const timeoutHandle = setTimeout(() => {
+      timedOut = true;
+      killProcessTree(proc.pid);
+    }, EXECUTION_LIMITS.compileTimeoutMs);
+
+    proc.stderr.on('data', (data) => {
+      stderr += data.toString();
+      if (stderr.length > EXECUTION_LIMITS.maxOutputBytes) {
+        outputExceeded = true;
+        killProcessTree(proc.pid);
+      }
+    });
 
     proc.on('close', (code) => {
-      if (code === 0) {
+      clearTimeout(timeoutHandle);
+      if (timedOut) {
+        resolve({ success: false, error: 'Compilation timed out (limit: 10s)', compileError: true, timedOut: true });
+      } else if (outputExceeded) {
+        resolve({ success: false, error: 'Compiler diagnostic output limit exceeded (512 KB)', compileError: true });
+      } else if (code === 0) {
         resolve({ success: true, exePath });
       } else {
-        resolve({ success: false, error: stderr || `Compilation failed with exit code ${code}` });
+        resolve({ success: false, error: stderr.slice(0, 4000) || `Compilation failed with exit code ${code}`, compileError: true });
       }
     });
 
     proc.on('error', (err) => {
-      resolve({ success: false, error: `Compiler not found: ${command}. ${err.message}` });
+      clearTimeout(timeoutHandle);
+      resolve({ success: false, error: `Compiler unavailable or not found: ${command}. (${err.message})`, isInfrastructureError: true });
     });
   });
 }
@@ -254,9 +296,7 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
     }
 
     const proc = spawn(command, args, {
-      cwd: runDir,
-      timeout: EXECUTION_LIMITS.timeoutMs,
-      maxBuffer: EXECUTION_LIMITS.maxOutputBytes
+      cwd: runDir
     });
 
     let stdout = '';
@@ -290,6 +330,10 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
 
     proc.stderr.on('data', (data) => {
       stderr += data.toString();
+      if (stderr.length > EXECUTION_LIMITS.maxOutputBytes) {
+        outputExceeded = true;
+        killProcessTree(proc.pid);
+      }
     });
 
     proc.on('close', (code) => {
@@ -299,12 +343,12 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
         resolve({
           success: false,
           output: stdout.slice(0, 1000) + '\n... [Output Truncated]',
-          error: 'Output Limit Exceeded (1 MB max output exceeded)',
+          error: 'Output Limit Exceeded (512 KB max output exceeded)',
           outputLimitExceeded: true,
           executionTimeMs,
           memoryKb: null,
           isSandboxed: false,
-          engine: 'LOCAL_DEVELOPMENT_RUNNER'
+          engine: 'LOCAL_DEVELOPMENT_RUNNER (NO_OS_ISOLATION)'
         });
       } else if (timedOut) {
         resolve({
@@ -315,17 +359,18 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
           executionTimeMs,
           memoryKb: null,
           isSandboxed: false,
-          engine: 'LOCAL_DEVELOPMENT_RUNNER'
+          engine: 'LOCAL_DEVELOPMENT_RUNNER (NO_OS_ISOLATION)'
         });
       } else if (code !== 0 && stderr) {
         resolve({
           success: false,
           output: stdout.trim(),
           error: stderr.trim(),
+          runtimeError: true,
           executionTimeMs,
           memoryKb: null,
           isSandboxed: false,
-          engine: 'LOCAL_DEVELOPMENT_RUNNER'
+          engine: 'LOCAL_DEVELOPMENT_RUNNER (NO_OS_ISOLATION)'
         });
       } else {
         resolve({
@@ -335,7 +380,7 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
           executionTimeMs,
           memoryKb: null,
           isSandboxed: false,
-          engine: 'LOCAL_DEVELOPMENT_RUNNER'
+          engine: 'LOCAL_DEVELOPMENT_RUNNER (NO_OS_ISOLATION)'
         });
       }
     });
@@ -350,7 +395,8 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
         executionTimeMs,
         memoryKb: null,
         isSandboxed: false,
-        engine: 'LOCAL_DEVELOPMENT_RUNNER'
+        isInfrastructureError: true,
+        engine: 'LOCAL_DEVELOPMENT_RUNNER (NO_OS_ISOLATION)'
       });
     });
   });
@@ -375,16 +421,18 @@ export async function runCode(code, language, input = '') {
   }
 
   // 1. Production Security Boundary Check:
-  // In production, NEVER execute untrusted code locally on the application host.
+  // In production, untrusted execution is BLOCKED unless a trusted external sandbox provider is configured.
+  // Never silently fall back to host execution in production.
   const isProduction = process.env.NODE_ENV === 'production';
   if (isProduction) {
     if (!process.env.JUDGE0_API_URL) {
       return {
         success: false,
         output: '',
-        error: 'Execution service configuration error: Production requires a sandboxed execution runner (JUDGE0_API_URL). Local execution fallback is disabled.',
+        error: 'Execution service blocked: Production environment strictly requires a trusted sandboxed execution provider (JUDGE0_API_URL). Local host execution fallback is disabled.',
         executionTimeMs: 0,
-        isSandboxed: true,
+        isSandboxed: false,
+        isInfrastructureError: true,
         engine: 'SANDBOX_CONFIG_REQUIRED'
       };
     }
@@ -395,15 +443,16 @@ export async function runCode(code, language, input = '') {
       return {
         success: false,
         output: '',
-        error: `Sandboxed execution provider temporarily unavailable: ${err.message}. Local execution fallback is disabled in production for security.`,
+        error: `Sandboxed execution provider temporarily unavailable: ${err.message}. Local host execution fallback is prohibited in production.`,
         executionTimeMs: 0,
         isSandboxed: true,
+        isInfrastructureError: true,
         engine: 'JUDGE0_SANDBOX_OUTAGE'
       };
     }
   }
 
-  // 2. In development, try Judge0 first if configured; otherwise use safe local runner
+  // 2. In development, try Judge0 first if configured; otherwise use local runner
   if (process.env.JUDGE0_API_URL) {
     try {
       return await runWithJudge0(code, language, input);
@@ -412,8 +461,21 @@ export async function runCode(code, language, input = '') {
     }
   }
 
-  // 3. Local isolated development runner with concurrency control
-  await acquireLocalSlot();
+  // 3. Local Development Runner (clearly labeled as unisolated development fallback)
+  try {
+    await acquireLocalSlot();
+  } catch (queueErr) {
+    return {
+      success: false,
+      output: '',
+      error: queueErr.message,
+      executionTimeMs: 0,
+      isSandboxed: false,
+      isInfrastructureError: true,
+      engine: 'LOCAL_DEVELOPMENT_RUNNER (QUEUE_FULL)'
+    };
+  }
+
   let runDir = null;
   try {
     const fileInfo = writeCodeFile(code, language);
@@ -429,7 +491,7 @@ export async function runCode(code, language, input = '') {
         compileError: true,
         executionTimeMs: 0,
         isSandboxed: false,
-        engine: 'LOCAL_DEVELOPMENT_RUNNER'
+        engine: 'LOCAL_DEVELOPMENT_RUNNER (NO_OS_ISOLATION)'
       };
     }
 
@@ -444,7 +506,7 @@ export async function runCode(code, language, input = '') {
       error: `Internal runner error: ${err.message}`,
       executionTimeMs: 0,
       isSandboxed: false,
-      engine: 'LOCAL_DEVELOPMENT_RUNNER'
+      engine: 'LOCAL_DEVELOPMENT_RUNNER (NO_OS_ISOLATION)'
     };
   } finally {
     releaseLocalSlot();
@@ -470,6 +532,7 @@ export async function runTestCases(code, language, testCases) {
       error: result.error,
       timedOut: result.timedOut,
       compileError: result.compileError,
+      isInfrastructureError: Boolean(result.isInfrastructureError),
       executionTimeMs: result.executionTimeMs || 0,
       memoryKb: result.memoryKb || null,
       isHidden: tc.isHidden
@@ -480,9 +543,11 @@ export async function runTestCases(code, language, testCases) {
   }
 
   const allPassed = results.length === testCases.length && results.every(r => r.passed);
+  const hasInfrastructureError = results.some(r => r.isInfrastructureError);
   return {
     results,
     allPassed,
+    hasInfrastructureError,
     passedCount: results.filter(r => r.passed).length,
     totalCount: testCases.length,
     totalExecutionTimeMs

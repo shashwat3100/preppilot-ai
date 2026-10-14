@@ -40,7 +40,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
   const [deanName, setDeanName] = useState('');
   const [deanEmail, setDeanEmail] = useState('');
   const [deanPassword, setDeanPassword] = useState('');
-  const [deanPasscode, setDeanPasscode] = useState('DEAN2026');
+  const [deanPasscode, setDeanPasscode] = useState('');
   const [deanDepartment, setDeanDepartment] = useState('Training & Placement Cell');
   const [deanDesignation, setDeanDesignation] = useState('Associate Placement Dean');
   const [deanRegisterError, setDeanRegisterError] = useState('');
@@ -134,10 +134,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
     setForgotLoading(true);
 
     try {
-      const res = await api.forgotPassword(forgotEmail);
+      const res = await api.forgotPassword(forgotEmail.trim());
       if (res.success) {
-        setGeneratedPin(res.verification_pin);
-        setInputPin(res.verification_pin); // Prefill for developer/user convenience
         setForgotStep(2);
       } else {
         setForgotError(res.message || 'Failed to verify email address.');
@@ -491,15 +489,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                 />
               </div>
 
-              {/* Security Passcode */}
+              {/* Authorization Token */}
               <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/30 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
                     <Key size={13} />
-                    <span>Institutional Security Passcode</span>
+                    <span>Administrator Authorization Invitation Token</span>
                   </label>
                   <span className="text-[10px] text-amber-400 font-mono font-bold bg-amber-500/20 px-2 py-0.5 rounded">
-                    Key: DEAN2026
+                    Token Required
                   </span>
                 </div>
                 <input
@@ -507,11 +505,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                   required
                   value={deanPasscode}
                   onChange={(e) => setDeanPasscode(e.target.value)}
-                  placeholder="Enter Campus Passcode (e.g. DEAN2026)"
+                  placeholder="Enter Invitation Token (e.g. inv-...)"
                   className="w-full p-2.5 bg-slate-950 border border-amber-500/40 rounded-xl text-xs font-mono text-amber-300 outline-none"
                 />
                 <p className="text-[10px] text-slate-400">
-                  Required to prevent unauthorized Dean registrations. Use default passcode <strong className="text-amber-300">DEAN2026</strong>.
+                  Required to prevent unauthorized Dean registrations. Contact your Campus Placement Administrator for an authorized invitation token.
                 </p>
               </div>
 
@@ -612,9 +610,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/30 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Generated Verification PIN:</span>
-                    <span className="text-base font-mono font-extrabold text-cyan-300 tracking-wider">
-                      {generatedPin}
+                    <span className="text-[11px] font-bold text-cyan-300 block">Verification Code Dispatched</span>
+                    <span className="text-[10px] text-slate-400 block">
+                      Enter the 6-digit PIN issued for {forgotEmail}
                     </span>
                   </div>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold">
@@ -635,7 +633,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">New Password (Min 6 chars)</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">New Password (Min 8 characters, letters & numbers)</label>
                   <input
                     type="password"
                     required
