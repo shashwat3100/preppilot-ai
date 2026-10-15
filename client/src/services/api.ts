@@ -50,6 +50,20 @@ const safeJson = async (res: Response) => {
   }
 };
 
+const safeFetch = async (url: string, options?: RequestInit): Promise<any> => {
+  try {
+    const res = await fetch(url, options);
+    return await safeJson(res);
+  } catch (err: any) {
+    console.warn(`[API Network Disconnect] ${options?.method || 'GET'} ${url} unreachable:`, err?.message);
+    return {
+      success: false,
+      isNetworkError: true,
+      message: 'Backend server on port 5000 is not reachable. Live Server static mode is active.'
+    };
+  }
+};
+
 const getAuthHeaders = (): HeadersInit => {
   const token = localStorage.getItem('careerprep_token');
   return {
@@ -61,28 +75,25 @@ const getAuthHeaders = (): HeadersInit => {
 export const api = {
   // Auth
   register: async (userData: any) => {
-    const res = await fetch(`${API_BASE}/auth/register`, {
+    return safeFetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData)
     });
-    return safeJson(res);
   },
 
   login: async (credentials: any) => {
-    const res = await fetch(`${API_BASE}/auth/login`, {
+    return safeFetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials)
     });
-    return safeJson(res);
   },
 
   getMe: async () => {
-    const res = await fetch(`${API_BASE}/auth/me`, {
+    return safeFetch(`${API_BASE}/auth/me`, {
       headers: getAuthHeaders()
     });
-    return safeJson(res);
   },
 
   // Dashboard
