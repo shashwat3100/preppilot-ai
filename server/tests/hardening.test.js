@@ -1,5 +1,5 @@
-import { runCode, runTestCases } from './src/services/codeExecutionService.js';
-import db, { initDb } from './src/database/db.js';
+import { runCode, runTestCases } from '../src/services/codeExecutionService.js';
+import db, { initDb } from '../src/database/db.js';
 
 async function runHardeningTests() {
   console.log('====================================================');
