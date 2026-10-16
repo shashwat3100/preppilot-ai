@@ -217,6 +217,11 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (!cleanSpeech) return;
 
+    // Chrome SpeechSynthesis resume fix
+    if (synthRef.current.paused) {
+      synthRef.current.resume();
+    }
+
     const utterance = new SpeechSynthesisUtterance(cleanSpeech.slice(0, 320));
     utterance.rate = 1.05;
     utterance.pitch = 1.0;
@@ -241,6 +246,44 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const getOfflineFallbackResponse = (query: string): { reply: string; speech: string } => {
+    const q = query.toLowerCase();
+    if (q.includes('acid') || q.includes('transaction')) {
+      return {
+        reply: "### ACID Properties in DBMS\n- **Atomicity**: All or nothing transaction execution.\n- **Consistency**: Database transitions from one valid state to another.\n- **Isolation**: Concurrent transactions execute without interference.\n- **Durability**: Committed changes persist even after power failure.",
+        speech: "ACID stands for Atomicity, Consistency, Isolation, and Durability, ensuring trustworthy database transactions."
+      };
+    }
+    if (q.includes('deadlock')) {
+      return {
+        reply: "### Deadlock in Operating Systems\nA state where two or more processes are permanently blocked because each holds a resource the other needs.\n\n**The Four Coffman Conditions:**\n1. Mutual Exclusion\n2. Hold and Wait\n3. No Preemption\n4. Circular Wait",
+        speech: "Deadlock occurs when processes hold resources and wait indefinitely for others. It requires Mutual Exclusion, Hold and Wait, No Preemption, and Circular Wait."
+      };
+    }
+    if (q.includes('osi') || q.includes('layer') || q.includes('network')) {
+      return {
+        reply: "### 7 Layers of the OSI Model\n1. Physical (Bits & cables)\n2. Data Link (Frames & MAC addresses)\n3. Network (Packets & IP routing)\n4. Transport (Segments, TCP/UDP)\n5. Session (Connection management)\n6. Presentation (Encryption & formatting)\n7. Application (HTTP, DNS, FTP)",
+        speech: "The OSI model has seven layers: Physical, Data Link, Network, Transport, Session, Presentation, and Application."
+      };
+    }
+    if (q.includes('oop') || q.includes('inheritance') || q.includes('polymorphism')) {
+      return {
+        reply: "### Four Pillars of OOP\n- **Encapsulation**: Bundling data with methods and hiding internal state.\n- **Abstraction**: Hiding complex implementation and exposing simple interfaces.\n- **Inheritance**: Deriving new classes from existing classes for code reuse.\n- **Polymorphism**: The ability of an object or method to take many forms.",
+        speech: "The four pillars of Object-Oriented Programming are Encapsulation, Abstraction, Inheritance, and Polymorphism."
+      };
+    }
+    if (q.includes('binary search') || q.includes('dsa') || q.includes('algorithm')) {
+      return {
+        reply: "### Binary Search Algorithm\n- **Prerequisite**: Input array must be sorted.\n- **Time Complexity**: Best: $O(1)$, Average/Worst: $O(\\log n)$.\n- **Space Complexity**: $O(1)$ iterative, $O(\\log n)$ recursive call stack.",
+        speech: "Binary Search is a divide-and-conquer algorithm that finds a target in a sorted list in O of log n time."
+      };
+    }
+    return {
+      reply: `### PrepPilot Technical Assistance\nYour question on **"${query}"** is noted. For interview preparation:\n- Clearly state the definition and algorithmic principles.\n- Discuss space and time complexities.\n- Compare practical edge cases and trade-offs.`,
+      speech: `For your question on ${query}, focus on core definitions, algorithm complexities, and edge cases.`
+    };
+  };
+
   const sendQuery = async (queryText: string, isVoice = false, overrideModel?: string): Promise<string> => {
     const normalizedQuery = queryText.trim();
     if (!normalizedQuery) return '';
@@ -261,9 +304,24 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTranscript('');
 
     try {
-      const res = await api.askPrepPilot(normalizedQuery, activeModel, apiKey || undefined);
-      const replyText = res.reply || res.message || "I have received your placement query.";
-      const speechOutput = res.speech_text || replyText;
+      let replyText = '';
+      let speechOutput = '';
+      let sources: any[] = [];
+      let isLive = false;
+
+      try {
+        const res = await api.askPrepPilot(normalizedQuery, activeModel, apiKey || undefined);
+        replyText = res.reply || res.message || "I have received your placement query.";
+        speechOutput = res.speech_text || replyText;
+        sources = res.sources || [];
+        isLive = res.is_live_api;
+      } catch (networkErr) {
+        // Intelligent offline curriculum fallback if server is unreachable or offline
+        console.warn('[PrepPilot API offline fallback]:', networkErr);
+        const fallback = getOfflineFallbackResponse(normalizedQuery);
+        replyText = fallback.reply;
+        speechOutput = fallback.speech;
+      }
 
       const botMsg: PrepPilotChatMessage = {
         id: `bot-${Date.now()}`,
@@ -271,9 +329,9 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         text: replyText,
         speechText: speechOutput,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        sources: res.sources || [],
-        model: res.model || activeModel,
-        isLiveApi: res.is_live_api
+        sources,
+        model: activeModel,
+        isLiveApi: isLive
       };
 
       setConversation(prev => [...prev, botMsg]);
@@ -285,15 +343,19 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return replyText;
     } catch (err) {
       console.error('[PrepPilot Query Error]:', err);
+      const fallback = getOfflineFallbackResponse(normalizedQuery);
       const errorMsg: PrepPilotChatMessage = {
-        id: `bot-err-${Date.now()}`,
+        id: `bot-fallback-${Date.now()}`,
         sender: 'preppilot',
-        text: "I experienced a temporary connection hiccup with the RAG knowledge server. Please retry your technical question.",
-        speechText: "Please retry your question.",
+        text: fallback.reply,
+        speechText: fallback.speech,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         model: activeModel
       };
       setConversation(prev => [...prev, errorMsg]);
+      if (isVoice || isModalOpen) {
+        speakText(fallback.speech);
+      }
       return errorMsg.text;
     } finally {
       setIsProcessing(false);

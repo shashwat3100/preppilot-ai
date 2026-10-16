@@ -1,63 +1,164 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { DatabaseSync } from 'node:sqlite';
+import { v4 as uuidv4 } from 'uuid';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const FIXTURES_FILE = path.join(__dirname, 'static_fixtures.json');
 
 /**
- * Resolves the persistent runtime database file path.
+ * Resolves the persistent SQLite database file path.
  * Priority:
- *  1. PREPPILOT_DATA_PATH (explicit file path)
- *  2. PREPPILOT_DATA_DIR / careerprep_runtime.json
- *  3. server/data/careerprep_runtime.json (default ignored local data directory)
+ *  1. PREPPILOT_SQLITE_PATH (explicit SQLite file path)
+ *  2. PREPPILOT_DATA_PATH (.db or adjacent to .json)
+ *  3. PREPPILOT_DATA_DIR / careerprep.db
+ *  4. server/data/careerprep.db (default local git-ignored data directory)
  */
 export const getDbFilePath = () => {
+  if (process.env.PREPPILOT_SQLITE_PATH) {
+    return path.resolve(process.env.PREPPILOT_SQLITE_PATH);
+  }
   if (process.env.PREPPILOT_DATA_PATH) {
-    return path.resolve(process.env.PREPPILOT_DATA_PATH);
+    const rawPath = path.resolve(process.env.PREPPILOT_DATA_PATH);
+    if (rawPath.endsWith('.db') || rawPath.endsWith('.sqlite')) {
+      return rawPath;
+    }
+    return path.join(path.dirname(rawPath), 'careerprep.db');
   }
   const dataDir = process.env.PREPPILOT_DATA_DIR
     ? path.resolve(process.env.PREPPILOT_DATA_DIR)
     : path.resolve(__dirname, '../../data');
-  return path.join(dataDir, 'careerprep_runtime.json');
+  return path.join(dataDir, 'careerprep.db');
 };
 
-const createEmptyStore = () => ({
-  users: [],
-  branches: [],
-  companies: [],
-  jobRoles: [],
-  subjects: [],
-  topics: [],
-  questions: [],
-  questionOptions: [],
-  attempts: [],
-  quizSessions: [],
-  quizQuestions: [],
-  studentPerformance: [],
-  xpHistory: [],
-  streaks: [],
-  achievements: [],
-  userAchievements: [],
-  knowledgeDocuments: [],
-  announcements: [],
-  codingProblems: [],
-  codingTestCases: [],
-  codingSubmissions: [],
-  codingLanguages: [],
-  codingBookmarks: [],
-  codingAssessments: [],
-  codingAssessmentAttempts: [],
-  adminInvitations: [],
-  facultyApplications: []
-});
+const TABLE_SCHEMAS = {
+  users: `
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE,
+      name TEXT,
+      role TEXT DEFAULT 'STUDENT',
+      data TEXT NOT NULL,
+      created_at TEXT,
+      updated_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+  `,
+  questions: `
+    CREATE TABLE IF NOT EXISTS questions (
+      id TEXT PRIMARY KEY,
+      question TEXT,
+      subject_id TEXT,
+      topic_id TEXT,
+      difficulty TEXT DEFAULT 'Medium',
+      company_id TEXT,
+      correct_answer TEXT,
+      data TEXT NOT NULL,
+      created_at TEXT,
+      updated_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_questions_subject ON questions(subject_id);
+    CREATE INDEX IF NOT EXISTS idx_questions_topic ON questions(topic_id);
+    CREATE INDEX IF NOT EXISTS idx_questions_company ON questions(company_id);
+    CREATE INDEX IF NOT EXISTS idx_questions_difficulty ON questions(difficulty);
+  `,
+  questionOptions: `
+    CREATE TABLE IF NOT EXISTS questionOptions (
+      id TEXT PRIMARY KEY,
+      question_id TEXT NOT NULL,
+      option_key TEXT,
+      data TEXT NOT NULL,
+      created_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_options_question ON questionOptions(question_id);
+  `,
+  codingProblems: `
+    CREATE TABLE IF NOT EXISTS codingProblems (
+      id TEXT PRIMARY KEY,
+      title TEXT,
+      difficulty TEXT DEFAULT 'Medium',
+      company_id TEXT,
+      subject_id TEXT,
+      data TEXT NOT NULL,
+      created_at TEXT,
+      updated_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_coding_difficulty ON codingProblems(difficulty);
+    CREATE INDEX IF NOT EXISTS idx_coding_company ON codingProblems(company_id);
+    CREATE INDEX IF NOT EXISTS idx_coding_subject ON codingProblems(subject_id);
+  `,
+  codingTestCases: `
+    CREATE TABLE IF NOT EXISTS codingTestCases (
+      id TEXT PRIMARY KEY,
+      problem_id TEXT NOT NULL,
+      data TEXT NOT NULL,
+      created_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_testcases_problem ON codingTestCases(problem_id);
+  `,
+  quizSessions: `
+    CREATE TABLE IF NOT EXISTS quizSessions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      status TEXT DEFAULT 'IN_PROGRESS',
+      data TEXT NOT NULL,
+      created_at TEXT,
+      completed_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_sessions_user ON quizSessions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_sessions_status ON quizSessions(status);
+  `,
+  attempts: `
+    CREATE TABLE IF NOT EXISTS attempts (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      question_id TEXT NOT NULL,
+      session_id TEXT,
+      data TEXT NOT NULL,
+      created_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
+    CREATE INDEX IF NOT EXISTS idx_attempts_question ON attempts(question_id);
+  `
+};
 
-// In-memory store backed by persistent runtime JSON file
-let store = createEmptyStore();
+const ALL_TABLE_NAMES = [
+  'users',
+  'branches',
+  'companies',
+  'jobRoles',
+  'subjects',
+  'topics',
+  'questions',
+  'questionOptions',
+  'attempts',
+  'quizSessions',
+  'quizQuestions',
+  'studentPerformance',
+  'xpHistory',
+  'streaks',
+  'achievements',
+  'userAchievements',
+  'knowledgeDocuments',
+  'announcements',
+  'codingProblems',
+  'codingTestCases',
+  'codingSubmissions',
+  'codingLanguages',
+  'codingBookmarks',
+  'codingAssessments',
+  'codingAssessmentAttempts',
+  'adminInvitations',
+  'facultyApplications'
+];
+
+let sqlite = null;
 
 /**
- * Ensures the target directory for the runtime database exists.
+ * Ensures the target directory for the SQLite database exists.
  */
 const ensureDataDirectory = (filePath) => {
   const dir = path.dirname(filePath);
@@ -67,142 +168,343 @@ const ensureDataDirectory = (filePath) => {
 };
 
 /**
- * Load existing runtime data if available.
- * If no runtime file exists, bootstrap with static educational fixtures.
- * Fatal read errors are thrown to prevent silently overwriting corrupted stores.
+ * Ensures a table exists in SQLite.
  */
-export const initDb = async () => {
-  const dbFile = getDbFilePath();
-  ensureDataDirectory(dbFile);
-
-  if (fs.existsSync(dbFile)) {
-    try {
-      const raw = fs.readFileSync(dbFile, 'utf-8');
-      const parsed = JSON.parse(raw);
-      store = { ...createEmptyStore(), ...parsed };
-      console.log(`[Database] Loaded persistent runtime data from ${dbFile}`);
-    } catch (err) {
-      console.error(`[Database CRITICAL] Failed to read or parse database file at ${dbFile}:`, err.message);
-      // Fail explicitly: do NOT silently proceed with an empty store as that could overwrite corrupted data
-      throw new Error(`[Database] Cannot start: unreadable database at ${dbFile}. Details: ${err.message}`);
-    }
+const ensureTable = (tableName) => {
+  if (!sqlite) return;
+  if (TABLE_SCHEMAS[tableName]) {
+    sqlite.exec(TABLE_SCHEMAS[tableName]);
   } else {
-    // 1. Check if a local legacy database exists to migrate local user records
-    const legacyPath = path.resolve(__dirname, 'careerprep_data.json');
-    if (fs.existsSync(legacyPath)) {
-      try {
-        const rawLegacy = fs.readFileSync(legacyPath, 'utf-8');
-        const legacyParsed = JSON.parse(rawLegacy);
-        store = { ...createEmptyStore(), ...legacyParsed };
-        saveDb();
-        console.log(`[Database] Migrated existing local database records to ignored runtime path: ${dbFile}`);
-        return;
-      } catch (legacyErr) {
-        console.warn('[Database] Could not migrate legacy database file, falling back to static fixtures:', legacyErr.message);
-      }
-    }
-
-    // 2. Fresh initialization from verified static educational fixtures
-    store = createEmptyStore();
-    if (fs.existsSync(FIXTURES_FILE)) {
-      try {
-        const rawFixtures = fs.readFileSync(FIXTURES_FILE, 'utf-8');
-        const fixtures = JSON.parse(rawFixtures);
-        store = { ...store, ...fixtures };
-        console.log(`[Database] Initialized new runtime database from static educational fixtures.`);
-      } catch (fixtureErr) {
-        console.warn('[Database] Warning: could not parse static_fixtures.json:', fixtureErr.message);
-      }
-    } else {
-      console.log(`[Database] Fresh empty database initialized.`);
-    }
-
-    // Persist initial runtime file immediately
-    saveDb();
-    console.log(`[Database] Created fresh runtime database file at ${dbFile}`);
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS "${tableName}" (
+        id TEXT PRIMARY KEY,
+        data TEXT NOT NULL,
+        created_at TEXT,
+        updated_at TEXT
+      );
+    `);
   }
 };
 
 /**
- * Save store to disk safely without Windows/OneDrive rename lock collisions.
+ * Initializes the embedded SQLite database engine.
+ * Supports auto-migration from existing runtime JSON files or static fixtures.
  */
-export const saveDb = () => {
+export const initDb = async () => {
+  if (sqlite) return sqlite;
+
   const dbFile = getDbFilePath();
   ensureDataDirectory(dbFile);
 
-  try {
-    fs.writeFileSync(dbFile, JSON.stringify(store, null, 2), 'utf-8');
-  } catch (err) {
+  const isNewDb = !fs.existsSync(dbFile);
+  sqlite = new DatabaseSync(dbFile);
+
+  // WAL mode for maximum concurrent read/write throughput without file locks
+  sqlite.exec('PRAGMA journal_mode = WAL;');
+  sqlite.exec('PRAGMA synchronous = NORMAL;');
+  sqlite.exec('PRAGMA foreign_keys = ON;');
+
+  // Create all tables
+  for (const tableName of ALL_TABLE_NAMES) {
+    ensureTable(tableName);
+  }
+
+  // Check if questions table is populated
+  const questionsCount = sqlite.prepare('SELECT COUNT(*) as count FROM questions').get().count;
+
+  if (questionsCount === 0) {
+    console.log('[SQLite Database] Questions table empty. Checking for bootstrap data...');
+
+    // 1. Check if careerprep_runtime.json exists for migration
+    const runtimeJsonPath = path.join(path.dirname(dbFile), 'careerprep_runtime.json');
+    let loadedFromRuntime = false;
+
+    if (fs.existsSync(runtimeJsonPath)) {
+      try {
+        const rawJson = fs.readFileSync(runtimeJsonPath, 'utf-8');
+        const parsed = JSON.parse(rawJson);
+        for (const [table, items] of Object.entries(parsed)) {
+          if (Array.isArray(items) && items.length > 0) {
+            ensureTable(table);
+            db.insertMany(table, items);
+          }
+        }
+        loadedFromRuntime = true;
+        console.log(`[SQLite Database] Migrated existing records from JSON (${runtimeJsonPath}) to SQLite: ${dbFile}`);
+      } catch (err) {
+        console.warn('[SQLite Database] Could not migrate runtime JSON, falling back to fixtures:', err.message);
+      }
+    }
+
+    // 2. If not migrated from runtime JSON, bootstrap from static_fixtures.json
+    if (!loadedFromRuntime && fs.existsSync(FIXTURES_FILE)) {
+      try {
+        const rawFixtures = fs.readFileSync(FIXTURES_FILE, 'utf-8');
+        const fixtures = JSON.parse(rawFixtures);
+        for (const [table, items] of Object.entries(fixtures)) {
+          if (Array.isArray(items) && items.length > 0) {
+            ensureTable(table);
+            db.insertMany(table, items);
+          }
+        }
+        console.log('[SQLite Database] Populated educational content from static_fixtures.json into SQLite.');
+      } catch (err) {
+        console.error('[SQLite Database] Error loading static fixtures:', err.message);
+      }
+    }
+  }
+
+  console.log(`[SQLite Database] Embedded SQLite engine initialized at: ${dbFile}`);
+  return sqlite;
+};
+
+/**
+ * Checkpoint WAL to main SQLite file safely.
+ */
+export const saveDb = () => {
+  if (sqlite) {
     try {
-      // Fallback with temporary file copy
-      const tempFile = `${dbFile}.tmp`;
-      fs.writeFileSync(tempFile, JSON.stringify(store, null, 2), 'utf-8');
-      fs.copyFileSync(tempFile, dbFile);
-      if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
-    } catch (fallbackErr) {
-      console.error('[Database] Critical error saving runtime database:', fallbackErr);
-      throw fallbackErr;
+      sqlite.exec('PRAGMA wal_checkpoint(PASSIVE);');
+    } catch {
+      // Passive checkpoint
     }
   }
 };
 
-// Generic CRUD operations
+/**
+ * Helper to extract specialized typed columns for specific tables.
+ */
+const insertRow = (table, item) => {
+  ensureTable(table);
+  const now = new Date().toISOString();
+  const id = item.id || uuidv4();
+  const itemWithId = { ...item, id };
+  const jsonStr = JSON.stringify(itemWithId);
+
+  if (table === 'users') {
+    sqlite.prepare(`
+      INSERT OR REPLACE INTO users (id, email, name, role, data, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      item.email || null,
+      item.name || null,
+      item.role || 'STUDENT',
+      jsonStr,
+      item.created_at || now,
+      now
+    );
+  } else if (table === 'questions') {
+    sqlite.prepare(`
+      INSERT OR REPLACE INTO questions (id, question, subject_id, topic_id, difficulty, company_id, correct_answer, data, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      item.question || '',
+      item.subject_id || null,
+      item.topic_id || null,
+      item.difficulty || 'Medium',
+      item.company_id || null,
+      item.correct_answer || null,
+      jsonStr,
+      item.created_at || now,
+      now
+    );
+  } else if (table === 'questionOptions') {
+    sqlite.prepare(`
+      INSERT OR REPLACE INTO questionOptions (id, question_id, option_key, data, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(
+      id,
+      item.question_id || null,
+      item.option_key || null,
+      jsonStr,
+      item.created_at || now
+    );
+  } else if (table === 'codingProblems') {
+    sqlite.prepare(`
+      INSERT OR REPLACE INTO codingProblems (id, title, difficulty, company_id, subject_id, data, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      item.title || '',
+      item.difficulty || 'Medium',
+      item.company_id || null,
+      item.subject_id || null,
+      jsonStr,
+      item.created_at || now,
+      now
+    );
+  } else if (table === 'codingTestCases') {
+    sqlite.prepare(`
+      INSERT OR REPLACE INTO codingTestCases (id, problem_id, data, created_at)
+      VALUES (?, ?, ?, ?)
+    `).run(
+      id,
+      item.problem_id || null,
+      jsonStr,
+      item.created_at || now
+    );
+  } else if (table === 'quizSessions') {
+    sqlite.prepare(`
+      INSERT OR REPLACE INTO quizSessions (id, user_id, status, data, created_at, completed_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      item.user_id || null,
+      item.status || 'IN_PROGRESS',
+      jsonStr,
+      item.created_at || now,
+      item.completed_at || null
+    );
+  } else if (table === 'attempts') {
+    sqlite.prepare(`
+      INSERT OR REPLACE INTO attempts (id, user_id, question_id, session_id, data, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      item.user_id || null,
+      item.question_id || null,
+      item.session_id || null,
+      jsonStr,
+      item.created_at || now
+    );
+  } else {
+    sqlite.prepare(`
+      INSERT OR REPLACE INTO "${table}" (id, data, created_at, updated_at)
+      VALUES (?, ?, ?, ?)
+    `).run(
+      id,
+      jsonStr,
+      item.created_at || now,
+      now
+    );
+  }
+
+  return itemWithId;
+};
+
+// Generic CRUD API backed by SQLite
 export const db = {
   get: (table, id) => {
-    return (store[table] || []).find(item => item.id === id) || null;
+    if (!sqlite) initDb();
+    ensureTable(table);
+    try {
+      const row = sqlite.prepare(`SELECT data FROM "${table}" WHERE id = ?`).get(id);
+      return row ? JSON.parse(row.data) : null;
+    } catch {
+      return null;
+    }
   },
 
   getAll: (table) => {
-    return [...(store[table] || [])];
+    if (!sqlite) initDb();
+    ensureTable(table);
+    try {
+      const rows = sqlite.prepare(`SELECT data FROM "${table}"`).all();
+      return rows.map(r => JSON.parse(r.data));
+    } catch {
+      return [];
+    }
   },
 
   find: (table, predicate) => {
-    return (store[table] || []).filter(predicate);
+    return db.getAll(table).filter(predicate);
   },
 
   findOne: (table, predicate) => {
-    return (store[table] || []).find(predicate) || null;
+    return db.getAll(table).find(predicate) || null;
   },
 
   insert: (table, item) => {
-    if (!store[table]) store[table] = [];
-    store[table].push(item);
-    saveDb();
-    return item;
+    if (!sqlite) initDb();
+    return insertRow(table, item);
   },
 
   insertMany: (table, items) => {
-    if (!store[table]) store[table] = [];
-    store[table].push(...items);
-    saveDb();
-    return items;
+    if (!sqlite) initDb();
+    ensureTable(table);
+    if (!Array.isArray(items) || items.length === 0) return items;
+
+    sqlite.exec('BEGIN TRANSACTION');
+    try {
+      const results = [];
+      for (const item of items) {
+        results.push(insertRow(table, item));
+      }
+      sqlite.exec('COMMIT');
+      return results;
+    } catch (err) {
+      sqlite.exec('ROLLBACK');
+      throw err;
+    }
   },
 
   update: (table, id, updates) => {
-    if (!store[table]) return null;
-    const index = store[table].findIndex(item => item.id === id);
-    if (index === -1) return null;
-    store[table][index] = { ...store[table][index], ...updates, updated_at: new Date().toISOString() };
-    saveDb();
-    return store[table][index];
+    if (!sqlite) initDb();
+    const existing = db.get(table, id);
+    if (!existing) return null;
+    const merged = { ...existing, ...updates, updated_at: new Date().toISOString() };
+    insertRow(table, merged);
+    return merged;
   },
 
   delete: (table, id) => {
-    if (!store[table]) return false;
-    const initialLen = store[table].length;
-    store[table] = store[table].filter(item => item.id !== id);
-    if (store[table].length !== initialLen) {
-      saveDb();
-      return true;
+    if (!sqlite) initDb();
+    ensureTable(table);
+    try {
+      const result = sqlite.prepare(`DELETE FROM "${table}" WHERE id = ?`).run(id);
+      return result.changes > 0;
+    } catch {
+      return false;
     }
-    return false;
   },
 
-  // Raw store accessor for complex aggregations and joins
-  getStore: () => store,
+  replaceAll: (table, items) => {
+    if (!sqlite) initDb();
+    ensureTable(table);
+    sqlite.exec(`DELETE FROM "${table}"`);
+    return db.insertMany(table, items);
+  },
+
+  // Direct SQL execution methods
+  query: (sql, params = []) => {
+    if (!sqlite) initDb();
+    return sqlite.prepare(sql).all(...params);
+  },
+
+  execute: (sql, params = []) => {
+    if (!sqlite) initDb();
+    return sqlite.prepare(sql).run(...params);
+  },
+
+  // Raw store accessor via Proxy for backwards compatibility
+  getStore: () => new Proxy({}, {
+    get(target, prop) {
+      if (typeof prop === 'string') {
+        return db.getAll(prop);
+      }
+      return target[prop];
+    },
+    set(target, prop, value) {
+      if (typeof prop === 'string' && Array.isArray(value)) {
+        db.replaceAll(prop, value);
+        return true;
+      }
+      target[prop] = value;
+      return true;
+    }
+  }),
+
   setStore: (newStore) => {
-    store = newStore;
-    saveDb();
+    if (!sqlite) initDb();
+    if (newStore && typeof newStore === 'object') {
+      for (const [table, items] of Object.entries(newStore)) {
+        if (Array.isArray(items)) {
+          db.replaceAll(table, items);
+        }
+      }
+    }
   }
 };
 

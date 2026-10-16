@@ -61,10 +61,9 @@ export const seedDatabase = async (force = false) => {
     return;
   }
 
-  console.log('[Seed] Populating controlled local development demo accounts...');
   const salt = await bcrypt.genSalt(10);
   const studentHash1 = await bcrypt.hash('password123', salt);
-  const studentHash2 = await bcrypt.hash('Password123', salt);
+  const studentHash2 = await bcrypt.hash('password123', salt);
   const adminHash1 = await bcrypt.hash('admin123', salt);
   const adminHash2 = await bcrypt.hash('AdminPass123', salt);
 

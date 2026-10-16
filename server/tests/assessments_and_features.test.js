@@ -76,7 +76,8 @@ async function runTests() {
     assert(healthRes.body.service.includes('PrepPilot AI'), 'Service identifier contains PrepPilot AI');
 
     // Authenticate a student user
-    const studentUser = db.findOne('users', u => (u.role || '').toLowerCase() === 'student');
+    const studentUser = db.findOne('users', u => u.email === 'student@careerprep.ai') ||
+      db.findOne('users', u => (u.role || '').toLowerCase() === 'student');
     const loginRes = await request('/api/auth/login', {
       method: 'POST',
       body: {

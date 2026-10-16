@@ -48,6 +48,12 @@ careerprep_runtime.json
 **/careerprep_runtime.json
 careerprep_data.json
 **/careerprep_data.json
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
 *.tmp
 
 .vscode/*
