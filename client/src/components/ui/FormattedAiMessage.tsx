@@ -51,10 +51,35 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
     }
   };
 
-  // Format inline bold (**text**), italics (*text*), and code (`code`)
+  // Helper to strip and clean LaTeX math notation to readable Unicode/ASCII
+  const cleanMathStr = (mathStr: string): string => {
+    return mathStr
+      .replace(/\\+text\{([^}]+)\}/g, '$1')
+      .replace(/\\+log\b/g, 'log')
+      .replace(/\\+times\b/g, '×')
+      .replace(/\\+cdot\b/g, '·')
+      .replace(/\\+dots\b|\\+cdots\b/g, '...')
+      .replace(/\\+leq\b|\\+le\b/g, '≤')
+      .replace(/\\+geq\b|\\+ge\b/g, '≥')
+      .replace(/\\+neq\b|\\+ne\b/g, '≠')
+      .replace(/\\+in\b/g, '∈')
+      .replace(/\\+to\b/g, '→')
+      .replace(/\\+bmod\b/g, 'mod')
+      .replace(/\\+lfloor\s*/g, '⌊')
+      .replace(/\\+rfloor\s*/g, '⌋')
+      .replace(/\\+sum\b/g, 'Σ')
+      .replace(/\\+Delta\b/g, 'Δ')
+      .replace(/\\+frac\{([^}]+)\}\{([^}]+)\}/g, '($1 / $2)')
+      .replace(/\\+/g, '')
+      .trim();
+  };
+
+  // Format inline bold (**text**), italics (*text*), code (`code`), and math ($math$)
   const formatInline = (content: string): React.ReactNode => {
-    // Regex splits by code, bold, and italics
-    const parts = content.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g);
+    if (!content) return null;
+
+    // Regex splits by code, bold, italics, and math tokens ($...$)
+    const parts = content.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\$[^$\n]+\$)/g);
 
     return parts.map((part, idx) => {
       if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
@@ -64,17 +89,24 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
           </code>
         );
       }
+      if (part.startsWith('$') && part.endsWith('$') && part.length > 2) {
+        return (
+          <code key={idx} className="px-1.5 py-0.5 mx-0.5 rounded bg-indigo-950/60 border border-indigo-700/60 font-mono text-[11px] font-medium text-cyan-300 shadow-xs">
+            {cleanMathStr(part.slice(1, -1))}
+          </code>
+        );
+      }
       if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
         return (
           <strong key={idx} className="font-semibold text-slate-100">
-            {part.slice(2, -2)}
+            {formatInline(part.slice(2, -2))}
           </strong>
         );
       }
       if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
         return (
           <em key={idx} className="italic text-slate-300">
-            {part.slice(1, -1)}
+            {formatInline(part.slice(1, -1))}
           </em>
         );
       }
@@ -149,6 +181,36 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
         continue;
       }
 
+      // Display Math Formula Block ($$formula$$)
+      if (trimmed.startsWith('$$')) {
+        let mathContent = '';
+        if (trimmed.endsWith('$$') && trimmed.length > 2) {
+          mathContent = trimmed.slice(2, -2).trim();
+        } else {
+          const mathLines = [trimmed.replace(/^(\$\$)/, '')];
+          while (i + 1 < rawLines.length && !rawLines[i + 1].trim().endsWith('$$')) {
+            i++;
+            mathLines.push(rawLines[i]);
+          }
+          if (i + 1 < rawLines.length && rawLines[i + 1].trim().endsWith('$$')) {
+            i++;
+            const lastLine = rawLines[i].trim().replace(/\$\$$/, '');
+            if (lastLine) mathLines.push(lastLine);
+          }
+          mathContent = mathLines.join('\n').trim();
+        }
+
+        elements.push(
+          <div
+            key={`math-${i}`}
+            className="my-3 px-4 py-2.5 rounded-xl bg-slate-900/90 border border-indigo-500/30 text-center font-mono text-xs sm:text-sm text-cyan-300 overflow-x-auto shadow-inner"
+          >
+            {cleanMathStr(mathContent)}
+          </div>
+        );
+        continue;
+      }
+
       // Headings (H1/H2/H3/H4)
       if (trimmed.startsWith('### ')) {
         const title = trimmed.replace(/^###\s+/, '');
@@ -220,32 +282,71 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
         }
 
         if (tableLines.length >= 2) {
-          const headerRow = tableLines[0].split('|').slice(1, -1).map(c => c.trim());
-          const hasSeparator = /^\|[\s-:]+\|$/.test(tableLines[1].replace(/\|[\s-:]+/g, '|'));
-          const dataRows = (hasSeparator ? tableLines.slice(2) : tableLines.slice(1)).map(row =>
-            row.split('|').slice(1, -1).map(c => c.trim())
-          );
+          // Detect whether a line is a markdown separator (e.g., | :--- | :--- | or | --- | --- |)
+          const isSeparatorLine = (rowStr: string): boolean => {
+            const inner = rowStr.replace(/^\|/, '').replace(/\|$/, '');
+            const cells = inner.split('|').map(c => c.trim());
+            return cells.length > 0 && cells.every(c => /^:?-+:?$/.test(c));
+          };
+
+          const headerCells = tableLines[0].replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+
+          // Extract column alignments from separator line if present
+          const alignments: ('left' | 'center' | 'right')[] = [];
+          const separatorIdx = tableLines.findIndex((line, idx) => idx > 0 && isSeparatorLine(line));
+          if (separatorIdx !== -1) {
+            const sepCells = tableLines[separatorIdx].replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+            sepCells.forEach(cell => {
+              if (cell.startsWith(':') && cell.endsWith(':')) {
+                alignments.push('center');
+              } else if (cell.endsWith(':')) {
+                alignments.push('right');
+              } else {
+                alignments.push('left');
+              }
+            });
+          }
+
+          // Filter out header row (0) and any separator rows so ":---" never renders in tbody
+          const dataRows = tableLines
+            .slice(1)
+            .filter(row => !isSeparatorLine(row))
+            .map(row => row.replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim()));
 
           elements.push(
-            <div key={`table-${i}`} className="my-3.5 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/70 shadow-md">
+            <div key={`table-${i}`} className="my-3.5 overflow-x-auto rounded-xl border border-slate-750 bg-slate-950/80 shadow-lg">
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="bg-slate-900/95 border-b border-slate-800 text-slate-300">
                   <tr>
-                    {headerRow.map((cell, ci) => (
-                      <th key={ci} className="py-2.5 px-3 font-semibold text-[11px] uppercase tracking-wider text-indigo-300 border-r border-slate-800/80 last:border-r-0">
-                        {formatInline(cell)}
-                      </th>
-                    ))}
+                    {headerCells.map((cell, ci) => {
+                      const align = alignments[ci] || 'left';
+                      const alignClass = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
+                      return (
+                        <th
+                          key={ci}
+                          className={`py-2.5 px-3.5 font-semibold text-[11px] uppercase tracking-wider text-indigo-300 border-r border-slate-800/80 last:border-r-0 whitespace-nowrap ${alignClass}`}
+                        >
+                          {formatInline(cell)}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/70 text-slate-200">
+                <tbody className="divide-y divide-slate-800/60 text-slate-200">
                   {dataRows.map((rowCells, ri) => (
-                    <tr key={ri} className="hover:bg-slate-900/40 transition-colors">
-                      {rowCells.map((cell, ci) => (
-                        <td key={ci} className="py-2 px-3 text-xs border-r border-slate-800/50 last:border-r-0 font-normal">
-                          {formatInline(cell)}
-                        </td>
-                      ))}
+                    <tr key={ri} className="hover:bg-slate-900/40 transition-colors odd:bg-transparent even:bg-slate-900/20">
+                      {rowCells.map((cell, ci) => {
+                        const align = alignments[ci] || 'left';
+                        const alignClass = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
+                        return (
+                          <td
+                            key={ci}
+                            className={`py-2 px-3.5 text-xs border-r border-slate-800/50 last:border-r-0 font-normal ${alignClass}`}
+                          >
+                            {formatInline(cell)}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
