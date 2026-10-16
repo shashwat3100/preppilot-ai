@@ -116,6 +116,13 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const silenceTimeoutRef = useRef<any>(null);
+  const transcriptRef = useRef<string>('');
+  const isProcessingRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    isProcessingRef.current = isProcessing;
+  }, [isProcessing]);
 
   // Initialize Speech Recognition & Synthesis
   useEffect(() => {
@@ -123,7 +130,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
-        recognition.continuous = false;
+        recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
 
@@ -132,31 +139,64 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
 
         recognition.onresult = (event: any) => {
-          let currentTranscript = '';
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            currentTranscript += event.results[i][0].transcript;
+          let accumulated = '';
+          for (let i = 0; i < event.results.length; ++i) {
+            accumulated += event.results[i][0].transcript + ' ';
           }
-          setTranscript(currentTranscript);
+          const cleanTranscript = accumulated.trim();
+          transcriptRef.current = cleanTranscript;
+          setTranscript(cleanTranscript);
 
-          // If final result obtained
-          if (event.results[0].isFinal) {
-            const finalQuery = currentTranscript.trim();
-            if (finalQuery) {
-              sendQuery(finalQuery, true);
-            }
+          // Clear previous silence debounce timer
+          if (silenceTimeoutRef.current) {
+            clearTimeout(silenceTimeoutRef.current);
+          }
+
+          // Debounce 850ms silence before concluding candidate speech input
+          if (cleanTranscript.length > 0) {
+            silenceTimeoutRef.current = setTimeout(() => {
+              const queryToSend = transcriptRef.current.trim();
+              if (queryToSend && !isProcessingRef.current) {
+                try {
+                  recognition.stop();
+                } catch (e) {
+                  // Ignore
+                }
+                setIsListening(false);
+                transcriptRef.current = '';
+                setTranscript('');
+                sendQuery(queryToSend, true);
+              }
+            }, 850);
           }
         };
 
         recognition.onerror = (event: any) => {
           console.warn('[Speech Recognition Event]:', event.error);
-          setVoiceError(event.error === 'not-allowed' || event.error === 'service-not-allowed'
-            ? 'Microphone access is blocked. Allow microphone access in your browser settings and try again.'
-            : 'Voice input stopped unexpectedly. Try again or type your question.');
+          if (silenceTimeoutRef.current) {
+            clearTimeout(silenceTimeoutRef.current);
+            silenceTimeoutRef.current = null;
+          }
+          if (event.error !== 'no-speech') {
+            setVoiceError(event.error === 'not-allowed' || event.error === 'service-not-allowed'
+              ? 'Microphone access is blocked. Allow microphone access in your browser settings and try again.'
+              : 'Voice input stopped unexpectedly. Try again or type your question.');
+          }
           setIsListening(false);
         };
 
         recognition.onend = () => {
           setIsListening(false);
+          if (silenceTimeoutRef.current) {
+            clearTimeout(silenceTimeoutRef.current);
+            silenceTimeoutRef.current = null;
+          }
+          const pending = transcriptRef.current.trim();
+          if (pending && !isProcessingRef.current) {
+            transcriptRef.current = '';
+            setTranscript('');
+            sendQuery(pending, true);
+          }
         };
 
         recognitionRef.current = recognition;
@@ -184,6 +224,12 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const startListening = () => {
     setVoiceError('');
     stopSpeaking();
+    transcriptRef.current = '';
+    setTranscript('');
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
     if (recognitionRef.current && speechSupported) {
       try {
         recognitionRef.current.start();
@@ -194,6 +240,10 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const stopListening = () => {
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -202,6 +252,12 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
     setIsListening(false);
+    const pending = transcriptRef.current.trim();
+    if (pending && !isProcessingRef.current) {
+      transcriptRef.current = '';
+      setTranscript('');
+      sendQuery(pending, true);
+    }
   };
 
   const speakText = (text: string) => {
@@ -248,13 +304,48 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const getOfflineFallbackResponse = (query: string): { reply: string; speech: string } => {
     const q = query.toLowerCase();
+    if (
+      q.includes('convoy') ||
+      q.includes('what effect') ||
+      q.includes('effect is') ||
+      (q.includes('effect') && (q.includes('fcfs') || q.includes('sched') || q.includes('cpu')))
+    ) {
+      return {
+        reply: "### Convoy Effect in CPU Scheduling (FCFS)\nThe **Convoy Effect** is a performance degradation phenomenon in non-preemptive First-Come, First-Served (FCFS) scheduling where a long CPU-bound process holds the processor, forcing numerous shorter I/O-bound processes to wait behind it in the ready queue.\n\n**Impact:** High average waiting time and severe device underutilization.\n**Resolution:** Preemptive scheduling algorithms such as **Round Robin (RR)** or **Shortest Remaining Time First (SRTF)**.",
+        speech: "The Convoy Effect occurs in FCFS scheduling when shorter I/O-bound processes wait behind a long CPU-bound process. It is mitigated by preemptive algorithms like Round Robin or Shortest Remaining Time First."
+      };
+    }
+    if (q.includes('belady') || (q.includes('anomaly') && (q.includes('page') || q.includes('fifo')))) {
+      return {
+        reply: "### Belady's Anomaly in Virtual Memory\n**Belady's Anomaly** is the counter-intuitive phenomenon where increasing physical page frames results in an increase in page faults under FIFO page replacement.\n\n**Immune Algorithms:** Stack algorithms like **LRU** (Least Recently Used) and **Optimal** replacement never exhibit Belady's Anomaly because they satisfy the inclusion property.",
+        speech: "Belady's Anomaly is the phenomenon where increasing physical page frames increases page faults under FIFO page replacement. Stack algorithms like LRU and Optimal never exhibit it."
+      };
+    }
+    if (q.includes('thrashing')) {
+      return {
+        reply: "### Thrashing in Operating Systems\n**Thrashing** occurs when an operating system spends more time swapping pages into and out of swap space than executing process instructions, causing CPU utilization to collapse toward zero.\n\n**Resolution:** Implement the Working Set Model or Page Fault Frequency (PFF) algorithm.",
+        speech: "Thrashing occurs when an OS spends more time swapping pages than executing instructions because total process working sets exceed physical memory."
+      };
+    }
+    if (q.includes('round robin') || q.includes('quantum')) {
+      return {
+        reply: "### Round Robin (RR) CPU Scheduling\nRound Robin is a preemptive CPU scheduling algorithm where each process receives a fixed cyclic time quantum. If the quantum is too large, it degrades to FCFS; if too small, context switching overhead dominates.",
+        speech: "Round Robin allocates a cyclic time quantum to each process, balancing interactive response time with low context switching overhead."
+      };
+    }
+    if (q.includes('normalize') || q.includes('normalization') || q.includes('3nf') || q.includes('2nf') || q.includes('bcnf')) {
+      return {
+        reply: "### Database Normalization (1NF to BCNF)\n- **1NF**: Atomic cell values, no repeating groups.\n- **2NF**: Satisfies 1NF and eliminates partial dependencies.\n- **3NF**: Satisfies 2NF and eliminates transitive dependencies.\n- **BCNF**: For every non-trivial functional dependency X -> Y, X must be a super key.",
+        speech: "Database normalization minimizes redundancy across 1NF for atomic values, 2NF for removing partial dependencies, 3NF for removing transitive dependencies, and BCNF for superkeys."
+      };
+    }
     if (q.includes('acid') || q.includes('transaction')) {
       return {
         reply: "### ACID Properties in DBMS\n- **Atomicity**: All or nothing transaction execution.\n- **Consistency**: Database transitions from one valid state to another.\n- **Isolation**: Concurrent transactions execute without interference.\n- **Durability**: Committed changes persist even after power failure.",
         speech: "ACID stands for Atomicity, Consistency, Isolation, and Durability, ensuring trustworthy database transactions."
       };
     }
-    if (q.includes('deadlock')) {
+    if (q.includes('deadlock') || q.includes('coffman')) {
       return {
         reply: "### Deadlock in Operating Systems\nA state where two or more processes are permanently blocked because each holds a resource the other needs.\n\n**The Four Coffman Conditions:**\n1. Mutual Exclusion\n2. Hold and Wait\n3. No Preemption\n4. Circular Wait",
         speech: "Deadlock occurs when processes hold resources and wait indefinitely for others. It requires Mutual Exclusion, Hold and Wait, No Preemption, and Circular Wait."
