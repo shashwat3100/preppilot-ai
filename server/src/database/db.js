@@ -4,12 +4,19 @@ import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 
 let DatabaseSync = null;
-try {
-  const sqliteMod = await import('node:sqlite');
-  DatabaseSync = sqliteMod.DatabaseSync;
-} catch {
-  console.warn('[Database] node:sqlite not present on this runtime. Using memory store fallback.');
-}
+let sqliteImportAttempted = false;
+
+const loadSqliteModule = async () => {
+  if (sqliteImportAttempted) return DatabaseSync;
+  sqliteImportAttempted = true;
+  try {
+    const sqliteMod = await import('node:sqlite');
+    DatabaseSync = sqliteMod.DatabaseSync;
+  } catch {
+    console.warn('[Database] node:sqlite not present on this runtime. Using memory store fallback.');
+  }
+  return DatabaseSync;
+};
 
 const memoryStore = {};
 
@@ -222,6 +229,8 @@ const ensureTable = (tableName) => {
  */
 export const initDb = async () => {
   if (sqlite) return sqlite;
+
+  await loadSqliteModule();
 
   // Portable fallback: If node:sqlite is not available, populate memoryStore
   if (!DatabaseSync) {

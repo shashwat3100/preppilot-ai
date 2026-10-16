@@ -10,8 +10,12 @@ const TEMP_DIR = process.env.VERCEL
   ? path.join('/tmp', 'temp_code')
   : path.join(__dirname, '..', '..', 'temp_code');
 
-if (!fs.existsSync(TEMP_DIR)) {
-  fs.mkdirSync(TEMP_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(TEMP_DIR)) {
+    fs.mkdirSync(TEMP_DIR, { recursive: true });
+  }
+} catch (e) {
+  // Silent fallback in read-only serverless environments
 }
 
 // Judge0 Language IDs
