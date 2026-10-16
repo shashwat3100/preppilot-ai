@@ -357,6 +357,42 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         speech: "The OSI model has seven layers: Physical, Data Link, Network, Transport, Session, Presentation, and Application."
       };
     }
+    if (q.includes('array')) {
+      return {
+        reply: "### What is an Array?\nAn **array** is a fundamental linear data structure that stores homogeneous elements in **contiguous memory locations**.\n\n- **Access**: $O(1)$ constant time via index arithmetic.\n- **Search**: $O(n)$ linear / $O(\\log n)$ binary search on sorted data.\n- **Insert/Delete**: $O(n)$ due to element shifting.",
+        speech: "An array is a linear data structure that stores elements of the same data type in contiguous memory locations with O(1) random access."
+      };
+    }
+    if (q.includes('linked list')) {
+      return {
+        reply: "### What is a Linked List?\nA **linked list** is a linear data structure composed of nodes containing data and pointers to the next node, stored non-contiguously on the heap.\n\n- **Head Insertion/Deletion**: $O(1)$ without memory shifting.\n- **Search/Access**: $O(n)$ sequential traversal.",
+        speech: "A linked list consists of nodes with data and pointers stored non-contiguously, allowing O(1) insertions at the head."
+      };
+    }
+    if (q.includes('stack')) {
+      return {
+        reply: "### What is a Stack?\nA **stack** is a linear LIFO (Last-In, First-Out) data structure where elements are pushed and popped from the same end (top) in $O(1)$ time.",
+        speech: "A stack is a linear data structure following the Last-In First-Out principle with O(1) push and pop operations."
+      };
+    }
+    if (q.includes('queue')) {
+      return {
+        reply: "### What is a Queue?\nA **queue** is a linear FIFO (First-In, First-Out) data structure where elements are enqueued at the rear and dequeued from the front in $O(1)$ time.",
+        speech: "A queue is a linear data structure following the First-In First-Out principle with O(1) enqueue and dequeue operations."
+      };
+    }
+    if (q.includes('tree')) {
+      return {
+        reply: "### Binary Search Tree (BST)\nA **BST** is a hierarchical data structure where every node has at most two children, satisfying: Left < Root < Right. Average search, insert, and delete take $O(\\log n)$ time.",
+        speech: "A Binary Search Tree is a hierarchical structure where left children are smaller and right children are larger than the root."
+      };
+    }
+    if (q.includes('graph')) {
+      return {
+        reply: "### What is a Graph?\nA **graph** consists of vertices $V$ and edges $E$, represented using Adjacency Lists ($O(V+E)$ space) or Adjacency Matrices ($O(V^2)$ space). Traversals include BFS and DFS.",
+        speech: "A graph is a non-linear data structure with vertices and edges, traversed using Breadth-First Search and Depth-First Search."
+      };
+    }
     if (q.includes('oop') || q.includes('inheritance') || q.includes('polymorphism')) {
       return {
         reply: "### Four Pillars of OOP\n- **Encapsulation**: Bundling data with methods and hiding internal state.\n- **Abstraction**: Hiding complex implementation and exposing simple interfaces.\n- **Inheritance**: Deriving new classes from existing classes for code reuse.\n- **Polymorphism**: The ability of an object or method to take many forms.",

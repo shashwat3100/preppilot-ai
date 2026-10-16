@@ -290,6 +290,378 @@ Which subject or company pattern would you like to begin with?`;
 
     // A. Specific High-Yield Placement Concepts Grounded in RAG Knowledge Base
     if (
+      qLower.includes('what is array') ||
+      qLower === 'what is an array' ||
+      qLower === 'array' ||
+      qLower === 'arrays' ||
+      qLower.includes('array data structure') ||
+      qLower.includes('define array') ||
+      qLower.includes('explain array') ||
+      (qLower.includes('array') && !qLower.includes('rotation') && !qLower.includes('sliding') && !qLower.includes('tcs') && !qLower.includes('suffix') && !qLower.includes('subarray'))
+    ) {
+      responseMarkdown = `### What is an Array?
+
+An **array** is a fundamental linear data structure that stores a collection of elements of the same data type in **contiguous memory locations**. Each element in an array is uniquely identified by an integer index, typically zero-indexed ($0, 1, \\dots, n-1$).
+
+#### 1. Core Architectural Characteristics:
+- **Contiguous Memory Allocation:** Array elements occupy an unbroken sequence of physical memory addresses, enabling exceptional CPU cache performance and spatial locality.
+- **Constant-Time Direct Indexing:** Any element can be accessed in constant time $O(1)$ through pointer arithmetic using the base address:
+  $$\\text{Address}(A[i]) = \\text{Base Address} + (i \\times \\text{Size of Element})$$
+- **Homogeneous Data:** In statically typed systems (C, C++, Java), all elements stored must share the identical data type.
+- **Static vs. Dynamic Arrays:**
+  - *Static Arrays:* Fixed capacity allocated at compile-time or stack initialization.
+  - *Dynamic Arrays* (e.g., \`std::vector\` in C++, \`ArrayList\` in Java, \`list\` in Python): Automatically double capacity when full, achieving $O(1)$ amortized append operations.
+
+#### 2. Time & Space Complexity:
+| Operation | Average Case | Worst Case | Technical Rationale |
+| :--- | :--- | :--- | :--- |
+| **Access ($A[i]$)** | $O(1)$ | $O(1)$ | Direct memory offset calculation |
+| **Search (Linear)** | $O(n)$ | $O(n)$ | Sequential traversal for unsorted items |
+| **Search (Binary)** | $O(\\log n)$ | $O(\\log n)$ | Divide-and-conquer on sorted arrays |
+| **Insertion (End)** | $O(1)$ | $O(1)$ | Direct write (amortized in dynamic arrays) |
+| **Insertion (Begin/Mid)** | $O(n)$ | $O(n)$ | Requires shifting subsequent elements rightward |
+| **Deletion** | $O(n)$ | $O(n)$ | Requires shifting subsequent elements leftward |
+| **Auxiliary Space** | $O(1)$ | $O(1)$ | Operates in-place within allocated memory |
+
+#### 3. Code Implementation Example (C++):
+\`\`\`cpp
+#include <iostream>
+#include <vector>
+
+int main() {
+    // 1. Static Array (Contiguous stack memory)
+    int staticArr[5] = {10, 20, 30, 40, 50};
+    std::cout << "Element at index 2: " << staticArr[2] << "\\n"; // O(1) Access
+
+    // 2. Dynamic Array (Heap allocated with automatic resizing)
+    std::vector<int> dynamicArr = {1, 2, 3};
+    dynamicArr.push_back(4); // O(1) Amortized insertion
+    return 0;
+}
+\`\`\`
+
+#### 4. Engineering Trade-offs:
+- **Advantages:** Instantaneous $O(1)$ random access, zero pointer memory overhead, superior cache line utilization.
+- **Disadvantages:** Fixed capacity in static arrays, expensive $O(n)$ insertions and deletions due to element shifts, and demands large contiguous memory blocks that can cause allocation failures in fragmented memory.
+
+> **Key Placement Interview Consideration:** Technical interviewers (Amazon, Google, TCS) frequently test why arrays outperform linked lists for sequential iteration (**CPU cache spatial locality**) and expect proficiency in array-centric patterns: **Two Pointers**, **Sliding Window**, and **Prefix Sums**.`;
+
+      speechFriendly = "An array is a linear data structure that stores elements of the same data type in contiguous memory locations. It provides constant-time O(1) random access by index, but insertions and deletions take O(N) time due to element shifting.";
+
+    } else if (
+      qLower.includes('linked list') ||
+      qLower.includes('singly linked') ||
+      qLower.includes('doubly linked') ||
+      qLower.includes('circular linked')
+    ) {
+      responseMarkdown = `### What is a Linked List?
+
+A **linked list** is a linear data structure consisting of discrete nodes where each node contains **data** and one or more **pointers (references)** to adjacent nodes. Unlike arrays, linked list nodes are allocated dynamically on the heap and are **not stored contiguously** in physical memory.
+
+#### 1. Common Variations:
+1. **Singly Linked List:** Each node stores data and a single \`next\` pointer to the successor node.
+2. **Doubly Linked List:** Each node stores data, a \`next\` pointer, and a \`prev\` pointer, enabling bidirectional traversal at the expense of extra pointer overhead.
+3. **Circular Linked List:** The tail node's \`next\` pointer connects back to the head node, forming a closed ring.
+
+#### 2. Time & Space Complexity:
+| Operation | Linked List | Array Comparison |
+| :--- | :--- | :--- |
+| **Access / Search** | $O(n)$ | $O(1)$ Access in Arrays |
+| **Insert at Head** | $O(1)$ | $O(n)$ in Arrays (requires shifting) |
+| **Insert at Tail** | $O(1)$ with tail pointer | $O(1)$ amortized in Dynamic Arrays |
+| **Insert at Middle** | $O(n)$ search $+ O(1)$ pointer update | $O(n)$ shift in Arrays |
+| **Memory Overhead** | $O(n)$ extra for node pointers | Zero pointer overhead in Arrays |
+
+#### 3. Node Structure (Java):
+\`\`\`java
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode(int val) {
+        this.val = val;
+        this.next = null;
+    }
+}
+\`\`\`
+
+#### 4. Array vs. Linked List Trade-offs:
+- **Choose Linked List When:** Frequent insertions and deletions occur at the beginning or arbitrary positions where node references are already available, or when memory size varies unpredictably.
+- **Choose Array When:** Fast random access by index is required and sequential iteration speed benefits from CPU cache lines.
+
+> **Key Placement Interview Consideration:** Interviewers frequently ask candidates to reverse a linked list in-place ($O(1)$ space), detect cycles using Floyd's Tortoise and Hare algorithm ($O(n)$ time, $O(1)$ space), and merge two sorted linked lists.`;
+
+      speechFriendly = "A linked list is a linear data structure consisting of nodes with data and pointers stored non-contiguously in memory. It allows O(1) insertions and deletions at the head without memory reallocation, but requires O(N) sequential traversal to access elements.";
+
+    } else if (
+      qLower.includes('what is stack') ||
+      qLower === 'stack' ||
+      qLower.includes('stack data structure') ||
+      (qLower.includes('stack') && (qLower.includes('lifo') || qLower.includes('push') || qLower.includes('pop') || qLower.includes('monotonic') || qLower.includes('bracket')))
+    ) {
+      responseMarkdown = `### What is a Stack?
+
+A **stack** is a linear data structure that adheres strictly to the **Last-In, First-Out (LIFO)** operational principle: the last element added to the stack is the first element removed.
+
+#### 1. Core Operations (All $O(1)$ Time):
+- **\`push(x)\`:** Inserts element $x$ onto the top of the stack.
+- **\`pop()\`:** Removes and returns the element currently at the top of the stack. Throws an underflow error if the stack is empty.
+- **\`peek()\` / \`top()\`:** Returns the top element without removing it.
+- **\`isEmpty()\`:** Evaluates whether the stack contains zero elements.
+
+#### 2. Standard Implementations:
+1. **Array-Based Implementation:** Maintains a \`top\` index pointer. Fast and memory-efficient, but requires resizing if using static allocation.
+2. **Linked-List-Based Implementation:** Pushes and pops from the head of the list ($O(1)$), allowing dynamic growth without reallocation.
+
+#### 3. High-Yield Applications:
+- **Function Call Stack:** Managing subroutine execution, local variables, and return addresses during nested function calls and recursion.
+- **Expression Parsing:** Converting infix expressions to postfix (Reverse Polish Notation) and evaluating mathematical expressions.
+- **Syntax Validation:** Balanced parentheses checking in compilers and linters.
+- **Monotonic Stack:** Resolving the Next Greater Element and largest rectangle in histogram problems in linear $O(n)$ time.
+
+> **Key Placement Interview Consideration:** When asked to implement a stack supporting \`getMin()\` in $O(1)$ time, describe either using an auxiliary min-stack or storing encoded differential values ($2x - \\text{min}$).`;
+
+      speechFriendly = "A stack is a linear data structure that follows the Last-In, First-Out principle. All primary operations like push, pop, and peek execute in constant O(1) time.";
+
+    } else if (
+      qLower.includes('what is queue') ||
+      qLower === 'queue' ||
+      qLower.includes('queue data structure') ||
+      (qLower.includes('queue') && (qLower.includes('fifo') || qLower.includes('circular') || qLower.includes('deque')))
+    ) {
+      responseMarkdown = `### What is a Queue?
+
+A **queue** is a linear data structure that operates under the **First-In, First-Out (FIFO)** operational principle: the element inserted first is the first one to be removed.
+
+#### 1. Core Operations (All $O(1)$ Time):
+- **\`enqueue(x)\`:** Appends element $x$ to the back (rear) of the queue.
+- **\`dequeue()\`:** Removes and returns the element from the front of the queue.
+- **\`front()\` / \`peek()\`:** Reads the front element without removing it.
+- **\`isEmpty()\`:** Verifies whether the queue contains any elements.
+
+#### 2. Queue Variations:
+1. **Circular Queue:** Connects the last position back to the first position using modulo arithmetic ($(\\text{rear} + 1) \\bmod N$), eliminating space wastage in fixed arrays.
+2. **Double-Ended Queue (Deque):** Permits insertions and deletions at both the front and rear in $O(1)$ time.
+3. **Priority Queue:** Each element has an associated priority; elements with higher priority are dequeued before lower-priority elements (typically implemented via a Heap).
+
+#### 3. Real-World Applications:
+- **Operating Systems:** CPU ready queues, I/O request buffers, and printer spooling.
+- **Networking:** Router packet switching and network buffer management.
+- **Algorithms:** Breadth-First Search (BFS) graph and tree traversals.
+
+> **Key Placement Interview Consideration:** Interviewers frequently ask candidates to implement a queue using two stacks, where amortized time complexity per operation remains $O(1)$.`;
+
+      speechFriendly = "A queue is a linear data structure that follows the First-In, First-Out principle. Elements are enqueued at the rear and dequeued from the front in constant O(1) time.";
+
+    } else if (
+      qLower.includes('what is tree') ||
+      qLower.includes('binary tree') ||
+      qLower.includes('binary search tree') ||
+      qLower.includes('what is bst') ||
+      (qLower.includes('tree') && (qLower.includes('traversal') || qLower.includes('inorder') || qLower.includes('preorder')) && !qLower.includes('trie') && !qLower.includes('b-tree'))
+    ) {
+      responseMarkdown = `### What is a Binary Tree & Binary Search Tree (BST)?
+
+A **tree** is a hierarchical, non-linear data structure consisting of nodes linked by directed edges. A **Binary Tree** is a specialized tree where each node has at most two children, referred to as the left child and right child.
+
+#### The Binary Search Tree (BST) Invariant:
+For every node $X$ in a BST:
+- All values in $X$'s left subtree are strictly **less than** $X$'s value.
+- All values in $X$'s right subtree are strictly **greater than** $X$'s value.
+
+#### 1. Standard Tree Traversals:
+1. **Inorder (Left, Root, Right):** Produces elements in **sorted ascending order** for any valid BST.
+2. **Preorder (Root, Left, Right):** Ideal for serializing or cloning tree hierarchies.
+3. **Postorder (Left, Right, Root):** Used for bottom-up node deletions and evaluating postfix expressions.
+4. **Level-Order (Breadth-First):** Traverses nodes layer by layer using a FIFO Queue.
+
+#### 2. Complexity Analysis:
+| Operation | Average Case (Balanced) | Worst Case (Skewed) | Self-Balancing (AVL / Red-Black) |
+| :--- | :--- | :--- | :--- |
+| **Search** | $O(\\log n)$ | $O(n)$ | $O(\\log n)$ Guaranteed |
+| **Insert** | $O(\\log n)$ | $O(n)$ | $O(\\log n)$ Guaranteed |
+| **Delete** | $O(\\log n)$ | $O(n)$ | $O(\\log n)$ Guaranteed |
+
+> **Key Placement Interview Consideration:** Highlight that an unbalance/skewed BST degrades into a linked list with $O(n)$ runtime, which is why production engines employ self-balancing trees like AVL or Red-Black trees.`;
+
+      speechFriendly = "A Binary Search Tree is a hierarchical data structure where every node has at most two children, with left keys smaller and right keys larger than the root. It provides O of log N average search, insertion, and deletion.";
+
+    } else if (
+      qLower.includes('what is heap') ||
+      qLower.includes('min heap') ||
+      qLower.includes('max heap') ||
+      qLower.includes('priority queue') ||
+      (qLower.includes('heap') && !qLower.includes('sort') && !qLower.includes('memory'))
+    ) {
+      responseMarkdown = `### What is a Heap & Priority Queue?
+
+A **heap** is a specialized complete binary tree that satisfies the **heap property**:
+- **Max-Heap:** The value of each node is greater than or equal to the values of its children. The root holds the maximum element.
+- **Min-Heap:** The value of each node is less than or equal to the values of its children. The root holds the minimum element.
+
+#### 1. Compact Array-Based Representation:
+Because a heap is a complete binary tree, it is stored in a contiguous array without explicit pointers:
+- For a node at index $i$:
+  - **Left Child:** $2i + 1$
+  - **Right Child:** $2i + 2$
+  - **Parent:** $\\lfloor (i - 1) / 2 \\rfloor$
+
+#### 2. Time & Space Complexity:
+- **Get Min / Max:** $O(1)$
+- **Insert (\`push\`):** $O(\\log n)$ via upward sift (bubble-up)
+- **Extract Min / Max (\`pop\`):** $O(\\log n)$ via downward sift (heapify)
+- **Build Heap from Array:** $O(n)$ using bottom-up heapification
+
+#### 3. Primary Applications:
+- Implementing **Priority Queues** in operating systems and network schedulers.
+- **Dijkstra's Shortest Path** and **Prim's Minimum Spanning Tree** algorithms.
+- Finding the **K-th Largest/Smallest Element** in a stream using a fixed-size heap in $O(n \\log k)$ time.
+
+> **Key Placement Interview Consideration:** Interviewers frequently test why \`buildHeap\` executes in $O(n)$ rather than $O(n \\log n)$; explain the mathematical summation of node heights across levels: $\\sum_{h=0}^{\\log n} \\frac{n}{2^{h+1}} O(h) = O(n)$.`;
+
+      speechFriendly = "A heap is a complete binary tree that maintains the min-heap or max-heap property. It allows O(1) peek of the extreme element and logarithmic O of log N insertions and extractions.";
+
+    } else if (
+      qLower.includes('what is graph') ||
+      qLower === 'graph' ||
+      qLower.includes('graph data structure') ||
+      (qLower.includes('graph') && (qLower.includes('representation') || qLower.includes('adjacency') || qLower.includes('vertex') || qLower.includes('vertices')))
+    ) {
+      responseMarkdown = `### What is a Graph Data Structure?
+
+A **graph** is a non-linear data structure consisting of a finite set of **vertices (nodes)** $V$ and a collection of **edges** $E$ that connect pairs of vertices.
+
+#### 1. Graph Classifications:
+- **Directed (Digraph) vs. Undirected:** Edges possess a specific directional orientation ($u \\to v$) or are bidirectional.
+- **Weighted vs. Unweighted:** Edges carry numerical costs/weights (e.g., latency, distance).
+- **Cyclic vs. Acyclic:** Whether paths exist that start and terminate at the same vertex (e.g., Directed Acyclic Graphs or DAGs).
+
+#### 2. Standard Representation Models:
+1. **Adjacency Matrix ($V \\times V$ 2D Array):**
+   - $O(1)$ edge existence verification (\`matrix[u][v]\`).
+   - High space overhead: $O(V^2)$, wasteful for sparse graphs.
+2. **Adjacency List (Array of Lists / Hash Maps):**
+   - Stores only existing outgoing edges for each vertex.
+   - Space complexity: $O(V + E)$, optimal for sparse graphs.
+
+#### 3. Foundational Traversals:
+- **Breadth-First Search (BFS):** Explores vertices level-by-level using a FIFO Queue. Guarantees the shortest path in unweighted graphs ($O(V + E)$).
+- **Depth-First Search (DFS):** Explores deeply along branches using recursion or a LIFO Stack. Used for cycle detection, topological sorting, and connected components.
+
+> **Key Placement Interview Consideration:** Always ask the interviewer whether the graph is directed or undirected and whether it contains cycles or disconnected components before implementing BFS or DFS.`;
+
+      speechFriendly = "A graph is a non-linear data structure consisting of vertices and edges. It is represented using adjacency lists for memory efficiency or adjacency matrices for constant-time edge queries.";
+
+    } else if (
+      qLower.includes('dynamic programming') ||
+      qLower.includes('what is dp') ||
+      qLower.includes('memoization') ||
+      qLower.includes('tabulation')
+    ) {
+      responseMarkdown = `### What is Dynamic Programming (DP)?
+
+**Dynamic Programming (DP)** is an algorithmic optimization paradigm that solves complex problems by breaking them down into simpler subproblems, solving each subproblem exactly once, and storing their solutions to eliminate redundant computations.
+
+#### The Two Mandatory Pre-conditions:
+1. **Overlapping Subproblems:** The problem breaks down into recurring subproblems whose solutions are needed multiple times (e.g., Fibonacci numbers, shortest paths).
+2. **Optimal Substructure:** The optimal solution to the overall problem can be constructed from optimal solutions to its constituent subproblems.
+
+#### 1. The Two Implementation Paradigms:
+- **Top-Down with Memoization:**
+  - Recursive formulation that caches computed states in a hash map or array.
+  - Computes only required subproblems on-demand; subject to call stack overhead.
+- **Bottom-Up with Tabulation:**
+  - Iterative formulation that solves smaller subproblems first, populating an $N$-dimensional table.
+  - Eliminates recursion stack overhead and frequently enables space optimization (e.g., keeping only the last two rows).
+
+#### 2. Classic Placement Problem Patterns:
+- **0/1 Knapsack & Unbounded Knapsack** (Subset sum, coin change)
+- **Longest Common Subsequence (LCS)** (Edit distance, string diffing)
+- **Longest Increasing Subsequence (LIS)** ($O(n \\log n)$ with binary search)
+- **Matrix Chain Multiplication (MCM)** (Interval DP)
+
+> **Key Placement Interview Consideration:** Start by expressing the naive brute-force recursion and recurrence relation, identify the repeated state parameters, and then demonstrate how memoization reduces exponential time $O(2^n)$ to polynomial time $O(n)$.`;
+
+      speechFriendly = "Dynamic Programming optimizes recursive algorithms by caching results of overlapping subproblems. It uses either top-down memoization or bottom-up tabulation to convert exponential solutions into polynomial time.";
+
+    } else if (
+      qLower.includes('what is oop') ||
+      qLower.includes('object oriented') ||
+      qLower.includes('polymorphism') ||
+      qLower.includes('inheritance') ||
+      qLower.includes('encapsulation') ||
+      qLower.includes('abstraction')
+    ) {
+      responseMarkdown = `### Object-Oriented Programming (OOP) & The Four Pillars
+
+**Object-Oriented Programming (OOP)** is a software engineering paradigm organized around **objects** (data structures containing attributes) and **classes** (blueprints defining behaviors and methods).
+
+#### The Four Fundamental Pillars:
+1. **Encapsulation:**
+   - Bundling data and the methods that operate on that data into a single unit (class) while restricting direct outside access to internal state.
+   - Achieved using access specifiers (\`private\`, \`protected\`, \`public\`) and exposing public getters and setters.
+
+2. **Abstraction:**
+   - Hiding complex background implementation details and exposing only essential interfaces to the user.
+   - Implemented via **Abstract Classes** and **Interfaces** (e.g., calling \`drive()\` on a car without needing to understand combustion timing).
+
+3. **Inheritance:**
+   - Enabling a child (derived) class to inherit properties and behaviors from a parent (base) class, promoting DRY (Don't Repeat Yourself) code reuse.
+   - Establishes an *"is-a"* relationship (e.g., a \`Dog\` is an \`Animal\`).
+
+4. **Polymorphism (Many Forms):**
+   - **Compile-Time (Static) Polymorphism:** Method Overloading (same method name, different parameter signature) and Operator Overloading.
+   - **Runtime (Dynamic) Polymorphism:** Method Overriding, where a derived class provides a specific implementation of a virtual method declared in its parent class, resolved dynamically via vtables.
+
+> **Key Placement Interview Consideration:** Contrast Method Overloading (compile-time resolution based on arguments) with Method Overriding (runtime dynamic dispatch based on actual runtime object type).`;
+
+      speechFriendly = "The four pillars of Object-Oriented Programming are Encapsulation for data hiding, Abstraction for interface separation, Inheritance for code reuse, and Polymorphism for dynamic behavior.";
+
+    } else if (
+      qLower.includes('process vs thread') ||
+      qLower.includes('what is process') ||
+      qLower.includes('what is thread') ||
+      qLower.includes('multithreading')
+    ) {
+      responseMarkdown = `### Operating Systems: Process vs. Thread
+
+| Feature | Process | Thread (Lightweight Process) |
+| :--- | :--- | :--- |
+| **Definition** | An independent program in execution | The smallest dispatchable unit of CPU execution |
+| **Memory Space** | Dedicated isolated address space (Text, Data, Heap, Stack) | Shares the parent process's Heap, Data, and Code segment |
+| **Private State** | Separate PID, page tables, file descriptors | Private Program Counter (PC), CPU registers, and Stack |
+| **Creation Overhead** | High (involves \`fork()\` and OS memory mapping) | Low (shares existing process memory) |
+| **Context Switching** | Expensive (invalidates TLB and CPU cache lines) | Inexpensive (TLB translations remain valid) |
+| **Communication** | Requires Inter-Process Communication (IPC: Pipes, Sockets) | Direct shared memory access (requires synchronization) |
+| **Fault Isolation** | High (if one process crashes, others survive) | Low (an unhandled exception in one thread can terminate the whole process) |
+
+> **Key Placement Interview Consideration:** When asked why multithreading is preferred for network servers, explain that thread creation has substantially lower memory and CPU overhead than process creation and allows zero-copy data exchange via shared heap memory.`;
+
+      speechFriendly = "A process is an executing program with isolated memory space, while a thread is a lightweight execution unit inside a process that shares the heap and data segment with peer threads.";
+
+    } else if (
+      qLower.includes('indexing') ||
+      qLower.includes('b-tree') ||
+      qLower.includes('b+ tree') ||
+      qLower.includes('clustered index')
+    ) {
+      responseMarkdown = `### Database Indexing & B+ Trees
+
+A **database index** is an auxiliary data structure that enhances the speed of data retrieval operations on a table at the expense of additional disk storage and slower write operations (\`INSERT\`, \`UPDATE\`, \`DELETE\`).
+
+#### Why B+ Trees are Used in Relational Databases:
+1. **High Fan-Out & Low Depth:** B+ Trees have a high branching factor ($100+$ children per node), allowing tables with millions of rows to be searched in only $3$ to $4$ disk I/O operations.
+2. **All Data in Leaves:** Internal nodes contain only routing keys; all actual table records (or row pointers) reside exclusively in leaf nodes.
+3. **Sequential Leaf Linkage:** Leaf nodes are linked together via a doubly linked list, enabling exceptionally fast $O(\\log n + k)$ range queries and sorting scans.
+
+#### Clustered vs. Non-Clustered Indexes:
+- **Clustered Index:** Dictates the physical storage order of data rows on disk. A table can have **at most one** clustered index (typically on the Primary Key).
+- **Non-Clustered (Secondary) Index:** Stored in a separate structure containing index keys and pointers back to the physical table rows. A table can have multiple non-clustered indexes.
+
+> **Key Placement Interview Consideration:** Interviewers frequently ask why hash indexes are not the default in databases like PostgreSQL or MySQL; explain that Hash Indexes only support point lookups ($O(1)$) and cannot evaluate range scans (\`WHERE age BETWEEN 20 AND 30\`) or ordering.`;
+
+      speechFriendly = "Database indexing uses balanced B+ trees to speed up search queries from O of N table scans to O of log N disk lookups, optimizing both single-record lookups and range queries.";
+
+    } else if (
       qLower.includes('convoy') ||
       qLower.includes('what effect') ||
       qLower.includes('effect is') ||
@@ -819,11 +1191,18 @@ Campus recruitment drives for IT services and product engineering companies eval
         .map(p => p.trim())
         .filter(p => p.length > 20);
 
+      // When candidate asks for a conceptual definition, prioritize conceptual text over company assessment lists
+      const isConceptualQuery = qLower.includes('what is') || qLower.includes('define') || qLower.includes('explain') || qLower.includes('how does') || qLower.includes('why');
+      const filteredParagraphs = isConceptualQuery
+        ? paragraphs.filter(p => !p.toLowerCase().includes('top repeated coding patterns') && !p.toLowerCase().includes('blueprint'))
+        : paragraphs;
+      const candidateParagraphs = filteredParagraphs.length > 0 ? filteredParagraphs : paragraphs;
+
       const queryTokens = tokenize(q);
-      let bestSection = paragraphs[0] || rawContent;
+      let bestSection = candidateParagraphs[0] || rawContent;
       let maxSectionScore = -1;
 
-      for (const section of paragraphs) {
+      for (const section of candidateParagraphs) {
         const sectionTokens = tokenize(section);
         const score = calculateCosineSimilarity(queryTokens, sectionTokens);
         if (score > maxSectionScore) {
