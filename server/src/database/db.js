@@ -27,6 +27,9 @@ export const getDbFilePath = () => {
     }
     return path.join(path.dirname(rawPath), 'careerprep.db');
   }
+  if (process.env.VERCEL) {
+    return path.join('/tmp', 'careerprep.db');
+  }
   const dataDir = process.env.PREPPILOT_DATA_DIR
     ? path.resolve(process.env.PREPPILOT_DATA_DIR)
     : path.resolve(__dirname, '../../data');

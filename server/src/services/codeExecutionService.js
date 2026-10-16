@@ -6,7 +6,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const TEMP_DIR = path.join(__dirname, '..', '..', 'temp_code');
+const TEMP_DIR = process.env.VERCEL
+  ? path.join('/tmp', 'temp_code')
+  : path.join(__dirname, '..', '..', 'temp_code');
 
 if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
