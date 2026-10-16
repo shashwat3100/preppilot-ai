@@ -1,0 +1,515 @@
+import express from 'express';
+import db from '../database/db.js';
+import { authenticate, requireDeanOrAdmin } from '../middleware/auth.js';
+
+const router = express.Router();
+
+// Enforce Dean or Administrator privileges for all Dean academic endpoints
+router.use(authenticate, requireDeanOrAdmin);
+
+// =========================================================================
+// 1. ACADEMIC OVERVIEW
+// =========================================================================
+router.get('/overview', (req, res) => {
+  try {
+    const users = db.getAll('users');
+    const students = users.filter(u => u.role === 'STUDENT');
+    const sessions = db.getAll('quizSessions') || [];
+    const attempts = db.getAll('attempts') || [];
+    const codingSubmissions = db.getAll('codingSubmissions') || [];
+    const subjects = db.getAll('subjects') || [];
+    const topics = db.getAll('topics') || [];
+    const performance = db.getAll('studentPerformance') || [];
+
+    const totalStudents = students.length;
+
+    // Active in last 7 days
+    const activeStudents = students.filter(s => {
+      if (s.is_blocked || s.status === 'BLOCKED') return false;
+      if (!s.last_active_date) return false;
+      const days = (Date.now() - new Date(s.last_active_date).getTime()) / (1000 * 3600 * 24);
+      return days <= 7;
+    });
+
+    // Assessment sessions & completion
+    const completedSessions = sessions.filter(s => s.status === 'COMPLETED');
+    const completionRate = sessions.length > 0
+      ? Math.round((completedSessions.length / sessions.length) * 100)
+      : 0;
+
+    // Unique students who attempted assessments
+    const studentsWithAttempts = new Set(sessions.map(s => s.user_id));
+    const participationRate = totalStudents > 0
+      ? Math.round((studentsWithAttempts.size / totalStudents) * 100)
+      : 0;
+
+    // Average assessment score across completed sessions
+    const scores = completedSessions
+      .map(s => {
+        let score = s.score;
+        if (score === undefined || score === null) {
+          if (s.correct_count !== undefined && s.total_questions) {
+            score = Math.round((s.correct_count / s.total_questions) * 100);
+          }
+        }
+        return score;
+      })
+      .filter(s => s !== undefined && s !== null && !isNaN(s));
+
+    const cohortAverageScore = scores.length > 0
+      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+      : 0;
+
+    // Coding practice metrics
+    const acceptedCoding = codingSubmissions.filter(c => c.status === 'ACCEPTED');
+    const codingAcceptanceRate = codingSubmissions.length > 0
+      ? Math.round((acceptedCoding.length / codingSubmissions.length) * 100)
+      : 0;
+
+    // Subject-wise performance
+    const subjectMastery = subjects.map(sub => {
+      const subTopics = topics.filter(t => t.subject_id === sub.id);
+      const topicIds = new Set(subTopics.map(t => t.id));
+
+      const subPerf = performance.filter(p => topicIds.has(p.topic_id) || p.subject_id === sub.id);
+      const subAttempts = attempts.filter(a => topicIds.has(a.topic_id));
+
+      let accuracy = 0;
+      if (subPerf.length > 0) {
+        const totalAcc = subPerf.reduce((sum, p) => sum + (parseFloat(p.accuracy_rate) || 0), 0);
+        accuracy = Math.round(totalAcc / subPerf.length);
+      } else if (subAttempts.length > 0) {
+        const correct = subAttempts.filter(a => a.is_correct).length;
+        accuracy = Math.round((correct / subAttempts.length) * 100);
+      }
+
+      return {
+        id: sub.id,
+        name: sub.name,
+        code: sub.code || sub.name.substring(0, 4).toUpperCase(),
+        total_topics: subTopics.length,
+        accuracy_rate: accuracy,
+        total_attempts: subAttempts.length || subPerf.reduce((sum, p) => sum + (p.attempts_count || 0), 0)
+      };
+    });
+
+    // Learning gaps / weak areas (topics with accuracy < 65% or highest weakness)
+    const topicPerformanceMap = {};
+    for (const p of performance) {
+      if (!topicPerformanceMap[p.topic_id]) {
+        topicPerformanceMap[p.topic_id] = { totalAcc: 0, count: 0, weaknessSum: 0 };
+      }
+      topicPerformanceMap[p.topic_id].totalAcc += parseFloat(p.accuracy_rate) || 0;
+      topicPerformanceMap[p.topic_id].weaknessSum += parseFloat(p.weakness_score) || 0;
+      topicPerformanceMap[p.topic_id].count += 1;
+    }
+
+    const learningGaps = topics
+      .map(t => {
+        const subject = subjects.find(s => s.id === t.subject_id);
+        const data = topicPerformanceMap[t.id];
+        const avgAcc = data && data.count > 0 ? Math.round(data.totalAcc / data.count) : null;
+        const avgWeakness = data && data.count > 0 ? (data.weaknessSum / data.count).toFixed(2) : null;
+        return {
+          id: t.id,
+          name: t.name,
+          subject_name: subject ? subject.name : 'Computer Science',
+          accuracy_rate: avgAcc,
+          weakness_score: avgWeakness !== null ? parseFloat(avgWeakness) : (avgAcc !== null ? (100 - avgAcc) / 100 : 0.45)
+        };
+      })
+      .filter(t => t.accuracy_rate !== null ? t.accuracy_rate < 70 : true)
+      .sort((a, b) => b.weakness_score - a.weakness_score)
+      .slice(0, 6);
+
+    return res.json({
+      success: true,
+      metrics: {
+        total_students: totalStudents,
+        active_students: activeStudents.length,
+        participation_rate: participationRate,
+        completion_rate: completionRate,
+        cohort_average_score: cohortAverageScore,
+        total_assessment_sessions: sessions.length,
+        completed_sessions: completedSessions.length,
+        total_coding_submissions: codingSubmissions.length,
+        accepted_coding_submissions: acceptedCoding.length,
+        coding_acceptance_rate: codingAcceptanceRate
+      },
+      subject_mastery: subjectMastery,
+      learning_gaps: learningGaps
+    });
+  } catch (err) {
+    console.error('[Dean Overview Error]:', err);
+    return res.status(500).json({ success: false, message: 'Server error retrieving academic overview.' });
+  }
+});
+
+// =========================================================================
+// 2. STUDENT ACADEMIC PERFORMANCE DIRECTORY
+// =========================================================================
+router.get('/performance', (req, res) => {
+  try {
+    const { search = '', branch = 'all', performance_tier = 'all', page = 1, limit = 15 } = req.query;
+
+    const users = db.getAll('users');
+    const students = users.filter(u => u.role === 'STUDENT');
+    const sessions = db.getAll('quizSessions') || [];
+    const codingSubmissions = db.getAll('codingSubmissions') || [];
+    const branches = db.getAll('branches') || [];
+    const branchesMap = new Map(branches.map(b => [b.id, b.name]));
+
+    // Map each student to enriched academic profile
+    let list = students.map(s => {
+      const studentSessions = sessions.filter(sess => sess.user_id === s.id && sess.status === 'COMPLETED');
+      const studentCoding = codingSubmissions.filter(c => c.user_id === s.id);
+      const studentAccepted = studentCoding.filter(c => c.status === 'ACCEPTED');
+
+      const scores = studentSessions
+        .map(sess => {
+          let sc = sess.score;
+          if (sc === undefined || sc === null) {
+            if (sess.correct_count !== undefined && sess.total_questions) {
+              sc = Math.round((sess.correct_count / sess.total_questions) * 100);
+            }
+          }
+          return sc;
+        })
+        .filter(sc => sc !== undefined && sc !== null && !isNaN(sc));
+
+      const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+      const codingSolved = new Set(studentAccepted.map(c => c.problem_id)).size;
+
+      // Determine performance tier
+      let tier = 'Needs Practice';
+      if (avgScore !== null) {
+        if (avgScore >= 75) tier = 'High Performer';
+        else if (avgScore >= 50) tier = 'Proficient';
+        else tier = 'Needs Practice';
+      } else if (codingSolved >= 5) {
+        tier = 'Proficient';
+      }
+
+      return {
+        id: s.id,
+        name: s.name,
+        email: s.email,
+        branch_id: s.branch_id,
+        branch_name: branchesMap.get(s.branch_id) || s.branch_id || 'Computer Science',
+        year: s.year || '4th Year',
+        skill_level: s.skill_level || 'Intermediate',
+        total_xp: s.total_xp || 0,
+        current_streak: s.current_streak || 0,
+        assessments_completed: studentSessions.length,
+        average_score: avgScore,
+        coding_solved: codingSolved,
+        performance_tier: tier,
+        last_active: s.last_active_date || 'N/A'
+      };
+    });
+
+    // Apply Search Filter
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        s.email.toLowerCase().includes(q) ||
+        s.branch_name.toLowerCase().includes(q)
+      );
+    }
+
+    // Apply Branch Filter
+    if (branch !== 'all') {
+      list = list.filter(s => s.branch_id === branch || s.branch_name.toLowerCase().includes(branch.toLowerCase()));
+    }
+
+    // Apply Performance Tier Filter
+    if (performance_tier !== 'all') {
+      list = list.filter(s => s.performance_tier.toLowerCase().replace(/\s+/g, '-') === performance_tier.toLowerCase().replace(/\s+/g, '-'));
+    }
+
+    const totalCount = list.length;
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.max(1, parseInt(limit) || 15);
+    const totalPages = Math.ceil(totalCount / limitNum) || 1;
+    const paginated = list.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+
+    return res.json({
+      success: true,
+      students: paginated,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total_items: totalCount,
+        total_pages: totalPages
+      }
+    });
+  } catch (err) {
+    console.error('[Dean Performance Error]:', err);
+    return res.status(500).json({ success: false, message: 'Server error retrieving student academic performance.' });
+  }
+});
+
+// =========================================================================
+// 3. INDIVIDUAL STUDENT ACADEMIC DOSSIER
+// =========================================================================
+router.get('/performance/:id', (req, res) => {
+  try {
+    const student = db.get('users', req.params.id);
+    if (!student || student.role !== 'STUDENT') {
+      return res.status(404).json({ success: false, message: 'Student academic record not found.' });
+    }
+
+    const sessions = db.getAll('quizSessions').filter(s => s.user_id === student.id);
+    const performance = db.getAll('studentPerformance').filter(p => p.user_id === student.id);
+    const codingSubmissions = db.getAll('codingSubmissions').filter(c => c.user_id === student.id);
+    const subjects = db.getAll('subjects') || [];
+    const topics = db.getAll('topics') || [];
+
+    const { password_hash, ...safeStudent } = student;
+
+    // Clean topic breakdown
+    const topicBreakdown = performance.map(p => {
+      const topic = topics.find(t => t.id === p.topic_id);
+      const subject = subjects.find(s => s.id === p.subject_id);
+      return {
+        topic_name: topic ? topic.name : p.topic_id,
+        subject_name: subject ? subject.name : 'Core CS',
+        accuracy_rate: p.accuracy_rate,
+        attempts: p.attempts_count,
+        weakness_score: p.weakness_score
+      };
+    });
+
+    return res.json({
+      success: true,
+      student: safeStudent,
+      history: {
+        quiz_sessions: sessions,
+        coding_submissions: codingSubmissions.slice(-20),
+        topic_breakdown: topicBreakdown
+      }
+    });
+  } catch (err) {
+    console.error('[Dean Student Dossier Error]:', err);
+    return res.status(500).json({ success: false, message: 'Server error retrieving student dossier.' });
+  }
+});
+
+// =========================================================================
+// 4. ASSESSMENT OUTCOME ANALYTICS
+// =========================================================================
+router.get('/assessments', (req, res) => {
+  try {
+    const sessions = db.getAll('quizSessions') || [];
+    const completedSessions = sessions.filter(s => s.status === 'COMPLETED');
+
+    // Standardized assessments recognized by platform
+    const assessmentTypes = [
+      { id: 'core-cs', title: 'Core CS Fundamentals Assessment', target_company: 'Universal Engineering', total_q: 20 },
+      { id: 'tcs-nqt', title: 'TCS NQT National Mock Test', target_company: 'Tata Consultancy Services', total_q: 30 },
+      { id: 'dsa-mastery', title: 'Data Structures & Algorithms Sprint', target_company: 'Product & Tech Firms', total_q: 15 },
+      { id: 'custom-adaptive', title: 'Adaptive Practice Sessions', target_company: 'Self-Paced Learning', total_q: 10 }
+    ];
+
+    const catalog = assessmentTypes.map(asmt => {
+      // Find matching sessions by assessment_id or mode
+      const relevant = completedSessions.filter(s =>
+        s.assessment_id === asmt.id ||
+        (asmt.id === 'custom-adaptive' && (!s.assessment_id || s.mode === 'adaptive')) ||
+        (s.title && s.title.toLowerCase().includes(asmt.id.replace('-', ' ')))
+      );
+
+      const scores = relevant
+        .map(s => {
+          let score = s.score;
+          if (score === undefined || score === null) {
+            if (s.correct_count !== undefined && s.total_questions) {
+              score = Math.round((s.correct_count / s.total_questions) * 100);
+            }
+          }
+          return score;
+        })
+        .filter(s => s !== undefined && s !== null && !isNaN(s));
+
+      const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+      const passCount = scores.filter(s => s >= 60).length;
+      const passRate = scores.length > 0 ? Math.round((passCount / scores.length) * 100) : 0;
+      const highestScore = scores.length > 0 ? Math.max(...scores) : 0;
+
+      return {
+        ...asmt,
+        total_attempts: relevant.length,
+        average_score: avgScore,
+        pass_rate: passRate,
+        highest_score: highestScore
+      };
+    });
+
+    return res.json({
+      success: true,
+      total_assessments_taken: completedSessions.length,
+      assessments: catalog
+    });
+  } catch (err) {
+    console.error('[Dean Assessment Analytics Error]:', err);
+    return res.status(500).json({ success: false, message: 'Server error retrieving assessment analytics.' });
+  }
+});
+
+// =========================================================================
+// 5. SUBJECT & TOPIC ANALYTICS
+// =========================================================================
+router.get('/subject-analytics', (req, res) => {
+  try {
+    const subjects = db.getAll('subjects') || [];
+    const topics = db.getAll('topics') || [];
+    const questions = db.getAll('questions') || [];
+    const performance = db.getAll('studentPerformance') || [];
+    const attempts = db.getAll('attempts') || [];
+
+    const detailedSubjects = subjects.map(sub => {
+      const subTopics = topics.filter(t => t.subject_id === sub.id);
+      const subQuestions = questions.filter(q => q.subject_id === sub.id);
+      const topicIds = new Set(subTopics.map(t => t.id));
+
+      const subPerf = performance.filter(p => topicIds.has(p.topic_id) || p.subject_id === sub.id);
+      const subAttempts = attempts.filter(a => topicIds.has(a.topic_id));
+
+      let accuracy = 0;
+      if (subPerf.length > 0) {
+        const total = subPerf.reduce((sum, p) => sum + (parseFloat(p.accuracy_rate) || 0), 0);
+        accuracy = Math.round(total / subPerf.length);
+      } else if (subAttempts.length > 0) {
+        const correct = subAttempts.filter(a => a.is_correct).length;
+        accuracy = Math.round((correct / subAttempts.length) * 100);
+      }
+
+      // Detailed topic breakdown within subject
+      const topicDetails = subTopics.map(top => {
+        const topPerf = performance.filter(p => p.topic_id === top.id);
+        const topQuestions = questions.filter(q => q.topic_id === top.id);
+        const topAttempts = attempts.filter(a => a.topic_id === top.id);
+
+        let topAcc = 0;
+        if (topPerf.length > 0) {
+          const totalAcc = topPerf.reduce((sum, p) => sum + (parseFloat(p.accuracy_rate) || 0), 0);
+          topAcc = Math.round(totalAcc / topPerf.length);
+        } else if (topAttempts.length > 0) {
+          const correct = topAttempts.filter(a => a.is_correct).length;
+          topAcc = Math.round((correct / topAttempts.length) * 100);
+        }
+
+        const totalAttemptsCount = topAttempts.length || topPerf.reduce((sum, p) => sum + (p.attempts_count || 0), 0);
+
+        return {
+          id: top.id,
+          name: top.name,
+          question_count: topQuestions.length,
+          attempts_count: totalAttemptsCount,
+          accuracy_rate: topAcc,
+          status: topAcc >= 70 ? 'Strong' : topAcc >= 50 ? 'Moderate' : 'Needs Practice'
+        };
+      });
+
+      return {
+        id: sub.id,
+        name: sub.name,
+        code: sub.code || sub.name.substring(0, 4).toUpperCase(),
+        total_questions: subQuestions.length,
+        total_attempts: subAttempts.length || subPerf.reduce((sum, p) => sum + (p.attempts_count || 0), 0),
+        accuracy_rate: accuracy,
+        topics: topicDetails
+      };
+    });
+
+    return res.json({
+      success: true,
+      subjects: detailedSubjects
+    });
+  } catch (err) {
+    console.error('[Dean Subject Analytics Error]:', err);
+    return res.status(500).json({ success: false, message: 'Server error retrieving subject analytics.' });
+  }
+});
+
+// =========================================================================
+// 6. ACADEMIC REPORTS & CSV EXPORT
+// =========================================================================
+router.get('/reports/export', (req, res) => {
+  try {
+    const { report_type = 'student-performance' } = req.query;
+    const users = db.getAll('users');
+    const students = users.filter(u => u.role === 'STUDENT');
+    const sessions = db.getAll('quizSessions') || [];
+    const codingSubmissions = db.getAll('codingSubmissions') || [];
+    const branches = db.getAll('branches') || [];
+    const branchesMap = new Map(branches.map(b => [b.id, b.name]));
+
+    let csvContent = '';
+    const nowIso = new Date().toISOString().split('T')[0];
+
+    if (report_type === 'assessments') {
+      csvContent = 'Assessment ID,Title,Status,Student ID,Student Name,Score,Correct Answers,Total Questions,Date\n';
+      const completed = sessions.filter(s => s.status === 'COMPLETED');
+      for (const s of completed) {
+        const student = students.find(st => st.id === s.user_id);
+        const studentName = student ? `"${student.name.replace(/"/g, '""')}"` : 'Unknown';
+        const title = `"${(s.title || s.assessment_id || 'Adaptive Session').replace(/"/g, '""')}"`;
+        const score = s.score !== undefined ? s.score : (s.correct_count && s.total_questions ? Math.round((s.correct_count / s.total_questions) * 100) : 'N/A');
+        const correct = s.correct_count || 0;
+        const total = s.total_questions || 0;
+        const date = s.completed_at ? s.completed_at.split('T')[0] : (s.created_at ? s.created_at.split('T')[0] : 'N/A');
+
+        csvContent += `${s.id},${title},${s.status},${s.user_id},${studentName},${score},${correct},${total},${date}\n`;
+      }
+    } else {
+      // Default: Student Academic Performance Summary
+      csvContent = 'Student ID,Full Name,Email,Branch,Skill Level,Assessments Completed,Average Score (%),Coding Solved,Current Streak,Performance Tier,Last Active\n';
+
+      for (const s of students) {
+        const studentSessions = sessions.filter(sess => sess.user_id === s.id && sess.status === 'COMPLETED');
+        const studentCoding = codingSubmissions.filter(c => c.user_id === s.id && c.status === 'ACCEPTED');
+        const codingSolved = new Set(studentCoding.map(c => c.problem_id)).size;
+
+        const scores = studentSessions
+          .map(sess => {
+            let sc = sess.score;
+            if (sc === undefined || sc === null) {
+              if (sess.correct_count !== undefined && sess.total_questions) {
+                sc = Math.round((sess.correct_count / sess.total_questions) * 100);
+              }
+            }
+            return sc;
+          })
+          .filter(sc => sc !== undefined && sc !== null && !isNaN(sc));
+
+        const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 'N/A';
+
+        let tier = 'Needs Practice';
+        if (avgScore !== 'N/A') {
+          if (avgScore >= 75) tier = 'High Performer';
+          else if (avgScore >= 50) tier = 'Proficient';
+          else tier = 'Needs Practice';
+        } else if (codingSolved >= 5) {
+          tier = 'Proficient';
+        }
+
+        const nameSafe = `"${s.name.replace(/"/g, '""')}"`;
+        const emailSafe = `"${s.email.replace(/"/g, '""')}"`;
+        const branchSafe = `"${(branchesMap.get(s.branch_id) || s.branch_id || 'Computer Science').replace(/"/g, '""')}"`;
+
+        csvContent += `${s.id},${nameSafe},${emailSafe},${branchSafe},${s.skill_level || 'Intermediate'},${studentSessions.length},${avgScore},${codingSolved},${s.current_streak || 0},${tier},${s.last_active_date || 'N/A'}\n`;
+      }
+    }
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="preppilot_dean_report_${report_type}_${nowIso}.csv"`);
+    return res.status(200).send(csvContent);
+  } catch (err) {
+    console.error('[Dean Export Error]:', err);
+    return res.status(500).json({ success: false, message: 'Server error generating academic CSV report.' });
+  }
+});
+
+export default router;

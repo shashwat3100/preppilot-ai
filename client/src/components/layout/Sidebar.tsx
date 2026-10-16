@@ -14,7 +14,15 @@ import {
   Shield,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Users,
+  HelpCircle,
+  Award,
+  TrendingUp,
+  FileSpreadsheet,
+  GraduationCap,
+  BookOpen,
+  BarChart2
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -34,53 +42,77 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen,
   onCloseMobile
 }) => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDean } = useAuth();
 
-  const navSections = [
-    {
-      title: 'Workspace',
-      items: [
-        { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-        { id: 'adaptive-quiz', label: 'Adaptive Quiz', icon: Sparkles },
-        { id: 'coding-practice', label: 'Coding Practice', icon: Code2 },
-        { id: 'assessment', label: 'Placement Tests', icon: ShieldCheck }
-      ]
-    },
-    {
-      title: 'Preparation',
-      items: [
-        { id: 'companies', label: 'Company Prep', icon: Building2 },
-        { id: 'custom-practice', label: 'Custom Revision', icon: Sliders }
-      ]
-    },
-    {
-      title: 'Insights',
-      items: [
-        { id: 'analytics', label: 'Performance Analytics', icon: BarChart3 }
-      ]
-    },
-    {
-      title: 'Assistance',
-      items: [
-        { id: 'thinking-orb', label: 'PrepPilot AI Mentor', icon: Bot },
-        { id: 'preppilot-studio', label: 'Voice AI Studio', icon: Mic }
-      ]
-    }
-  ];
+  let navSections = [];
 
   if (isAdmin) {
-    navSections.unshift({
-      title: 'Administration',
-      items: [
-        { id: 'admin', label: 'Admin Management', icon: Shield }
-      ]
-    });
+    navSections = [
+      {
+        title: 'Platform Governance',
+        items: [
+          { id: 'admin-overview', label: 'Overview', icon: LayoutDashboard },
+          { id: 'admin-students', label: 'Students', icon: Users },
+          { id: 'admin-questions', label: 'Question Bank', icon: HelpCircle },
+          { id: 'admin-assessments', label: 'Assessments', icon: Award },
+          { id: 'admin-analytics', label: 'Platform Analytics', icon: TrendingUp },
+          { id: 'admin-users', label: 'User Management', icon: Shield }
+        ]
+      }
+    ];
+  } else if (isDean) {
+    navSections = [
+      {
+        title: 'Academic Oversight',
+        items: [
+          { id: 'dean-overview', label: 'Academic Overview', icon: BarChart2 },
+          { id: 'dean-performance', label: 'Student Performance', icon: GraduationCap },
+          { id: 'dean-assessments', label: 'Assessments', icon: Award },
+          { id: 'dean-subjects', label: 'Subject Analytics', icon: BookOpen },
+          { id: 'dean-reports', label: 'Academic Reports', icon: FileSpreadsheet }
+        ]
+      }
+    ];
+  } else {
+    navSections = [
+      {
+        title: 'Workspace',
+        items: [
+          { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+          { id: 'adaptive-quiz', label: 'Adaptive Quiz', icon: Sparkles },
+          { id: 'coding-practice', label: 'Coding Practice', icon: Code2 },
+          { id: 'assessment', label: 'Placement Tests', icon: ShieldCheck }
+        ]
+      },
+      {
+        title: 'Preparation',
+        items: [
+          { id: 'companies', label: 'Company Prep', icon: Building2 },
+          { id: 'custom-practice', label: 'Custom Revision', icon: Sliders }
+        ]
+      },
+      {
+        title: 'Insights',
+        items: [
+          { id: 'analytics', label: 'Performance Analytics', icon: BarChart3 }
+        ]
+      },
+      {
+        title: 'Assistance',
+        items: [
+          { id: 'thinking-orb', label: 'PrepPilot AI Mentor', icon: Bot },
+          { id: 'preppilot-studio', label: 'Voice AI Studio', icon: Mic }
+        ]
+      }
+    ];
   }
 
   const handleItemClick = (tabId: string) => {
     onSelectTab(tabId);
     onCloseMobile();
   };
+
+  const defaultHomeTab = isAdmin ? 'admin-overview' : isDean ? 'dean-overview' : 'dashboard';
 
   const sidebarContent = (
     <div className="flex flex-col h-full bg-[var(--surface-card)] border-r border-[var(--surface-border)] select-none">
@@ -89,7 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         isCollapsed ? 'justify-center' : 'justify-between'
       }`}>
         <button
-          onClick={() => handleItemClick(isAdmin ? 'admin' : 'dashboard')}
+          onClick={() => handleItemClick(defaultHomeTab)}
           className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg cursor-pointer"
         >
           <PrepPilotLogo size="sm" showText={false} />
@@ -132,7 +164,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-0.5">
               {section.items.map((item) => {
                 const Icon = item.icon;
-                const isActive = currentTab === item.id;
+                const isActive = currentTab === item.id ||
+                  (isAdmin && currentTab === 'admin' && item.id === 'admin-overview') ||
+                  (isDean && currentTab === 'dean' && item.id === 'dean-overview');
                 return (
                   <button
                     key={item.id}

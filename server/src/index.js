@@ -19,6 +19,7 @@ import companyRoutes from './routes/companyRoutes.js';
 import branchRoutes from './routes/branchRoutes.js';
 import preppilotRoutes from './routes/preppilotRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import deanRoutes from './routes/deanRoutes.js';
 import codingRoutes from './routes/codingRoutes.js';
 import { authLimiter } from './middleware/rateLimiter.js';
 
@@ -90,6 +91,7 @@ app.use('/api/companies', companyRoutes);
 app.use('/api/branches', branchRoutes);
 app.use('/api/preppilot', preppilotRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/dean', deanRoutes);
 app.use('/api/coding', codingRoutes);
 
 // Serve static frontend build if present (for Go Live, production, or unified port 5000 access)

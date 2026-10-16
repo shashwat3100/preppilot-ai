@@ -46,7 +46,20 @@ export const APP_CONFIG = {
       'voice-studio': 'preppilot-studio',
       'revision': 'custom-practice',
       'practice': 'custom-practice',
-      'stats': 'analytics'
+      'stats': 'analytics',
+      'admin': 'admin-overview',
+      'admin-overview': 'admin-overview',
+      'admin-students': 'admin-students',
+      'admin-questions': 'admin-questions',
+      'admin-assessments': 'admin-assessments',
+      'admin-analytics': 'admin-analytics',
+      'admin-users': 'admin-users',
+      'dean': 'dean-overview',
+      'dean-overview': 'dean-overview',
+      'dean-performance': 'dean-performance',
+      'dean-assessments': 'dean-assessments',
+      'dean-subjects': 'dean-subjects',
+      'dean-reports': 'dean-reports'
     } as Record<string, string>
   },
   navigation: [

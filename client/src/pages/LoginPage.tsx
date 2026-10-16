@@ -25,7 +25,7 @@ interface LoginPageProps {
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister }) => {
   const { login, registerDean } = useAuth();
-  const [loginMode, setLoginMode] = useState<'student' | 'admin'>('student');
+  const [loginMode, setLoginMode] = useState<'student' | 'admin' | 'dean'>('student');
   const [email, setEmail] = useState('student@careerprep.ai');
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
@@ -41,8 +41,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
   const [deanEmail, setDeanEmail] = useState('');
   const [deanPassword, setDeanPassword] = useState('');
   const [deanPasscode, setDeanPasscode] = useState('');
-  const [deanDepartment, setDeanDepartment] = useState('Training & Placement Cell');
-  const [deanDesignation, setDeanDesignation] = useState('Associate Placement Dean');
+  const [deanDepartment, setDeanDepartment] = useState('Academic & Placement Governance');
+  const [deanDesignation, setDeanDesignation] = useState('Dean');
   const [deanRegisterError, setDeanRegisterError] = useState('');
   const [deanRegisterLoading, setDeanRegisterLoading] = useState(false);
 
@@ -55,16 +55,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
   const [forgotError, setForgotError] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
 
-  const handleModeSwitch = (mode: 'student' | 'admin') => {
+  const handleModeSwitch = (mode: 'student' | 'admin' | 'dean') => {
     setLoginMode(mode);
     setError('');
     setSuccessMsg('');
     if (mode === 'student') {
       setEmail('student@careerprep.ai');
       setPassword('password123');
-    } else {
+    } else if (mode === 'admin') {
       setEmail('admin@careerprep.ai');
       setPassword('admin123');
+    } else {
+      setEmail('dean@college.edu');
+      setPassword('DeanPass123');
     }
   };
 
@@ -78,7 +81,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
     setLoading(false);
 
     if (res.success) {
-      const resolvedRole = res.user?.role || (loginMode === 'admin' || email.includes('admin') ? 'ADMIN' : 'STUDENT');
+      const resolvedRole = res.user?.role || (loginMode === 'admin' ? 'ADMIN' : loginMode === 'dean' ? 'DEAN' : 'STUDENT');
       onSuccess(resolvedRole);
     } else {
       setError(res.message || 'Login failed. Please verify credentials.');
@@ -94,7 +97,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
     if (res.success) {
       onSuccess('ADMIN');
     } else {
-      setError(res.message || 'Admin login failed.');
+      setError(res.message || 'Administrator login failed.');
+    }
+  };
+
+  const handleQuickDeanLogin = async () => {
+    setError('');
+    setSuccessMsg('');
+    setLoading(true);
+    let res = await login({ email: 'dean@college.edu', password: 'DeanPass123' });
+    if (!res.success) {
+      res = await login({ email: 'admin@college.edu', password: 'AdminPass123' });
+    }
+    setLoading(false);
+    if (res.success) {
+      onSuccess('DEAN');
+    } else {
+      setError(res.message || 'Dean login failed.');
     }
   };
 
@@ -111,17 +130,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
         password: deanPassword,
         passcode: deanPasscode.trim(),
         department: deanDepartment.trim(),
-        designation: deanDesignation.trim()
+        designation: 'Dean'
       });
 
       if (res.success) {
         setShowDeanRegisterModal(false);
-        onSuccess('ADMIN');
+        onSuccess('DEAN');
       } else {
-        setDeanRegisterError(res.message || 'Failed to register faculty dean.');
+        setDeanRegisterError(res.message || 'Failed to register Dean account.');
       }
     } catch (err: any) {
-      setDeanRegisterError(err.message || 'Network error during dean registration.');
+      setDeanRegisterError(err.message || 'Network error during Dean registration.');
     } finally {
       setDeanRegisterLoading(false);
     }
@@ -190,56 +209,71 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
         </h2>
         <p className="text-xs text-slate-400">
           {loginMode === 'admin'
-            ? 'Candidate Directory • New Joinees Tracking • Progress Dossiers • Dean Authority'
+            ? 'Platform Management • Student Directory • Question Bank CRUD • User Access Control'
+            : loginMode === 'dean'
+            ? 'Academic Oversight • Student Performance Analytics • Assessment Reports • Verified CSV'
             : 'Prepare Smarter. Practice Better. Get Placement Ready.'}
         </p>
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md z-10">
         <div className="bg-slate-900/90 border border-slate-800 py-7 px-6 shadow-2xl rounded-2xl sm:px-9 backdrop-blur-xl space-y-5">
-          {/* Dual Portal Switcher Tabs */}
-          <div className="p-1 rounded-xl bg-slate-950 border border-slate-800 grid grid-cols-2 gap-1">
+          {/* 3-Role Switcher Tabs */}
+          <div className="p-1 rounded-xl bg-slate-950 border border-slate-800 grid grid-cols-3 gap-1">
             <button
               type="button"
               onClick={() => handleModeSwitch('student')}
-              className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              className={`py-2 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 loginMode === 'student'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <GraduationCap size={15} />
-              <span>Student Portal</span>
+              <GraduationCap size={14} />
+              <span>Student</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleModeSwitch('admin')}
-              className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              className={`py-2 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 loginMode === 'admin'
                   ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md shadow-amber-600/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Shield size={15} />
-              <span>Admin / Dean</span>
+              <Shield size={14} />
+              <span>Admin</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleModeSwitch('dean')}
+              className={`py-2 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                loginMode === 'dean'
+                  ? 'bg-gradient-to-r from-blue-600 to-cyan-700 text-white shadow-md shadow-cyan-600/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <ShieldCheck size={14} />
+              <span>Dean</span>
             </button>
           </div>
 
-          {/* Admin Dedicated Banner */}
+          {/* Role Dedicated Banner */}
           {loginMode === 'admin' ? (
             <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/30 space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
-                  <ShieldCheck size={16} />
-                  <span>Dean / Placement Officer Mode</span>
+                  <Shield size={16} />
+                  <span>Platform Administrator Mode</span>
                 </div>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
                   Full Authority
                 </span>
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Admins have full oversight to inspect <strong>newly joined candidates</strong>, review <strong>placement readiness dossiers</strong>, <strong>kick out or suspend profiles</strong>, and appoint new faculty Deans.
+                Platform administration: manage student accounts, question bank CRUD, platform analytics, and user access control.
               </p>
               <div className="grid grid-cols-1 gap-2 pt-1">
                 <button
@@ -249,16 +283,42 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                   className="w-full py-2 px-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-2 shadow-md shadow-amber-600/20 transition-all cursor-pointer"
                 >
                   <KeyRound size={14} />
-                  <span>Instant 1-Click Sign In (Dr. Ramesh Kulkarni)</span>
+                  <span>Instant 1-Click Sign In (Administrator)</span>
+                </button>
+              </div>
+            </div>
+          ) : loginMode === 'dean' ? (
+            <div className="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/30 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold">
+                  <ShieldCheck size={16} />
+                  <span>Dean Mode</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
+                  Academic Analytics
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Academic analytics: student cohort performance, assessment completion outcomes, subject mastery, and verified reporting.
+              </p>
+              <div className="grid grid-cols-1 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleQuickDeanLogin}
+                  disabled={loading}
+                  className="w-full py-2 px-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-2 shadow-md shadow-cyan-600/20 transition-all cursor-pointer"
+                >
+                  <KeyRound size={14} />
+                  <span>Instant 1-Click Sign In (Dean)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setShowDeanRegisterModal(true)}
-                  className="w-full py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-amber-500/30 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="w-full py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-cyan-500/30 flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <UserPlus size={14} />
-                  <span>Register as New Dean / Placement Officer</span>
+                  <span>Register as Dean (Invitation Required)</span>
                 </button>
               </div>
             </div>
@@ -300,7 +360,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                {loginMode === 'admin' ? 'Placement Admin Email' : 'Candidate Email'}
+                {loginMode === 'admin' ? 'Administrator Email' : loginMode === 'dean' ? 'Dean Email' : 'Candidate Email'}
               </label>
               <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -311,7 +371,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={loginMode === 'admin' ? 'admin@careerprep.ai' : 'student@careerprep.ai'}
+                  placeholder={loginMode === 'admin' ? 'admin@careerprep.ai' : loginMode === 'dean' ? 'dean@college.edu' : 'student@careerprep.ai'}
                   className="block w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl text-xs text-slate-200 placeholder-slate-500 outline-none transition-colors"
                 />
               </div>
@@ -354,10 +414,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
               className={`w-full mt-2 py-3 px-4 rounded-xl text-white text-xs font-bold shadow-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer ${
                 loginMode === 'admin'
                   ? 'bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:from-amber-500 hover:to-amber-700 shadow-amber-600/30'
+                  : loginMode === 'dean'
+                  ? 'bg-gradient-to-r from-cyan-600 via-cyan-700 to-blue-800 hover:from-cyan-500 hover:to-blue-700 shadow-cyan-600/30'
                   : 'bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800 hover:from-indigo-500 hover:to-indigo-600 shadow-indigo-600/30'
               }`}
             >
-              <span>{loading ? 'Verifying Credentials...' : loginMode === 'admin' ? 'Sign In as Administrator' : 'Sign In as Candidate'}</span>
+              <span>{loading ? 'Verifying Credentials...' : loginMode === 'admin' ? 'Sign In as Administrator' : loginMode === 'dean' ? 'Sign In as Dean' : 'Sign In as Candidate'}</span>
               <ArrowRight size={15} />
             </button>
           </form>
@@ -375,20 +437,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                 </button>
               </p>
             </div>
-          ) : (
+          ) : loginMode === 'dean' ? (
             <div className="pt-4 border-t border-slate-800 text-center space-y-1.5">
               <p className="text-[11px] text-slate-400">
-                Need to create a new Dean account?{' '}
+                Need to create a Dean account?{' '}
                 <button
                   type="button"
                   onClick={() => setShowDeanRegisterModal(true)}
-                  className="font-bold text-amber-400 hover:text-amber-300 cursor-pointer"
+                  className="font-bold text-cyan-400 hover:text-cyan-300 cursor-pointer"
                 >
-                  Register with Dean Passcode
+                  Register with Invitation Token
                 </button>
               </p>
               <p className="text-[10px] text-slate-500">
-                CareerPrep AI Admin Portal • Authorized Placement Officers & Dean Only
+                PrepPilot AI Academic Portal • Dean & Academic Governance
+              </p>
+            </div>
+          ) : (
+            <div className="pt-4 border-t border-slate-800 text-center space-y-1.5">
+              <p className="text-[10px] text-slate-500">
+                PrepPilot AI Platform Governance • Authorized Platform Administrators Only
               </p>
             </div>
           )}
@@ -396,19 +464,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
       </div>
 
       {/* ========================================================================= */}
-      {/* MODAL 1: REGISTER NEW PLACEMENT DEAN / OFFICER                            */}
+      {/* MODAL 1: REGISTER NEW DEAN                                                */}
       {/* ========================================================================= */}
       {showDeanRegisterModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-slate-900 border border-amber-500/30 rounded-3xl max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl relative">
+          <div className="bg-slate-900 border border-cyan-500/30 rounded-3xl max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl relative">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck size={20} className="text-amber-400" />
-                  <h3 className="text-lg font-bold text-white">Register Placement Dean / Officer</h3>
+                  <ShieldCheck size={20} className="text-cyan-400" />
+                  <h3 className="text-lg font-bold text-white">Register Dean</h3>
                 </div>
                 <p className="text-xs text-slate-400">
-                  Create a new faculty account with full campus governance privileges.
+                  Create an authorized Dean account for academic analytics and student performance oversight.
                 </p>
               </div>
               <button
@@ -435,7 +503,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                   value={deanName}
                   onChange={(e) => setDeanName(e.target.value)}
                   placeholder="e.g. Dr. Sunita Deshmukh"
-                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none focus:border-amber-500"
+                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -446,8 +514,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                   required
                   value={deanEmail}
                   onChange={(e) => setDeanEmail(e.target.value)}
-                  placeholder="e.g. sunita.deshmukh@careerprep.ai"
-                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none focus:border-amber-500"
+                  placeholder="e.g. dean@college.edu"
+                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -459,7 +527,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                     required
                     value={deanDepartment}
                     onChange={(e) => setDeanDepartment(e.target.value)}
-                    placeholder="Training & Placement Cell"
+                    placeholder="Academic & Placement Governance"
                     className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none"
                   />
                 </div>
@@ -471,7 +539,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                     required
                     value={deanDesignation}
                     onChange={(e) => setDeanDesignation(e.target.value)}
-                    placeholder="Associate Placement Dean"
+                    placeholder="Dean"
                     className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none"
                   />
                 </div>
@@ -485,18 +553,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                   value={deanPassword}
                   onChange={(e) => setDeanPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none focus:border-amber-500"
+                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none focus:border-cyan-500"
                 />
               </div>
 
               {/* Authorization Token */}
-              <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/30 space-y-1.5">
+              <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/30 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                  <label className="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5">
                     <Key size={13} />
                     <span>Administrator Authorization Invitation Token</span>
                   </label>
-                  <span className="text-[10px] text-amber-400 font-mono font-bold bg-amber-500/20 px-2 py-0.5 rounded">
+                  <span className="text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/20 px-2 py-0.5 rounded">
                     Token Required
                   </span>
                 </div>
@@ -506,10 +574,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                   value={deanPasscode}
                   onChange={(e) => setDeanPasscode(e.target.value)}
                   placeholder="Enter Invitation Token (e.g. inv-...)"
-                  className="w-full p-2.5 bg-slate-950 border border-amber-500/40 rounded-xl text-xs font-mono text-amber-300 outline-none"
+                  className="w-full p-2.5 bg-slate-950 border border-cyan-500/40 rounded-xl text-xs font-mono text-cyan-300 outline-none"
                 />
                 <p className="text-[10px] text-slate-400">
-                  Required to prevent unauthorized Dean registrations. Contact your Campus Placement Administrator for an authorized invitation token.
+                  Required to prevent unauthorized registrations. Contact your Campus Administrator for an authorized invitation token.
                 </p>
               </div>
 
@@ -524,7 +592,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                 <button
                   type="submit"
                   disabled={deanRegisterLoading}
-                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 text-xs font-extrabold flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 text-xs font-extrabold flex items-center gap-2 cursor-pointer"
                 >
                   <span>{deanRegisterLoading ? 'Activating...' : 'Register & Sign In as Dean'}</span>
                   <ArrowRight size={14} />

@@ -269,10 +269,10 @@ router.post('/register-dean', authLimiter, async (req, res) => {
 
     const existingUser = db.findOne('users', u => u.email.toLowerCase() === cleanEmail);
     if (existingUser) {
-      if (existingUser.role === 'ADMIN') {
+      if (existingUser.role === 'DEAN' || existingUser.role === 'ADMIN') {
         return res.status(400).json({
           success: false,
-          message: 'A Placement Dean account already exists with this email address. Please sign in directly from the Dean portal.'
+          message: 'An authorized Dean or Administrator account already exists with this email address. Please sign in directly from the login portal.'
         });
       }
 
@@ -281,15 +281,15 @@ router.post('/register-dean', authLimiter, async (req, res) => {
       if (!isPasswordMatch) {
         return res.status(401).json({
           success: false,
-          message: 'An existing account was found for this email. Please enter your existing account password to accept administrative appointment.'
+          message: 'An existing account was found for this email. Please enter your existing account password to accept appointment.'
         });
       }
 
       const updatedUser = db.update('users', existingUser.id, {
         name: cleanName || existingUser.name,
-        role: 'ADMIN',
-        designation: designation || 'Placement Dean & Officer',
-        department: department || 'Training & Placement Cell',
+        role: 'DEAN',
+        designation: designation || 'Dean',
+        department: department || 'Academic & Placement Governance',
         is_blocked: false,
         status: 'ACTIVE'
       });
@@ -307,7 +307,7 @@ router.post('/register-dean', authLimiter, async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        message: 'Account successfully upgraded to Placement Dean via authorized invitation! Administrative privileges granted.',
+        message: 'Account successfully upgraded to Dean via authorized invitation! Academic analytics privileges granted.',
         token,
         user: safeUser
       });
@@ -322,16 +322,16 @@ router.post('/register-dean', authLimiter, async (req, res) => {
       name: cleanName,
       email: cleanEmail,
       password_hash: passwordHash,
-      role: 'ADMIN',
-      designation: designation || 'Placement Dean & Officer',
-      department: department || 'Training & Placement Cell',
+      role: 'DEAN',
+      designation: designation || 'Dean',
+      department: department || 'Academic & Placement Governance',
       branch_id: 'branch-cse',
-      year: 'Faculty / Admin',
+      year: 'Faculty / Dean',
       graduation_year: 2018,
       preferred_job_role_id: 'role-sde',
       target_companies: ['comp-tcs', 'comp-infosys', 'comp-wipro', 'comp-accenture'],
       skill_level: 'Advanced',
-      areas_of_interest: ['Campus Placement Drives', 'Assessment Evaluation', 'Curriculum Mapping'],
+      areas_of_interest: ['Academic Analytics', 'Assessment Evaluation', 'Curriculum Mapping'],
       total_xp: 2500,
       current_level: 10,
       current_streak: 30,
@@ -358,7 +358,7 @@ router.post('/register-dean', authLimiter, async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Placement Dean / Officer account created successfully! Full administrative privileges granted.',
+      message: 'Dean account created successfully! Academic analytics privileges granted.',
       token,
       user: safeUser
     });

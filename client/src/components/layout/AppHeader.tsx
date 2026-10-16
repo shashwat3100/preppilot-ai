@@ -35,7 +35,19 @@ const TAB_TITLES: Record<string, { title: string; subtitle: string }> = {
   'thinking-orb': { title: 'PrepPilot AI Mentor', subtitle: 'Syllabus grounded technical placement copilot' },
   'preppilot-studio': { title: 'Voice AI Studio', subtitle: 'Interactive spoken technical interview practice' },
   profile: { title: 'Student Profile', subtitle: 'Academic records, target companies, and credentials' },
-  admin: { title: 'Administration Panel', subtitle: 'Question bank, student oversight, and analytics' }
+  admin: { title: 'Platform Management', subtitle: 'Platform overview, student oversight, and governance' },
+  'admin-overview': { title: 'Platform Overview', subtitle: 'Real-time metrics, active accounts, and platform health' },
+  'admin-students': { title: 'Student Directory', subtitle: 'Searchable student directory, dossiers, and account controls' },
+  'admin-questions': { title: 'Question Bank Management', subtitle: 'Browse, create, edit, and organize practice questions' },
+  'admin-assessments': { title: 'Assessment Governance', subtitle: 'Standardized mock tests, attempt tracking, and completion rates' },
+  'admin-analytics': { title: 'Platform Analytics', subtitle: 'System-wide activity, submission volumes, and usage trends' },
+  'admin-users': { title: 'User Management', subtitle: 'Faculty appointments, role management, and access tokens' },
+  dean: { title: 'Academic Overview', subtitle: 'Cohort academic health, participation rates, and subject mastery' },
+  'dean-overview': { title: 'Academic Overview', subtitle: 'Cohort academic health, participation rates, and subject mastery' },
+  'dean-performance': { title: 'Student Performance', subtitle: 'Academic score tracking, performance tiers, and dossiers' },
+  'dean-assessments': { title: 'Assessment Analytics', subtitle: 'Assessment outcomes, pass rates, and score distributions' },
+  'dean-subjects': { title: 'Subject Analytics', subtitle: 'Subject & topic accuracy, attempt volume, and weakness analysis' },
+  'dean-reports': { title: 'Academic Reports', subtitle: 'Audited performance trends and verified CSV exports' }
 };
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -43,7 +55,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onSelectTab,
   onOpenMobileMenu
 }) => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isDean } = useAuth();
   const { openVoiceModal, isListening, isSpeaking } = useVoice();
   const { theme, resolvedTheme, setTheme, toggleTheme } = useTheme();
 
@@ -155,16 +167,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
               <div className="px-3 py-2 border-b border-[var(--surface-border)] mb-1">
                 <div className="font-bold text-xs text-[var(--text-primary)] truncate">
-                  {user?.name || 'Engineering Student'}
+                  {user?.role === 'DEAN' ? 'Dean' : user?.name || 'Engineering Student'}
                 </div>
                 <div className="text-[11px] text-[var(--text-secondary)] truncate">
                   {user?.email}
                 </div>
-                {user?.job_role_title && (
-                  <div className="mt-1.5 text-[10px] px-2 py-0.5 rounded bg-[var(--surface-elevated)] text-indigo-400 border border-[var(--surface-border)] inline-block font-semibold">
-                    Target: {user.job_role_title}
-                  </div>
-                )}
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold border inline-block ${
+                    isAdmin
+                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      : isDean
+                      ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+                      : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                  }`}>
+                    Role: {isAdmin ? 'Administrator' : isDean ? 'Dean' : 'Student'}
+                  </span>
+                </div>
               </div>
 
               {/* Theme Sub-menu */}
@@ -224,13 +242,26 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               {isAdmin && (
                 <button
                   onClick={() => {
-                    onSelectTab('admin');
+                    onSelectTab('admin-overview');
                     setIsProfileOpen(false);
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-amber-400 hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
                 >
                   <Shield size={14} className="text-amber-400" />
-                  <span>Admin Dashboard</span>
+                  <span>Platform Management</span>
+                </button>
+              )}
+
+              {isDean && (
+                <button
+                  onClick={() => {
+                    onSelectTab('dean-overview');
+                    setIsProfileOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-cyan-400 hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
+                >
+                  <Shield size={14} className="text-cyan-400" />
+                  <span>Academic Analytics</span>
                 </button>
               )}
 

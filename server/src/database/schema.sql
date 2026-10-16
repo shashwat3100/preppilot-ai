@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(150) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) DEFAULT 'STUDENT' CHECK (role IN ('STUDENT', 'ADMIN')),
+    role VARCHAR(20) DEFAULT 'STUDENT' CHECK (role IN ('STUDENT', 'ADMIN', 'DEAN')),
     branch_id VARCHAR(50) REFERENCES branches(id) ON DELETE SET NULL,
     year VARCHAR(20) DEFAULT '4th Year',
     graduation_year INT DEFAULT 2026,

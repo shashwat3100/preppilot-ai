@@ -583,6 +583,76 @@ router.post('/questions', (req, res) => {
   }
 });
 
+router.put('/questions/:id', (req, res) => {
+  try {
+    const questionId = req.params.id;
+    const existing = db.get('questions', questionId);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Question not found in database.' });
+    }
+
+    const {
+      question,
+      question_type,
+      branch_id,
+      company_id,
+      job_role_id,
+      subject_id,
+      topic_id,
+      difficulty,
+      correct_answer,
+      explanation,
+      tags,
+      expected_time,
+      xp_value,
+      options
+    } = req.body;
+
+    const updatedData = {
+      ...existing,
+      question: question !== undefined ? question : existing.question,
+      question_type: question_type || existing.question_type || 'MCQ',
+      branch_id: branch_id !== undefined ? branch_id : existing.branch_id,
+      company_id: company_id !== undefined ? company_id : existing.company_id,
+      job_role_id: job_role_id !== undefined ? job_role_id : existing.job_role_id,
+      subject_id: subject_id !== undefined ? subject_id : existing.subject_id,
+      topic_id: topic_id !== undefined ? topic_id : existing.topic_id,
+      difficulty: difficulty || existing.difficulty || 'Medium',
+      correct_answer: correct_answer !== undefined ? correct_answer : existing.correct_answer,
+      explanation: explanation !== undefined ? explanation : existing.explanation,
+      tags: tags !== undefined ? (Array.isArray(tags) ? tags : [tags]) : existing.tags,
+      expected_time: expected_time !== undefined ? parseInt(expected_time) || 60 : existing.expected_time,
+      xp_value: xp_value !== undefined ? parseInt(xp_value) || 25 : existing.xp_value,
+      updated_at: new Date().toISOString()
+    };
+
+    db.update('questions', questionId, updatedData);
+
+    // If options are provided, update options
+    if (options && Array.isArray(options) && options.length > 0) {
+      const allOpts = db.getAll('questionOptions');
+      const toDelete = allOpts.filter(o => o.question_id === questionId);
+      toDelete.forEach(o => db.delete('questionOptions', o.id));
+
+      const finalCorrect = updatedData.correct_answer;
+      options.forEach(opt => {
+        db.insert('questionOptions', {
+          id: `opt-${questionId}-${opt.option_key}`,
+          question_id: questionId,
+          option_key: opt.option_key,
+          option_text: opt.option_text,
+          is_correct: opt.option_key === finalCorrect
+        });
+      });
+    }
+
+    return res.json({ success: true, message: 'Question updated successfully.', question: updatedData });
+  } catch (err) {
+    console.error('[Update Question Error]:', err);
+    return res.status(500).json({ success: false, message: 'Error updating question.' });
+  }
+});
+
 router.delete('/questions/:id', (req, res) => {
   const success = db.delete('questions', req.params.id);
   if (!success) {
@@ -690,11 +760,11 @@ router.delete('/announcements/:id', (req, res) => {
 });
 
 // =========================================================================
-// 9. DEAN & FACULTY APPOINTMENTS GOVERNANCE
+// 9. USER & FACULTY MANAGEMENT GOVERNANCE
 // =========================================================================
 router.get('/faculty', (req, res) => {
   const users = db.getAll('users');
-  const faculty = users.filter(u => u.role === 'ADMIN').map(u => {
+  const faculty = users.filter(u => u.role === 'ADMIN' || u.role === 'DEAN').map(u => {
     const { password_hash, ...safe } = u;
     return {
       ...safe,
@@ -706,43 +776,46 @@ router.get('/faculty', (req, res) => {
 
 router.post('/faculty/appoint', async (req, res) => {
   try {
-    const { name, email, password, designation, department } = req.body;
+    const { name, email, password, role = 'DEAN', designation, department } = req.body;
     if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: 'Faculty name, institutional email, and password are required.' });
+      return res.status(400).json({ success: false, message: 'User name, institutional email, and password are required.' });
     }
+
+    const assignedRole = role === 'ADMIN' ? 'ADMIN' : 'DEAN';
+    const assignedDesignation = designation || (assignedRole === 'ADMIN' ? 'Administrator' : 'Dean');
 
     const existing = db.findOne('users', u => u.email.toLowerCase() === email.toLowerCase());
     if (existing) {
-      if (existing.role === 'ADMIN') {
-        return res.status(400).json({ success: false, message: 'This member already holds administrative Dean credentials.' });
+      if (existing.role === assignedRole) {
+        return res.status(400).json({ success: false, message: `This member already holds ${assignedRole} credentials.` });
       }
-      // Promote existing student to admin
+      // Update existing user role
       const updated = db.update('users', existing.id, {
-        role: 'ADMIN',
-        designation: designation || 'Placement Faculty Coordinator',
-        department: department || 'Training & Placement Cell'
+        role: assignedRole,
+        designation: assignedDesignation,
+        department: department || 'Academic & Placement Governance'
       });
       return res.json({
         success: true,
-        message: `Candidate ${existing.name} successfully promoted to Placement Officer & Dean privileges.`,
+        message: `${existing.name} successfully updated to ${assignedRole} privileges.`,
         faculty: updated
       });
     }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
-    const userId = `user-dean-${crypto.randomUUID()}`;
+    const userId = `user-${assignedRole.toLowerCase()}-${crypto.randomUUID()}`;
 
-    const newDean = {
+    const newStaff = {
       id: userId,
       name,
       email: email.toLowerCase(),
       password_hash: passwordHash,
-      role: 'ADMIN',
-      designation: designation || 'Associate Placement Dean',
-      department: department || 'Training & Placement Cell',
+      role: assignedRole,
+      designation: assignedDesignation,
+      department: department || 'Academic & Placement Governance',
       branch_id: 'branch-cse',
-      year: 'Faculty / Admin',
+      year: assignedRole === 'ADMIN' ? 'Faculty / Admin' : 'Faculty / Dean',
       graduation_year: 2018,
       preferred_job_role_id: 'role-sde',
       target_companies: ['comp-tcs', 'comp-infosys', 'comp-wipro', 'comp-accenture'],
@@ -759,12 +832,12 @@ router.post('/faculty/appoint', async (req, res) => {
       status: 'ACTIVE'
     };
 
-    db.insert('users', newDean);
-    const { password_hash: ph, ...safe } = newDean;
+    db.insert('users', newStaff);
+    const { password_hash: ph, ...safe } = newStaff;
 
     return res.status(201).json({
       success: true,
-      message: `Dr. / Prof. ${name} has been officially appointed with Placement Dean authority!`,
+      message: `${name} has been appointed with ${assignedRole} authority!`,
       faculty: safe
     });
   } catch (err) {
@@ -776,16 +849,16 @@ router.post('/faculty/appoint', async (req, res) => {
 router.delete('/faculty/:id', (req, res) => {
   const facultyId = req.params.id;
   if (facultyId === req.user.id) {
-    return res.status(400).json({ success: false, message: 'Security restriction: You cannot revoke your own Dean credentials.' });
+    return res.status(400).json({ success: false, message: 'Security restriction: You cannot revoke your own credentials.' });
   }
 
   const user = db.get('users', facultyId);
-  if (!user || user.role !== 'ADMIN') {
-    return res.status(404).json({ success: false, message: 'Faculty member not found.' });
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'DEAN')) {
+    return res.status(404).json({ success: false, message: 'Staff member not found.' });
   }
 
   db.update('users', facultyId, { role: 'STUDENT', designation: 'Revoked' });
-  return res.json({ success: true, message: `Administrative Dean privileges for ${user.name} have been revoked.` });
+  return res.json({ success: true, message: `Privileges for ${user.name} have been revoked.` });
 });
 
 // Issue cryptographically secure administrator invitation token

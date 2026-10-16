@@ -12,6 +12,7 @@ interface AuthContextType {
   logout: () => void;
   refreshUser: () => Promise<void>;
   isAdmin: boolean;
+  isDean: boolean;
   isOfflineMode: boolean;
 }
 
@@ -62,7 +63,7 @@ const DEMO_FALLBACK_USERS: Record<string, { pass: string; user: User }> = {
     pass: 'admin123',
     user: {
       id: 'user-admin-demo',
-      name: 'Dr. Ramesh Kulkarni (Placement Dean)',
+      name: 'Administrator',
       email: 'admin@careerprep.ai',
       role: 'ADMIN',
       branch_id: 'branch-cse',
@@ -72,7 +73,28 @@ const DEMO_FALLBACK_USERS: Record<string, { pass: string; user: User }> = {
       preferred_job_role_id: 'role-sde',
       target_companies: ['comp-tcs', 'comp-infosys', 'comp-wipro', 'comp-accenture'],
       skill_level: 'Advanced',
-      areas_of_interest: ['Campus Placement Drives', 'Assessment Evaluation', 'Curriculum Mapping'],
+      areas_of_interest: ['Platform Governance', 'Assessment Evaluation', 'Curriculum Mapping'],
+      total_xp: 2500,
+      current_level: 10,
+      current_streak: 30,
+      longest_streak: 45
+    }
+  },
+  'dean@college.edu': {
+    pass: 'DeanPass123',
+    user: {
+      id: 'user-dean-demo',
+      name: 'Dean',
+      email: 'dean@college.edu',
+      role: 'DEAN',
+      branch_id: 'branch-cse',
+      branch_name: 'Computer Science Engineering (CSE)',
+      year: 'Faculty / Dean',
+      graduation_year: 2018,
+      preferred_job_role_id: 'role-sde',
+      target_companies: ['comp-tcs', 'comp-infosys', 'comp-amazon'],
+      skill_level: 'Advanced',
+      areas_of_interest: ['Academic Analytics', 'Student Performance Evaluation', 'Placement Outcomes'],
       total_xp: 2500,
       current_level: 10,
       current_streak: 30,
@@ -83,17 +105,17 @@ const DEMO_FALLBACK_USERS: Record<string, { pass: string; user: User }> = {
     pass: 'AdminPass123',
     user: {
       id: 'user-admin-college',
-      name: 'Dean of Placements',
+      name: 'Dean',
       email: 'admin@college.edu',
-      role: 'ADMIN',
+      role: 'DEAN',
       branch_id: 'branch-cse',
       branch_name: 'Computer Science Engineering (CSE)',
-      year: 'Faculty / Admin',
+      year: 'Faculty / Dean',
       graduation_year: 2018,
       preferred_job_role_id: 'role-sde',
       target_companies: ['comp-tcs', 'comp-infosys'],
       skill_level: 'Advanced',
-      areas_of_interest: ['Campus Placement Drives'],
+      areas_of_interest: ['Academic Analytics', 'Campus Placement Drives'],
       total_xp: 2500,
       current_level: 10,
       current_streak: 30,
@@ -279,9 +301,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAdmin = user?.role === 'ADMIN';
+  const isDean = user?.role === 'DEAN';
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, registerDean, logout, refreshUser, isAdmin, isOfflineMode }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, registerDean, logout, refreshUser, isAdmin, isDean, isOfflineMode }}>
       {children}
     </AuthContext.Provider>
   );

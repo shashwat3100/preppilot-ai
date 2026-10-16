@@ -239,14 +239,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
                 <div className="min-w-0">
                   <span className="text-xs font-bold text-white block truncate">{user.name}</span>
                   <span className="text-[10px] text-slate-400 truncate block">
-                    {isAdmin ? 'Placement Dean (Administrator)' : user.email}
+                    {user.role === 'ADMIN' ? 'Administrator' : user.role === 'DEAN' ? 'Dean' : user.email}
                   </span>
                 </div>
               </div>
 
-              {isAdmin ? (
+              {user.role === 'ADMIN' ? (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  Dean Office
+                  Admin
+                </span>
+              ) : user.role === 'DEAN' ? (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  Dean
                 </span>
               ) : (
                 <div className="flex items-center gap-1.5 flex-shrink-0">

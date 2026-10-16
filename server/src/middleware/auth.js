@@ -61,3 +61,18 @@ export const requireAdmin = (req, res, next) => {
   }
   next();
 };
+
+export const requireDean = (req, res, next) => {
+  if (!req.user || req.user.role !== 'DEAN') {
+    return res.status(403).json({ success: false, message: 'Access denied. Dean privilege required.' });
+  }
+  next();
+};
+
+export const requireDeanOrAdmin = (req, res, next) => {
+  if (!req.user || (req.user.role !== 'ADMIN' && req.user.role !== 'DEAN')) {
+    return res.status(403).json({ success: false, message: 'Access denied. Dean or Administrator privilege required.' });
+  }
+  next();
+};
+

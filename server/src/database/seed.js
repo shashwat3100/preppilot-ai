@@ -66,6 +66,7 @@ export const seedDatabase = async (force = false) => {
   const studentHash2 = await bcrypt.hash('password123', salt);
   const adminHash1 = await bcrypt.hash('admin123', salt);
   const adminHash2 = await bcrypt.hash('AdminPass123', salt);
+  const deanHash1 = await bcrypt.hash('DeanPass123', salt);
 
   const demoUsers = [
     {
@@ -108,10 +109,11 @@ export const seedDatabase = async (force = false) => {
     },
     {
       id: 'user-admin-demo',
-      name: 'Dr. Ramesh Kulkarni (Placement Dean)',
+      name: 'Administrator',
       email: 'admin@careerprep.ai',
       password_hash: adminHash1,
       role: 'ADMIN',
+      designation: 'Administrator',
       branch_id: 'branch-cse',
       year: 'Faculty / Admin',
       graduation_year: 2020,
@@ -126,13 +128,34 @@ export const seedDatabase = async (force = false) => {
       last_active_date: new Date().toISOString().split('T')[0]
     },
     {
+      id: 'user-dean-demo',
+      name: 'Dean',
+      email: 'dean@college.edu',
+      password_hash: deanHash1,
+      role: 'DEAN',
+      designation: 'Dean',
+      branch_id: 'branch-cse',
+      year: 'Faculty / Dean',
+      graduation_year: 2018,
+      preferred_job_role_id: 'role-sde',
+      target_companies: ['comp-tcs', 'comp-infosys', 'comp-amazon'],
+      skill_level: 'Advanced',
+      areas_of_interest: ['Academic Analytics', 'Student Performance Evaluation', 'Placement Outcomes'],
+      total_xp: 2500,
+      current_level: 10,
+      current_streak: 30,
+      longest_streak: 45,
+      last_active_date: new Date().toISOString().split('T')[0]
+    },
+    {
       id: 'user-admin-college',
-      name: 'Dean of Placements',
+      name: 'Dean',
       email: 'admin@college.edu',
       password_hash: adminHash2,
-      role: 'ADMIN',
+      role: 'DEAN',
+      designation: 'Dean',
       branch_id: 'branch-cse',
-      year: 'Faculty / Admin',
+      year: 'Faculty / Dean',
       graduation_year: 2018,
       preferred_job_role_id: 'role-sde',
       target_companies: ['comp-tcs', 'comp-infosys'],

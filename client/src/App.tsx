@@ -14,6 +14,7 @@ import CompanyPrepPage from './pages/CompanyPrepPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import PrepPilotPage from './pages/PrepPilotPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import DeanDashboardPage from './pages/DeanDashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import CodingPracticePage from './pages/CodingPracticePage';
 import AssessmentPage from './pages/AssessmentPage';
@@ -33,6 +34,18 @@ const VALID_TABS = new Set([
   'analytics',
   'preppilot-studio',
   'admin',
+  'admin-overview',
+  'admin-students',
+  'admin-questions',
+  'admin-assessments',
+  'admin-analytics',
+  'admin-users',
+  'dean',
+  'dean-overview',
+  'dean-performance',
+  'dean-assessments',
+  'dean-subjects',
+  'dean-reports',
   'profile',
   'thinking-orb',
   'quiz_active',
@@ -70,12 +83,15 @@ const MainApp: React.FC = () => {
   React.useEffect(() => {
     const handleHashChange = () => {
       let target = getTabFromHash();
-      if (user?.role === 'STUDENT' && target === 'admin') {
+      if (user?.role === 'STUDENT' && (target.startsWith('admin') || target.startsWith('dean'))) {
         target = 'dashboard';
         window.location.hash = '#/dashboard';
-      } else if (user?.role === 'ADMIN' && (target === 'dashboard' || target === 'login' || target === 'register')) {
-        target = 'admin';
-        window.location.hash = '#/admin';
+      } else if (user?.role === 'ADMIN' && (target === 'dashboard' || target === 'login' || target === 'register' || target.startsWith('dean'))) {
+        target = 'admin-overview';
+        window.location.hash = '#/admin-overview';
+      } else if (user?.role === 'DEAN' && (target === 'dashboard' || target === 'login' || target === 'register' || target.startsWith('admin'))) {
+        target = 'dean-overview';
+        window.location.hash = '#/dean-overview';
       }
       setCurrentTab(target);
     };
@@ -85,13 +101,17 @@ const MainApp: React.FC = () => {
 
   const handleSelectTab = (tab: string) => {
     // Role-based security routing:
-    // If student attempts to access admin, strictly force to dashboard
-    if (user?.role === 'STUDENT' && tab === 'admin') {
+    // If student attempts to access admin or dean, strictly force to dashboard
+    if (user?.role === 'STUDENT' && (tab.startsWith('admin') || tab.startsWith('dean'))) {
       tab = 'dashboard';
     }
-    // If admin is at student dashboard, default to admin panel
-    if (user?.role === 'ADMIN' && tab === 'dashboard') {
-      tab = 'admin';
+    // If admin is at student dashboard or dean dashboard, default to admin panel
+    if (user?.role === 'ADMIN' && (tab === 'dashboard' || tab.startsWith('dean'))) {
+      tab = 'admin-overview';
+    }
+    // If dean is at student dashboard or admin panel, default to dean dashboard
+    if (user?.role === 'DEAN' && (tab === 'dashboard' || tab.startsWith('admin'))) {
+      tab = 'dean-overview';
     }
     setCurrentTab(tab);
     if (tab !== 'quiz_active') {
@@ -103,13 +123,18 @@ const MainApp: React.FC = () => {
   React.useEffect(() => {
     if (!user) return;
     if (user.role === 'ADMIN') {
-      // Admin accounts MUST open admin panel on login or if on student dashboard
-      if (currentTab === 'dashboard' || currentTab === 'login' || currentTab === 'register') {
-        handleSelectTab('admin');
+      // Admin accounts MUST open admin panel on login or if on student/dean dashboard
+      if (currentTab === 'dashboard' || currentTab === 'login' || currentTab === 'register' || currentTab.startsWith('dean')) {
+        handleSelectTab('admin-overview');
+      }
+    } else if (user.role === 'DEAN') {
+      // Dean accounts MUST open dean overview on login and NEVER access admin panel or student dashboard
+      if (currentTab === 'dashboard' || currentTab === 'login' || currentTab === 'register' || currentTab.startsWith('admin')) {
+        handleSelectTab('dean-overview');
       }
     } else if (user.role === 'STUDENT') {
-      // Student accounts MUST open student dashboard on login and NEVER access admin panel
-      if (currentTab === 'admin' || currentTab === 'login' || currentTab === 'register') {
+      // Student accounts MUST open student dashboard on login and NEVER access admin or dean panel
+      if (currentTab.startsWith('admin') || currentTab.startsWith('dean') || currentTab === 'login' || currentTab === 'register') {
         handleSelectTab('dashboard');
       }
     }
@@ -139,7 +164,7 @@ const MainApp: React.FC = () => {
     if (currentTab === 'login') {
       return (
         <LoginPage
-          onSuccess={(role) => handleSelectTab(role === 'ADMIN' ? 'admin' : 'dashboard')}
+          onSuccess={(role) => handleSelectTab(role === 'ADMIN' ? 'admin-overview' : role === 'DEAN' ? 'dean-overview' : 'dashboard')}
           onGoToRegister={() => handleSelectTab('register')}
         />
       );
@@ -247,14 +272,20 @@ const MainApp: React.FC = () => {
         <AnalyticsPage onNavigateToCoding={() => handleSelectTab('coding-practice')} />
       ) : currentTab === 'preppilot-studio' ? (
         <PrepPilotPage />
-      ) : currentTab === 'admin' && user?.role === 'ADMIN' ? (
-        <AdminDashboardPage />
+      ) : (currentTab === 'admin' || currentTab.startsWith('admin-')) && user?.role === 'ADMIN' ? (
+        <AdminDashboardPage currentTab={currentTab} onNavigateTab={handleSelectTab} />
+      ) : (currentTab === 'dean' || currentTab.startsWith('dean-')) && user?.role === 'DEAN' ? (
+        <DeanDashboardPage currentTab={currentTab} onNavigateTab={handleSelectTab} />
       ) : currentTab === 'profile' ? (
         <ProfilePage />
       ) : currentTab === 'thinking-orb' ? (
         <React.Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-sm text-[var(--text-secondary)]">Loading PrepPilot…</div>}>
           <ThinkingOrbPage />
         </React.Suspense>
+      ) : user?.role === 'ADMIN' ? (
+        <AdminDashboardPage currentTab={currentTab} onNavigateTab={handleSelectTab} />
+      ) : user?.role === 'DEAN' ? (
+        <DeanDashboardPage currentTab={currentTab} onNavigateTab={handleSelectTab} />
       ) : (
         <DashboardPage
           onStartAdaptiveQuiz={handleLaunchAdaptiveDailyQuiz}

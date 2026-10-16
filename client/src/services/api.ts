@@ -283,6 +283,15 @@ export const api = {
     return res.json();
   },
 
+  updateQuestion: async (id: string, questionData: any) => {
+    const res = await fetch(`${API_BASE}/admin/questions/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(questionData)
+    });
+    return res.json();
+  },
+
   getAdminStudents: async (params: { filter?: string; search?: string; sort?: string } = {}) => {
     const query = new URLSearchParams();
     if (params.filter) query.append('filter', params.filter);
@@ -514,6 +523,63 @@ export const api = {
       headers: getAuthHeaders()
     });
     return res.json();
+  },
+
+  // Dean Academic Analytics API
+  getDeanOverview: async () => {
+    const res = await fetch(`${API_BASE}/dean/overview`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  getDeanPerformance: async (params: { search?: string; branch?: string; performance_tier?: string; page?: number; limit?: number } = {}) => {
+    const query = new URLSearchParams();
+    if (params.search) query.append('search', params.search);
+    if (params.branch) query.append('branch', params.branch);
+    if (params.performance_tier) query.append('performance_tier', params.performance_tier);
+    if (params.page) query.append('page', params.page.toString());
+    if (params.limit) query.append('limit', params.limit.toString());
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+
+    const res = await fetch(`${API_BASE}/dean/performance${queryString}`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  getDeanStudentDossier: async (id: string) => {
+    const res = await fetch(`${API_BASE}/dean/performance/${id}`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  getDeanAssessments: async () => {
+    const res = await fetch(`${API_BASE}/dean/assessments`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  getDeanSubjectAnalytics: async () => {
+    const res = await fetch(`${API_BASE}/dean/subject-analytics`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  exportDeanReportUrl: (reportType: string = 'student-performance') => {
+    return `${API_BASE}/dean/reports/export?report_type=${reportType}`;
+  },
+
+  generateAdminInviteToken: async (data: { email?: string; designation?: string; department?: string; expiresInHours?: number } = {}) => {
+    const res = await fetch(`${API_BASE}/admin/invite-token`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return safeJson(res);
   }
 };
 

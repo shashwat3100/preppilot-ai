@@ -254,6 +254,69 @@ export const initDb = async () => {
     }
   }
 
+  // Automatic migration: normalize Dean & Admin labels and roles
+  try {
+    const userRows = sqlite.prepare('SELECT id, email, name, role, data FROM users').all();
+    for (const u of userRows) {
+      let data = {};
+      try { data = JSON.parse(u.data); } catch {}
+      let changed = false;
+
+      // Normalize Admin
+      if (u.email === 'admin@careerprep.ai') {
+        if (u.name !== 'Administrator' || data.name !== 'Administrator') {
+          u.name = 'Administrator';
+          data.name = 'Administrator';
+          data.designation = 'Administrator';
+          changed = true;
+        }
+      }
+
+      // Normalize Dean
+      if (u.email === 'dean@college.edu' || u.email === 'admin@college.edu' || u.role === 'DEAN') {
+        if (u.role !== 'DEAN') {
+          u.role = 'DEAN';
+          data.role = 'DEAN';
+          changed = true;
+        }
+        if (u.name !== 'Dean' || data.name !== 'Dean') {
+          u.name = 'Dean';
+          data.name = 'Dean';
+          data.designation = 'Dean';
+          changed = true;
+        }
+      }
+
+      // Cleanup any personal name "Ramesh Kulkarni" or "Dean of Placements" anywhere
+      if (u.name && (u.name.includes('Kulkarni') || u.name.includes('Dean of Placements'))) {
+        const newName = u.role === 'ADMIN' ? 'Administrator' : 'Dean';
+        u.name = newName;
+        data.name = newName;
+        data.designation = newName;
+        changed = true;
+      }
+
+      if (changed) {
+        sqlite.prepare(`
+          UPDATE users SET name = ?, role = ?, data = ?, updated_at = ? WHERE id = ?
+        `).run(u.name, u.role, JSON.stringify(data), new Date().toISOString(), u.id);
+      }
+    }
+
+    // Update announcements created_by if needed
+    const announcements = sqlite.prepare('SELECT id, data FROM announcements').all();
+    for (const ann of announcements) {
+      let data = {};
+      try { data = JSON.parse(ann.data); } catch {}
+      if (data.created_by && (data.created_by.includes('Kulkarni') || data.created_by.includes('Placement Dean'))) {
+        data.created_by = 'Dean';
+        sqlite.prepare('UPDATE announcements SET data = ? WHERE id = ?').run(JSON.stringify(data), ann.id);
+      }
+    }
+  } catch (migErr) {
+    // Migration check fails gracefully if tables are still initializing
+  }
+
   console.log(`[SQLite Database] Embedded SQLite engine initialized at: ${dbFile}`);
   return sqlite;
 };

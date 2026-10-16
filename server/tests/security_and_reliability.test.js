@@ -144,7 +144,7 @@ async function runSuite() {
       }
     });
     assert(facultyRegRes.status === 201, 'Registration with valid invitation token grants Dean access');
-    assert(facultyRegRes.body.user.role === 'ADMIN', 'Invited user has verified ADMIN role');
+    assert(facultyRegRes.body.user.role === 'DEAN', 'Invited user has verified DEAN role');
 
     // Replay attack: using the same invitation token a second time must FAIL
     const replayRes = await request('/api/auth/register-dean', {

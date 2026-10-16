@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'STUDENT' | 'ADMIN';
+  role: 'STUDENT' | 'ADMIN' | 'DEAN';
   branch_id?: string;
   branch_name?: string;
   branch_code?: string;
