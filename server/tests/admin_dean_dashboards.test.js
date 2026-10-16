@@ -315,6 +315,7 @@ async function runSuite() {
     process.exit(1);
   } else {
     console.log('ALL ADMIN & DEAN DASHBOARD INTEGRATION TESTS PASSED SUCCESSFULLY.\n');
+    process.exit(0);
   }
 }
 

@@ -401,16 +401,21 @@ async function runSuite() {
     console.log(`📊 TEST SUITE SUMMARY: ${passedCount} PASSED, ${failedCount} FAILED (TOTAL: ${results.length})`);
     console.log('==================================================================\n');
 
-    if (failedCount > 0) {
-      process.exitCode = 1;
-    }
-  } catch (err) {
-    console.error('Test Suite Exception:', err);
-    process.exitCode = 1;
-  } finally {
     if (testServer) {
       testServer.close();
     }
+
+    if (failedCount > 0) {
+      process.exit(1);
+    } else {
+      process.exit(0);
+    }
+  } catch (err) {
+    console.error('Test Suite Exception:', err);
+    if (testServer) {
+      testServer.close();
+    }
+    process.exit(1);
   }
 }
 
