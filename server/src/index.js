@@ -146,9 +146,9 @@ export const startServer = async (port = PORT) => {
   }
 };
 
-// Start automatically only when run directly and not in test mode
-const isDirectRun = !process.env.TEST_MODE && process.argv[1] && (
-  process.argv[1].endsWith('index.js') || process.argv[1].includes('src')
+// Start automatically only when run directly and not in serverless/test mode
+const isDirectRun = !process.env.VERCEL && !process.env.TEST_MODE && process.argv[1] && (
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
 );
 
 if (isDirectRun) {

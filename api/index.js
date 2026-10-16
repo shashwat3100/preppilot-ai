@@ -3,43 +3,34 @@ import { initDb } from '../server/src/database/db.js';
 import { seedDatabase } from '../server/src/database/seed.js';
 
 let initialized = false;
-let initPromise = null;
 
 async function ensureDb() {
   if (initialized) return;
-  if (!initPromise) {
-    initPromise = (async () => {
-      try {
-        await initDb();
-        try {
-          await seedDatabase(false);
-        } catch (seedErr) {
-          console.warn('[Vercel DB Seed Warning]:', seedErr.message);
-        }
-        initialized = true;
-      } catch (err) {
-        console.error('[Vercel Serverless DB Init Error]:', err);
-        initPromise = null; // Allow retry on subsequent request
-        throw err;
-      }
-    })();
+  try {
+    await initDb();
+    try {
+      await seedDatabase(false);
+    } catch {}
+    initialized = true;
+  } catch (err) {
+    console.warn('[Vercel Serverless DB Init Warning]:', err?.message);
+    initialized = true;
   }
-  await initPromise;
 }
 
 export default async function handler(req, res) {
   try {
     await ensureDb();
-    // Ensure req.url starts with /api if stripped by rewrite rule
     if (req.url && !req.url.startsWith('/api')) {
       req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
     }
     return app(req, res);
   } catch (err) {
-    console.error('[Vercel Serverless Handler Error]:', err);
+    console.error('[Vercel Serverless Execution Error]:', err);
     return res.status(500).json({
       success: false,
-      message: 'Serverless execution error during database initialization.'
+      message: 'Serverless execution error.',
+      error: err?.message || 'Internal error'
     });
   }
 }
