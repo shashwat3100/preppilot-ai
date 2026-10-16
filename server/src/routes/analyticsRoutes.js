@@ -342,25 +342,32 @@ router.get('/', authenticate, (req, res) => {
       };
     });
 
+    const summaryData = {
+      total_attempted: totalAttempted,
+      correct_answers: correctCount,
+      incorrect_answers: incorrectCount,
+      overall_accuracy: overallAccuracy,
+      avg_time_per_question: avgTimePerQuestion,
+      current_streak: streak?.current_streak || 0,
+      longest_streak: streak?.longest_streak || 0
+    };
+
+    const placementData = {
+      has_activity: hasActivity,
+      score: readinessScore,
+      percentile: cohortPercentile,
+      tier_fit: tierFit,
+      company_eligibility: companyEligibility
+    };
+
     return res.json({
       success: true,
+      summary: summaryData,
+      placement_readiness: placementData,
+      recruiter_benchmark_matrix: companyEligibility,
       analytics: {
-        summary: {
-          total_attempted: totalAttempted,
-          correct_answers: correctCount,
-          incorrect_answers: incorrectCount,
-          overall_accuracy: overallAccuracy,
-          avg_time_per_question: avgTimePerQuestion,
-          current_streak: streak?.current_streak || 0,
-          longest_streak: streak?.longest_streak || 0
-        },
-        placement_readiness: {
-          has_activity: hasActivity,
-          score: readinessScore,
-          percentile: cohortPercentile,
-          tier_fit: tierFit,
-          company_eligibility: companyEligibility
-        },
+        summary: summaryData,
+        placement_readiness: placementData,
         subject_accuracy: subjectAccuracy,
         topic_accuracy: topicAccuracy,
         company_accuracy: companyAccuracy,

@@ -64,8 +64,16 @@ export class RagService {
    */
   static isDomainRelevant(query) {
     const q = query.toLowerCase().trim();
+    if (!q) return false;
+
+    // Reject obvious non-domain topics
+    const blockedKeywords = ['recipe', 'cake', 'cook', 'pasta', 'weather', 'movie', 'song', 'sports', 'cricket', 'football', 'bitcoin', 'crypto', 'fashion', 'makeup'];
+    if (blockedKeywords.some(b => q.includes(b))) {
+      return false;
+    }
+
     // Allow greetings and orientation questions
-    const greetings = ['hi', 'hello', 'hey', 'start', 'begin', 'help', 'what can we do', 'who are you', 'how can you help', 'good morning', 'good afternoon', 'good evening'];
+    const greetings = ['hi', 'hello', 'hey', 'start', 'begin', 'help', 'what can we do', 'who are you', 'how can you help', 'good morning', 'good afternoon', 'good evening', 'can i access', 'without login'];
     if (greetings.some(g => q.startsWith(g) || q.includes(g))) {
       return true;
     }
@@ -75,16 +83,17 @@ export class RagService {
       'operating system', 'linux', 'deadlock', 'paging', 'virtual memory', 'process', 'thread',
       'network', 'tcp', 'ip', 'osi', 'http', 'dns', 'router', 'subnet',
       'oop', 'java', 'c++', 'python', 'polymorphism', 'inheritance', 'interface', 'class',
-      'tcs', 'infosys', 'wipro', 'accenture', 'capgemini', 'cognizant', 'amazon', 'google', 'microsoft',
+      'tcs', 'infosys', 'wipro', 'accenture', 'capgemini', 'cognizant', 'amazon', 'google', 'microsoft', 'deloitte',
       'interview', 'placement', 'quiz', 'btech', 'engineering', 'branch', 'ece', 'electrical',
       'mechanical', 'civil', 'chemical', 'microprocessor', '8085', 'circuit', 'transformer',
-      'thermodynamics', 'fluid', 'formula', 'complexity', 'normalize', 'acid', 'normal form',
-      'pointer', 'stack', 'queue', 'recursion', 'sorting', 'binary search', 'viva', 'explain', 'what is', 'how',
+      'thermodynamics', 'fluid', 'formula', 'complexity', 'normalize', 'normalization', 'acid', 'normal form', '3nf', '2nf', '1nf', 'bcnf',
+      'pointer', 'stack', 'queue', 'recursion', 'sorting', 'binary search', 'viva', 'question',
       'effect', 'convoy', 'belady', 'anomaly', 'scheduling', 'round robin', 'quantum', 'starvation', 'aging',
-      'mutex', 'semaphore', 'banker', 'coffman', 'thrashing', 'tlb', 'page fault', 'trie', 'dsu', 'hashing'
+      'mutex', 'semaphore', 'banker', 'coffman', 'thrashing', 'tlb', 'page fault', 'trie', 'dsu', 'hashing',
+      'roadmap', 'prepare', 'target', 'crack', 'study', 'two sum', 'hint', 'oops', 'object', 'memory', 'heap'
     ];
 
-    return allowedKeywords.some(kw => q.includes(kw)) || query.trim().split(/\s+/).length >= 2;
+    return allowedKeywords.some(kw => q.includes(kw));
   }
 
   /**
@@ -1400,6 +1409,86 @@ Campus recruitment drives for IT services and product engineering companies eval
 > **Key Placement Interview Consideration:** Technical panels place significant emphasis on algorithmic clarity and code explainability. Always trace your code with test cases before declaring a solution complete.`;
 
       speechFriendly = "Campus placement drives evaluate programming, data structures, DBMS, and OOP concepts. Be prepared to explain code line-by-line and trace edge cases.";
+
+    } else if (qLower.includes('two sum') || (qLower.includes('hint') && qLower.includes('sum'))) {
+      responseMarkdown = `### Two Sum Problem: Algorithmic Hint & Strategy
+      
+To solve **Two Sum** efficiently without an $O(n^2)$ brute-force nested loop:
+
+#### 1. Core Algorithmic Hint:
+- Instead of searching for all pairs $(nums[i], nums[j])$, think about what value is needed to reach the target: $\\text{complement} = \\text{target} - nums[i]$.
+- As you iterate through the array, can you look up whether you have already seen the complement in $O(1)$ time?
+
+#### 2. Optimal Data Structure:
+- Use a **Hash Map** (or dictionary) that maps each number's value to its array index: \`{ value: index }\`.
+- For each element at index $i$:
+  1. Calculate $\\text{diff} = \\text{target} - nums[i]$.
+  2. If $\\text{diff}$ exists in the Hash Map, return $[\\text{map}[\\text{diff}], i]$.
+  3. Otherwise, insert $nums[i]$ with index $i$ into the map.
+
+#### 3. Complexity:
+- **Time Complexity:** $O(n)$ with a single pass over the array.
+- **Space Complexity:** $O(n)$ auxiliary space to store the hash map entries.
+
+> **Interview Tip:** Always clarify whether the input array is sorted (if sorted, Two-Pointer technique can achieve $O(1)$ space) and whether duplicate elements or multiple valid pairs can exist.`;
+
+      speechFriendly = "For Two Sum, use a hash map to store each number and its index. As you iterate, check if the complement, target minus current number, exists in the map in O of 1 time.";
+
+    } else if (
+      qLower.includes('oops') ||
+      qLower.includes('object-oriented') ||
+      qLower.includes('object oriented') ||
+      (qLower.includes('oop') && !qLower.includes('loop')) ||
+      (qLower.includes('pillar') && qLower.includes('oop'))
+    ) {
+      responseMarkdown = `### Core Pillars of Object-Oriented Programming (OOP)
+
+Object-Oriented Programming organizes software design around data, or objects, rather than functions and logic.
+
+#### The Four Core Pillars:
+1. **Encapsulation:**
+   - Bundling data (attributes) and methods that operate on that data into a single unit (class).
+   - Restricting direct external access to internal object components using access modifiers (\`private\`, \`protected\`, \`public\`) and exposing getter/setter methods.
+2. **Abstraction:**
+   - Hiding complex background implementation details and exposing only essential functional interfaces to users (e.g., using Abstract Classes and Interfaces).
+3. **Inheritance:**
+   - Mechanism where a subclass derives attributes and behaviors from a superclass, facilitating code reusability and establishing "IS-A" relationships.
+4. **Polymorphism:**
+   - Ability of entities to take on multiple forms:
+     - **Compile-Time (Static):** Method Overloading (same method name, different parameter signatures).
+     - **Run-Time (Dynamic):** Method Overriding (subclass provides specific implementation of superclass method resolved dynamically at runtime).
+
+> **Key Placement Interview Consideration:** Interviewers frequently ask you to contrast Abstract Classes with Interfaces: An abstract class can have state and non-abstract methods, whereas an interface historically defines purely functional contracts (with default methods in modern Java).`;
+
+      speechFriendly = "The four pillars of Object-Oriented Programming are Encapsulation for data hiding, Abstraction for interface design, Inheritance for code reusability, and Polymorphism for flexible behaviors.";
+
+    } else if (
+      qLower.includes('java') ||
+      (qLower.includes('heap') && qLower.includes('stack')) ||
+      qLower.includes('jvm')
+    ) {
+      responseMarkdown = `### Java Architecture: JVM Memory Model (Heap vs. Stack)
+
+The Java Virtual Machine (JVM) divides runtime data memory into distinct logical regions:
+
+#### 1. Stack Memory:
+- **Allocation:** Per-thread execution memory allocated in LIFO (Last-In, First-Out) order.
+- **Contents:** Stores method call frames, local primitive variables (\`int\`, \`boolean\`), and object reference handles.
+- **Lifecycle:** Automatically allocated when a method is invoked and deallocated immediately upon method return.
+- **Characteristics:** Fast access; finite size (can trigger \`StackOverflowError\` on deep recursion).
+
+#### 2. Heap Memory:
+- **Allocation:** Shared memory region across all threads created on JVM startup.
+- **Contents:** Stores all instantiated class objects and arrays.
+- **Lifecycle:** Managed dynamically by the automated Garbage Collector (Young Generation / Eden, Survivor spaces, and Tenured Old Generation).
+- **Characteristics:** Slower allocation than stack; can trigger \`OutOfMemoryError\` if memory is exhausted.
+
+#### 3. Metaspace (formerly PermGen):
+- Resides in native memory; stores class definitions, method metadata, and constant pools.
+
+> **Key Placement Interview Consideration:** Remember: *Primitives and references live on the stack; all actual objects reside on the heap.* In Java, all object arguments are passed by value (where the value is the reference address).`;
+
+      speechFriendly = "In the Java memory model, Stack memory stores local primitive variables and method call frames per thread, while Heap memory stores all instantiated objects managed by garbage collection.";
 
     } else if (topDoc && topDocRelevance > 0.04) {
       // B. Dynamic Extractive Grounded Answering from Database RAG Document

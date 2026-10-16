@@ -224,6 +224,10 @@ export class QuizEngine {
     const session = db.get('quizSessions', sessionId);
     if (!session) throw new Error('Quiz session not found');
 
+    if (session.expires_at && new Date(session.expires_at).getTime() < Date.now()) {
+      throw new Error('Assessment deadline has expired. Submissions are no longer accepted.');
+    }
+
     const user = db.get('users', userId);
     if (!user) throw new Error('User not found');
 
@@ -305,7 +309,7 @@ export class QuizEngine {
       if (!q) continue;
 
       const userSubmission = answersMap.get(q.id);
-      const chosenAnswer = userSubmission?.answer || '';
+      const chosenAnswer = userSubmission?.answer || userSubmission?.selected_option || userSubmission?.chosen_answer || '';
       const timeSpent = userSubmission?.time_spent || 30;
 
       const isCorrect = chosenAnswer.trim().toUpperCase() === q.correct_answer.trim().toUpperCase();
