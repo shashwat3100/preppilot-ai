@@ -7,7 +7,8 @@
     "test": "node tests/security_and_reliability.test.js && node tests/assessments_and_features.test.js && node tests/hardening.test.js",
     "build": "node -e \"console.log('Server ready')\"",
     "start": "node src/index.js",
-    "seed": "node src/database/seed.js"
+    "seed": "node src/database/seed.js",
+    "migrate:postgres": "node src/database/migrateToPostgres.js"
   },
   "dependencies": {
     "@google/genai": "^2.28.0",
@@ -16,6 +17,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "pg": "^8.23.1",
     "uuid": "^14.0.3"
   }
 }

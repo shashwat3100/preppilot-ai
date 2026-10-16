@@ -218,11 +218,15 @@ CREATE TABLE IF NOT EXISTS knowledge_documents (
     summary TEXT,
     keywords JSONB DEFAULT '[]'::jsonb,
     embedding JSONB, -- Stored float array vector for semantic search
+    search_vector tsvector GENERATED ALWAYS AS (
+        to_tsvector('english', coalesce(title, '') || ' ' || coalesce(summary, '') || ' ' || coalesce(content, ''))
+    ) STORED,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- INDEXES FOR MAXIMUM QUERY OPTIMIZATION
+-- INDEXES FOR MAXIMUM QUERY OPTIMIZATION & RAG SEARCH
+CREATE INDEX IF NOT EXISTS idx_knowledge_docs_fts ON knowledge_documents USING GIN(search_vector);
 CREATE INDEX IF NOT EXISTS idx_questions_subject_topic ON questions(subject_id, topic_id);
 CREATE INDEX IF NOT EXISTS idx_questions_company ON questions(company_id);
 CREATE INDEX IF NOT EXISTS idx_questions_branch ON questions(branch_id);
