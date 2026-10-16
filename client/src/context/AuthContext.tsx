@@ -74,10 +74,10 @@ const DEMO_FALLBACK_USERS: Record<string, { pass: string; user: User }> = {
       target_companies: ['comp-tcs', 'comp-infosys', 'comp-wipro', 'comp-accenture'],
       skill_level: 'Advanced',
       areas_of_interest: ['Platform Governance', 'Assessment Evaluation', 'Curriculum Mapping'],
-      total_xp: 2500,
-      current_level: 10,
-      current_streak: 30,
-      longest_streak: 45
+      total_xp: 0,
+      current_level: 1,
+      current_streak: 0,
+      longest_streak: 0
     }
   },
   'dean@college.edu': {
@@ -95,10 +95,10 @@ const DEMO_FALLBACK_USERS: Record<string, { pass: string; user: User }> = {
       target_companies: ['comp-tcs', 'comp-infosys', 'comp-amazon'],
       skill_level: 'Advanced',
       areas_of_interest: ['Academic Analytics', 'Student Performance Evaluation', 'Placement Outcomes'],
-      total_xp: 2500,
-      current_level: 10,
-      current_streak: 30,
-      longest_streak: 45
+      total_xp: 0,
+      current_level: 1,
+      current_streak: 0,
+      longest_streak: 0
     }
   },
   'admin@college.edu': {
@@ -116,10 +116,10 @@ const DEMO_FALLBACK_USERS: Record<string, { pass: string; user: User }> = {
       target_companies: ['comp-tcs', 'comp-infosys'],
       skill_level: 'Advanced',
       areas_of_interest: ['Academic Analytics', 'Campus Placement Drives'],
-      total_xp: 2500,
-      current_level: 10,
-      current_streak: 30,
-      longest_streak: 45
+      total_xp: 0,
+      current_level: 1,
+      current_streak: 0,
+      longest_streak: 0
     }
   }
 };

@@ -121,10 +121,10 @@ export const seedDatabase = async (force = false) => {
       target_companies: ['comp-tcs', 'comp-infosys', 'comp-wipro', 'comp-accenture'],
       skill_level: 'Advanced',
       areas_of_interest: ['Campus Placement Drives', 'Assessment Evaluation', 'Curriculum Mapping'],
-      total_xp: 2500,
-      current_level: 10,
-      current_streak: 30,
-      longest_streak: 45,
+      total_xp: 0,
+      current_level: 1,
+      current_streak: 0,
+      longest_streak: 0,
       last_active_date: new Date().toISOString().split('T')[0]
     },
     {
@@ -141,10 +141,10 @@ export const seedDatabase = async (force = false) => {
       target_companies: ['comp-tcs', 'comp-infosys', 'comp-amazon'],
       skill_level: 'Advanced',
       areas_of_interest: ['Academic Analytics', 'Student Performance Evaluation', 'Placement Outcomes'],
-      total_xp: 2500,
-      current_level: 10,
-      current_streak: 30,
-      longest_streak: 45,
+      total_xp: 0,
+      current_level: 1,
+      current_streak: 0,
+      longest_streak: 0,
       last_active_date: new Date().toISOString().split('T')[0]
     },
     {
@@ -161,10 +161,10 @@ export const seedDatabase = async (force = false) => {
       target_companies: ['comp-tcs', 'comp-infosys'],
       skill_level: 'Advanced',
       areas_of_interest: ['Campus Placement Drives'],
-      total_xp: 2500,
-      current_level: 10,
-      current_streak: 30,
-      longest_streak: 45,
+      total_xp: 0,
+      current_level: 1,
+      current_streak: 0,
+      longest_streak: 0,
       last_active_date: new Date().toISOString().split('T')[0]
     }
   ];

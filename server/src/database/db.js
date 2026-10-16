@@ -296,6 +296,17 @@ export const initDb = async () => {
         changed = true;
       }
 
+      // Zero out student gamification streak and XP for Administrator and Dean accounts
+      if (u.role === 'ADMIN' || u.role === 'DEAN') {
+        if (data.total_xp !== 0 || data.current_streak !== 0 || data.longest_streak !== 0) {
+          data.total_xp = 0;
+          data.current_streak = 0;
+          data.longest_streak = 0;
+          data.current_level = 1;
+          changed = true;
+        }
+      }
+
       if (changed) {
         sqlite.prepare(`
           UPDATE users SET name = ?, role = ?, data = ?, updated_at = ? WHERE id = ?

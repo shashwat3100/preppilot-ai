@@ -14,6 +14,7 @@ import {
   LogOut,
   ChevronDown,
   Shield,
+  GraduationCap,
   Sparkles
 } from 'lucide-react';
 
@@ -98,8 +99,29 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
       {/* Right Area: Structured & Compact Controls */}
       <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
-        {/* Streak Indicator (Compact) */}
-        {user?.current_streak !== undefined && user.current_streak > 0 && (
+        {/* Role Badges for Administrative Roles */}
+        {isAdmin && (
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-semibold"
+            title="Platform Administrator Privileges"
+          >
+            <Shield size={13} className="text-amber-500 flex-shrink-0" />
+            <span>Administrator</span>
+          </div>
+        )}
+
+        {isDean && (
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-semibold"
+            title="Dean Academic Oversight"
+          >
+            <GraduationCap size={13} className="text-indigo-400 flex-shrink-0" />
+            <span>Dean</span>
+          </div>
+        )}
+
+        {/* Streak Indicator (Students Only) */}
+        {!isAdmin && !isDean && user?.current_streak !== undefined && user.current_streak > 0 && (
           <div
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-semibold"
             title={`${user.current_streak} Day Practice Streak`}
@@ -109,8 +131,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </div>
         )}
 
-        {/* XP Badge (Compact) */}
-        {user?.total_xp !== undefined && (
+        {/* XP Badge (Students Only) */}
+        {!isAdmin && !isDean && user?.total_xp !== undefined && (
           <div
             className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-semibold"
             title={`${user.total_xp} Total Experience Points (Level ${user.current_level || 1})`}

@@ -129,10 +129,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
             {/* Role-Aware Badges: Dean Badge vs Student Gamification */}
             {user && (
               isAdmin ? (
-                /* Dean / Admin Badge */
+                /* Admin Badge */
                 <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-extrabold whitespace-nowrap">
                   <ShieldCheck size={14} className="text-amber-400 flex-shrink-0" />
-                  <span>Placement Dean</span>
+                  <span>Administrator</span>
+                </div>
+              ) : user.role === 'DEAN' ? (
+                /* Dean Badge */
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold whitespace-nowrap">
+                  <ShieldCheck size={14} className="text-indigo-400 flex-shrink-0" />
+                  <span>Dean</span>
                 </div>
               ) : (
                 /* Student Gamification Badges */
