@@ -11,10 +11,15 @@ async function ensureDb() {
     initPromise = (async () => {
       try {
         await initDb();
-        await seedDatabase(false);
+        try {
+          await seedDatabase(false);
+        } catch (seedErr) {
+          console.warn('[Vercel DB Seed Warning]:', seedErr.message);
+        }
         initialized = true;
       } catch (err) {
         console.error('[Vercel Serverless DB Init Error]:', err);
+        initPromise = null; // Allow retry on subsequent request
         throw err;
       }
     })();
