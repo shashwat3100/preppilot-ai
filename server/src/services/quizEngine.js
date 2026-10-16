@@ -237,6 +237,66 @@ export class QuizEngine {
     const answersMap = new Map();
     answers.forEach(a => answersMap.set(a.question_id, a));
 
+    // Idempotent Lock: If session is already completed, candidate answers cannot be altered
+    if (session.status === 'COMPLETED') {
+      const existingAttempts = db.find('attempts', a => a.session_id === sessionId);
+      const sessionQuestions = db.find('quizQuestions', qq => qq.session_id === sessionId);
+      const graded = sessionQuestions.map(qq => {
+        const q = allQuestions.find(item => item.id === qq.question_id) || {};
+        const qOptions = db.find('questionOptions', opt => opt.question_id === q.id);
+        const chosenOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === (qq.user_answer || '').toUpperCase());
+        const correctOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === (q.correct_answer || '').toUpperCase());
+        const isCorr = Boolean(qq.is_correct);
+
+        const chosenText = chosenOpt ? chosenOpt.option_text : (qq.user_answer || 'No response');
+        const correctText = correctOpt ? correctOpt.option_text : q.correct_answer;
+
+        const whyCorr = correctOpt?.explanation || q.explanation || `Option (${q.correct_answer}) is the correct answer.`;
+        const whyIncorr = isCorr
+          ? ''
+          : (chosenOpt?.explanation || `You selected Option (${qq.user_answer}) "${chosenText}", which is incorrect for this problem.`);
+
+        const subject = db.get('subjects', q.subject_id);
+        const topic = db.get('topics', q.topic_id);
+
+        return {
+          question_id: q.id,
+          question: q.question,
+          chosen_answer: qq.user_answer,
+          chosen_text: chosenText,
+          correct_answer: q.correct_answer,
+          correct_text: correctText,
+          is_correct: isCorr,
+          why_correct: whyCorr,
+          why_incorrect: whyIncorr,
+          explanation: q.explanation,
+          options: qOptions.map(o => ({
+            option_key: o.option_key,
+            option_text: o.option_text,
+            is_correct: (o.option_key || '').toUpperCase() === (q.correct_answer || '').toUpperCase(),
+            explanation: o.explanation || ''
+          })),
+          time_spent: qq.time_spent_seconds || 30,
+          xp_gained: isCorr ? (q.xp_value || 20) : 0,
+          subject_name: subject?.name,
+          topic_name: topic?.name
+        };
+      });
+
+      return {
+        session_id: sessionId,
+        status: 'COMPLETED',
+        total_questions: session.total_questions,
+        correct_count: session.correct_count,
+        accuracy_rate: session.score,
+        xp_earned: session.xp_earned,
+        time_taken_seconds: session.time_taken_seconds,
+        is_locked: true,
+        graded_questions: graded,
+        weak_topics: []
+      };
+    }
+
     // Get all questions in this session
     const sessionQuestions = db.find('quizQuestions', qq => qq.session_id === sessionId);
 
@@ -299,13 +359,44 @@ export class QuizEngine {
       const subject = db.get('subjects', q.subject_id);
       const topic = db.get('topics', q.topic_id);
 
+      // Build tailored why_correct and why_incorrect responses
+      const qOptions = db.find('questionOptions', opt => opt.question_id === q.id);
+      const chosenOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === chosenAnswer.toUpperCase());
+      const correctOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === q.correct_answer.toUpperCase());
+
+      const chosenText = chosenOpt ? chosenOpt.option_text : (chosenAnswer || 'No response');
+      const correctText = correctOpt ? correctOpt.option_text : q.correct_answer;
+
+      let whyCorrect = correctOpt?.explanation || q.explanation || `Option (${q.correct_answer}) is the correct answer.`;
+      let whyIncorrect = '';
+
+      if (isCorrect) {
+        whyCorrect = `Correct! Option (${q.correct_answer}) "${correctText}" is the right answer. ${whyCorrect}`;
+      } else {
+        if (chosenOpt && chosenOpt.explanation) {
+          whyIncorrect = `You selected Option (${chosenAnswer}) "${chosenText}", which is incorrect. ${chosenOpt.explanation}`;
+        } else {
+          whyIncorrect = `You selected Option (${chosenAnswer || 'None'}) "${chosenText}", which is incorrect for this problem.`;
+        }
+      }
+
       gradedDetails.push({
         question_id: q.id,
         question: q.question,
         chosen_answer: chosenAnswer,
+        chosen_text: chosenText,
         correct_answer: q.correct_answer,
+        correct_text: correctText,
         is_correct: isCorrect,
+        why_correct: whyCorrect,
+        why_incorrect: whyIncorrect,
         explanation: q.explanation,
+        options: qOptions.map(o => ({
+          option_key: o.option_key,
+          option_text: o.option_text,
+          is_correct: (o.option_key || '').toUpperCase() === q.correct_answer.toUpperCase(),
+          explanation: o.explanation || ''
+        })),
         time_spent: timeSpent,
         xp_gained: questionXp,
         subject_name: subject?.name,

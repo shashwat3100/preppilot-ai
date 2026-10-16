@@ -412,9 +412,38 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
                         {g.xp_gained > 0 && <span className="text-amber-500 dark:text-amber-400 font-semibold">+{g.xp_gained} XP</span>}
                       </div>
 
-                      <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-xs text-[var(--text-secondary)] mt-2">
-                        <span className="font-bold text-indigo-400 block mb-1">Explanation:</span>
-                        {g.explanation}
+                      {/* Tailored Why Correct / Why Incorrect Breakdown */}
+                      <div className="space-y-2 mt-2">
+                        {g.is_correct ? (
+                          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-1">
+                            <span className="font-bold text-emerald-400 flex items-center gap-1.5">
+                              <CheckCircle2 size={14} /> Why Your Answer is Correct:
+                            </span>
+                            <p className="text-[var(--text-secondary)] leading-relaxed">
+                              {g.why_correct || g.explanation}
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs space-y-1">
+                              <span className="font-bold text-rose-400 flex items-center gap-1.5">
+                                <XCircle size={14} /> Why Your Selection Was Incorrect:
+                              </span>
+                              <p className="text-[var(--text-secondary)] leading-relaxed">
+                                {g.why_incorrect || `You chose Option (${g.chosen_answer || 'None'}), which does not satisfy the requirements.`}
+                              </p>
+                            </div>
+
+                            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-1">
+                              <span className="font-bold text-emerald-400 flex items-center gap-1.5">
+                                <CheckCircle2 size={14} /> Why Option ({g.correct_answer}) is Right:
+                              </span>
+                              <p className="text-[var(--text-secondary)] leading-relaxed">
+                                {g.why_correct || g.explanation}
+                              </p>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       {/* Per-Question Voice Tutor Button */}

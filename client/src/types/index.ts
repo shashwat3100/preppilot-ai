@@ -66,9 +66,19 @@ export interface GradedQuestion {
   question_id: string;
   question: string;
   chosen_answer: string;
+  chosen_text?: string;
   correct_answer: string;
+  correct_text?: string;
   is_correct: boolean;
+  why_correct?: string;
+  why_incorrect?: string;
   explanation: string;
+  options?: Array<{
+    option_key: string;
+    option_text: string;
+    is_correct: boolean;
+    explanation?: string;
+  }>;
   time_spent: number;
   xp_gained: number;
   subject_name?: string;
