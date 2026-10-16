@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { VoiceProvider } from './context/VoiceContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -309,6 +310,7 @@ export const App: React.FC = () => {
       <AuthProvider>
         <VoiceProvider>
           <MainApp />
+          <Analytics />
         </VoiceProvider>
       </AuthProvider>
     </ThemeProvider>
