@@ -1,8 +1,17 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { DatabaseSync } from 'node:sqlite';
 import { v4 as uuidv4 } from 'uuid';
+
+let DatabaseSync = null;
+try {
+  const sqliteMod = await import('node:sqlite');
+  DatabaseSync = sqliteMod.DatabaseSync;
+} catch {
+  console.warn('[Database] node:sqlite not present on this runtime. Using memory store fallback.');
+}
+
+const memoryStore = {};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -125,6 +134,23 @@ const TABLE_SCHEMAS = {
     );
     CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
     CREATE INDEX IF NOT EXISTS idx_attempts_question ON attempts(question_id);
+  `,
+  accessLogs: `
+    CREATE TABLE IF NOT EXISTS accessLogs (
+      id TEXT PRIMARY KEY,
+      ip TEXT,
+      method TEXT,
+      path TEXT,
+      status_code INTEGER,
+      response_time_ms INTEGER,
+      user_agent TEXT,
+      user_id TEXT,
+      referrer TEXT,
+      data TEXT NOT NULL,
+      created_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_access_logs_created ON accessLogs(created_at);
+    CREATE INDEX IF NOT EXISTS idx_access_logs_ip ON accessLogs(ip);
   `
 };
 
@@ -155,7 +181,8 @@ const ALL_TABLE_NAMES = [
   'codingAssessments',
   'codingAssessmentAttempts',
   'adminInvitations',
-  'facultyApplications'
+  'facultyApplications',
+  'accessLogs'
 ];
 
 let sqlite = null;
@@ -195,6 +222,22 @@ const ensureTable = (tableName) => {
  */
 export const initDb = async () => {
   if (sqlite) return sqlite;
+
+  // Portable fallback: If node:sqlite is not available, populate memoryStore
+  if (!DatabaseSync) {
+    if (Object.keys(memoryStore).length === 0 && fs.existsSync(FIXTURES_FILE)) {
+      try {
+        const fixtures = JSON.parse(fs.readFileSync(FIXTURES_FILE, 'utf-8'));
+        for (const [table, items] of Object.entries(fixtures)) {
+          memoryStore[table] = Array.isArray(items) ? [...items] : [];
+        }
+        console.log('[Memory Database] Populated educational content from static fixtures.');
+      } catch (err) {
+        console.error('[Memory Database] Error loading fixtures:', err.message);
+      }
+    }
+    return memoryStore;
+  }
 
   const dbFile = getDbFilePath();
   ensureDataDirectory(dbFile);
@@ -446,6 +489,23 @@ const insertRow = (table, item) => {
       jsonStr,
       item.created_at || now
     );
+  } else if (table === 'accessLogs') {
+    sqlite.prepare(`
+      INSERT OR REPLACE INTO accessLogs (id, ip, method, path, status_code, response_time_ms, user_agent, user_id, referrer, data, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      item.ip || null,
+      item.method || 'GET',
+      item.path || '/',
+      item.status_code || 200,
+      item.response_time_ms || 0,
+      item.user_agent || null,
+      item.user_id || null,
+      item.referrer || null,
+      jsonStr,
+      item.created_at || now
+    );
   } else {
     sqlite.prepare(`
       INSERT OR REPLACE INTO "${table}" (id, data, created_at, updated_at)
@@ -465,6 +525,9 @@ const insertRow = (table, item) => {
 export const db = {
   get: (table, id) => {
     if (!sqlite) initDb();
+    if (!sqlite) {
+      return (memoryStore[table] || []).find(x => x.id === id) || null;
+    }
     ensureTable(table);
     try {
       const row = sqlite.prepare(`SELECT data FROM "${table}" WHERE id = ?`).get(id);
@@ -476,6 +539,9 @@ export const db = {
 
   getAll: (table) => {
     if (!sqlite) initDb();
+    if (!sqlite) {
+      return memoryStore[table] || [];
+    }
     ensureTable(table);
     try {
       const rows = sqlite.prepare(`SELECT data FROM "${table}"`).all();
@@ -495,11 +561,24 @@ export const db = {
 
   insert: (table, item) => {
     if (!sqlite) initDb();
+    if (!sqlite) {
+      if (!memoryStore[table]) memoryStore[table] = [];
+      const itemWithId = { ...item, id: item.id || uuidv4() };
+      memoryStore[table].push(itemWithId);
+      return itemWithId;
+    }
     return insertRow(table, item);
   },
 
   insertMany: (table, items) => {
     if (!sqlite) initDb();
+    if (!sqlite) {
+      if (!Array.isArray(items)) return [];
+      if (!memoryStore[table]) memoryStore[table] = [];
+      const inserted = items.map(item => ({ ...item, id: item.id || uuidv4() }));
+      memoryStore[table].push(...inserted);
+      return inserted;
+    }
     ensureTable(table);
     if (!Array.isArray(items) || items.length === 0) return items;
 
@@ -519,6 +598,13 @@ export const db = {
 
   update: (table, id, updates) => {
     if (!sqlite) initDb();
+    if (!sqlite) {
+      if (!memoryStore[table]) return null;
+      const idx = memoryStore[table].findIndex(x => x.id === id);
+      if (idx === -1) return null;
+      memoryStore[table][idx] = { ...memoryStore[table][idx], ...updates, updated_at: new Date().toISOString() };
+      return memoryStore[table][idx];
+    }
     const existing = db.get(table, id);
     if (!existing) return null;
     const merged = { ...existing, ...updates, updated_at: new Date().toISOString() };
@@ -528,6 +614,12 @@ export const db = {
 
   delete: (table, id) => {
     if (!sqlite) initDb();
+    if (!sqlite) {
+      if (!memoryStore[table]) return false;
+      const initial = memoryStore[table].length;
+      memoryStore[table] = memoryStore[table].filter(x => x.id !== id);
+      return memoryStore[table].length < initial;
+    }
     ensureTable(table);
     try {
       const result = sqlite.prepare(`DELETE FROM "${table}" WHERE id = ?`).run(id);
@@ -539,6 +631,10 @@ export const db = {
 
   replaceAll: (table, items) => {
     if (!sqlite) initDb();
+    if (!sqlite) {
+      memoryStore[table] = Array.isArray(items) ? [...items] : [];
+      return memoryStore[table];
+    }
     ensureTable(table);
     sqlite.exec(`DELETE FROM "${table}"`);
     return db.insertMany(table, items);
@@ -547,11 +643,13 @@ export const db = {
   // Direct SQL execution methods
   query: (sql, params = []) => {
     if (!sqlite) initDb();
+    if (!sqlite) return [];
     return sqlite.prepare(sql).all(...params);
   },
 
   execute: (sql, params = []) => {
     if (!sqlite) initDb();
+    if (!sqlite) return { changes: 0 };
     return sqlite.prepare(sql).run(...params);
   },
 

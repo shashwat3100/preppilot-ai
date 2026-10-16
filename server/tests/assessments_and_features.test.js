@@ -24,7 +24,8 @@ function request(path, options = {}) {
 
     const req = http.request(url, {
       method: options.method || 'GET',
-      headers
+      headers,
+      timeout: 10000
     }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -39,6 +40,9 @@ function request(path, options = {}) {
       });
     });
 
+    req.on('timeout', () => {
+      req.destroy(new Error(`Request to ${path} timed out after 10000ms`));
+    });
     req.on('error', reject);
     if (bodyStr) req.write(bodyStr);
     req.end();

@@ -165,36 +165,30 @@ export const api = {
 
   // Companies
   getCompanies: async () => {
-    const res = await fetch(`${API_BASE}/companies`);
-    return res.json();
+    return safeFetch(`${API_BASE}/companies`);
   },
 
   getCompanyDetails: async (id: string) => {
-    const res = await fetch(`${API_BASE}/companies/${id}`);
-    return res.json();
+    return safeFetch(`${API_BASE}/companies/${id}`);
   },
 
   // Branches & Subjects
   getBranches: async () => {
-    const res = await fetch(`${API_BASE}/branches/branches`);
-    return res.json();
+    return safeFetch(`${API_BASE}/branches/branches`);
   },
 
   getSubjects: async (branchId?: string) => {
     const url = branchId ? `${API_BASE}/branches/subjects?branch_id=${branchId}` : `${API_BASE}/branches/subjects`;
-    const res = await fetch(url);
-    return res.json();
+    return safeFetch(url);
   },
 
   getTopics: async (subjectId?: string) => {
     const url = subjectId ? `${API_BASE}/branches/topics?subject_id=${subjectId}` : `${API_BASE}/branches/topics`;
-    const res = await fetch(url);
-    return res.json();
+    return safeFetch(url);
   },
 
   getJobRoles: async () => {
-    const res = await fetch(`${API_BASE}/branches/roles`);
-    return res.json();
+    return safeFetch(`${API_BASE}/branches/roles`);
   },
 
   // PrepPilot Voice AI

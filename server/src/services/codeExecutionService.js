@@ -45,7 +45,7 @@ const LANGUAGE_CONFIG = {
   },
   python: {
     extension: '.py',
-    command: 'python',
+    command: process.platform === 'win32' ? 'python' : 'python3',
     args: (filePath) => [filePath],
     compile: null
   },
@@ -113,15 +113,25 @@ function releaseLocalSlot() {
 }
 
 // Kill process tree cleanly across platforms
-function killProcessTree(pid) {
+function killProcessTree(pid, proc) {
   try {
     if (process.platform === 'win32') {
       exec(`taskkill /PID ${pid} /T /F`, () => {});
     } else {
-      process.kill(-pid, 'SIGKILL');
+      try {
+        process.kill(pid, 'SIGKILL');
+      } catch {}
+      try {
+        process.kill(-pid, 'SIGKILL');
+      } catch {}
     }
   } catch (err) {
     // Process may have already exited
+  }
+  if (proc && typeof proc.kill === 'function') {
+    try {
+      proc.kill('SIGKILL');
+    } catch {}
   }
 }
 
@@ -257,14 +267,14 @@ async function compileCode(filePath, config, language) {
 
     const timeoutHandle = setTimeout(() => {
       timedOut = true;
-      killProcessTree(proc.pid);
+      killProcessTree(proc.pid, proc);
     }, EXECUTION_LIMITS.compileTimeoutMs);
 
     proc.stderr.on('data', (data) => {
       stderr += data.toString();
       if (stderr.length > EXECUTION_LIMITS.maxOutputBytes) {
         outputExceeded = true;
-        killProcessTree(proc.pid);
+        killProcessTree(proc.pid, proc);
       }
     });
 
@@ -315,7 +325,7 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
 
     const timeoutHandle = setTimeout(() => {
       timedOut = true;
-      killProcessTree(proc.pid);
+      killProcessTree(proc.pid, proc);
     }, EXECUTION_LIMITS.timeoutMs);
 
     if (input) {
@@ -333,7 +343,7 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
       stdout += data.toString();
       if (stdout.length > EXECUTION_LIMITS.maxOutputBytes) {
         outputExceeded = true;
-        killProcessTree(proc.pid);
+        killProcessTree(proc.pid, proc);
       }
     });
 
@@ -341,7 +351,7 @@ async function executeCodeLocally(exePath, config, input, language, runDir) {
       stderr += data.toString();
       if (stderr.length > EXECUTION_LIMITS.maxOutputBytes) {
         outputExceeded = true;
-        killProcessTree(proc.pid);
+        killProcessTree(proc.pid, proc);
       }
     });
 

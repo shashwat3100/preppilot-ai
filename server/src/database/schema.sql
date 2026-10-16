@@ -328,7 +328,21 @@ CREATE TABLE IF NOT EXISTS coding_assessment_attempts (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- INDEXES FOR CODING PLATFORM
+-- 23. WEBSITE ACCESS & VISITOR LOGS
+CREATE TABLE IF NOT EXISTS access_logs (
+    id VARCHAR(50) PRIMARY KEY,
+    ip VARCHAR(100),
+    method VARCHAR(10) NOT NULL,
+    path TEXT NOT NULL,
+    status_code INT NOT NULL,
+    response_time_ms INT DEFAULT 0,
+    user_agent TEXT,
+    user_id VARCHAR(50) REFERENCES users(id) ON DELETE SET NULL,
+    referrer TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- INDEXES FOR CODING PLATFORM & ACCESS LOGS
 CREATE INDEX IF NOT EXISTS idx_coding_problems_difficulty ON coding_problems(difficulty);
 CREATE INDEX IF NOT EXISTS idx_coding_problems_topic ON coding_problems(topic_id);
 CREATE INDEX IF NOT EXISTS idx_coding_test_cases_problem ON coding_test_cases(problem_id);
@@ -336,4 +350,7 @@ CREATE INDEX IF NOT EXISTS idx_coding_submissions_user_problem ON coding_submiss
 CREATE INDEX IF NOT EXISTS idx_coding_bookmarks_user ON coding_bookmarks(user_id);
 CREATE INDEX IF NOT EXISTS idx_coding_assessment_attempts_user ON coding_assessment_attempts(user_id);
 CREATE INDEX IF NOT EXISTS idx_coding_assessment_attempts_assessment ON coding_assessment_attempts(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON access_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_access_logs_user_id ON access_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_access_logs_path ON access_logs(path);
 

@@ -22,6 +22,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import deanRoutes from './routes/deanRoutes.js';
 import codingRoutes from './routes/codingRoutes.js';
 import { authLimiter } from './middleware/rateLimiter.js';
+import { accessLogger } from './middleware/accessLogger.js';
 
 dotenv.config();
 
@@ -66,6 +67,28 @@ app.use(cors({
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: true, limit: '256kb' }));
 
+// Ensure database and static educational content are initialized on first request (Serverless & Direct)
+let dbInitialized = false;
+let dbInitPromise = null;
+app.use(async (req, res, next) => {
+  if (!dbInitialized) {
+    if (!dbInitPromise) {
+      dbInitPromise = (async () => {
+        try {
+          await initDb();
+          try { await seedDatabase(false); } catch {}
+          dbInitialized = true;
+        } catch (err) {
+          console.warn('[Database Init Warning]:', err?.message);
+          dbInitialized = true;
+        }
+      })();
+    }
+    await dbInitPromise;
+  }
+  next();
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
@@ -74,6 +97,9 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Telemetry & Visitor Access Logger (Tracks website visits into PostgreSQL & local database)
+app.use(accessLogger);
 
 // Security Headers Middleware
 app.use((req, res, next) => {
@@ -142,9 +168,9 @@ export const startServer = async (port = PORT) => {
   }
 };
 
-// Start automatically only when run directly and not in test mode
-const isDirectRun = !process.env.TEST_MODE && process.argv[1] && (
-  process.argv[1].endsWith('index.js') || process.argv[1].includes('src')
+// Start automatically only when run directly and not in serverless/test mode
+const isDirectRun = !process.env.VERCEL && !process.env.TEST_MODE && process.argv[1] && (
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
 );
 
 if (isDirectRun) {
