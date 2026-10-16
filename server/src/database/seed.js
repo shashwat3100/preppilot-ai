@@ -43,21 +43,18 @@ export const seedDatabase = async (force = false) => {
     }
   }
 
-  // 2. Production Environment Check:
-  // Strictly prevent creation of shared demo accounts or performance histories in production
-  const isProd = process.env.NODE_ENV === 'production';
-  const allowDevDemo = process.env.ALLOW_DEV_DEMO_ACCOUNTS === 'true' ||
-    (!isProd && (process.env.TEST_MODE === 'true' || process.env.NODE_ENV === 'development' || !process.env.NODE_ENV));
-
-  if (!allowDevDemo || isProd) {
-    console.log('[Seed] Production or demo-restricted environment. No demo accounts created.');
+  // 2. Demo Accounts Seeding:
+  // Ensure default demo accounts exist so that "Fill Demo" in the UI functions cleanly.
+  // If explicitly disabled via DISABLE_DEMO_ACCOUNTS=true, skip seeding.
+  if (process.env.DISABLE_DEMO_ACCOUNTS === 'true') {
+    console.log('[Seed] Demo accounts disabled via configuration. Skipping demo seed.');
     return;
   }
 
-  // 3. Development / Test Only: Seed demo accounts if no users exist
-  const currentUsers = db.getAll('users');
-  if (currentUsers.length > 0 && !force) {
-    console.log('[Seed] Development users already present. Skipping demo user seed.');
+  // Check if demo student already exists
+  const existingDemoUser = db.findOne('users', u => u.email === 'student@careerprep.ai');
+  if (existingDemoUser && !force) {
+    console.log('[Seed] Demo accounts already present. Skipping duplicate seed.');
     return;
   }
 
