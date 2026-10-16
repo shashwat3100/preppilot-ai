@@ -67,6 +67,28 @@ app.use(cors({
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: true, limit: '256kb' }));
 
+// Ensure database and static educational content are initialized on first request (Serverless & Direct)
+let dbInitialized = false;
+let dbInitPromise = null;
+app.use(async (req, res, next) => {
+  if (!dbInitialized) {
+    if (!dbInitPromise) {
+      dbInitPromise = (async () => {
+        try {
+          await initDb();
+          try { await seedDatabase(false); } catch {}
+          dbInitialized = true;
+        } catch (err) {
+          console.warn('[Database Init Warning]:', err?.message);
+          dbInitialized = true;
+        }
+      })();
+    }
+    await dbInitPromise;
+  }
+  next();
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
