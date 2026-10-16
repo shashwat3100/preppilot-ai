@@ -1024,6 +1024,34 @@
       "name": "Bit Manipulation & Bitwise Algorithms",
       "description": "XOR properties, single number finding, bitmasks, power of two checks and Hamming weight.",
       "importance_weight": 0.85
+    },
+    {
+      "id": "top-hashing",
+      "subject_id": "sub-dsa",
+      "name": "Hashing & Hash Tables",
+      "description": "Hash functions, separate chaining, open addressing (linear/quadratic probing, double hashing), load factor & rehashing.",
+      "importance_weight": 1
+    },
+    {
+      "id": "top-trie",
+      "subject_id": "sub-dsa",
+      "name": "Trie (Prefix Tree) & Auto-complete",
+      "description": "Prefix tree creation, searching, startswith operations, memory optimization, bitwise Trie, and word dictionaries.",
+      "importance_weight": 0.9
+    },
+    {
+      "id": "top-dsu",
+      "subject_id": "sub-dsa",
+      "name": "Disjoint Set Union (DSU / Union-Find)",
+      "description": "Path compression, union by rank and size, cycle detection in undirected graphs, Kruskal minimum spanning tree.",
+      "importance_weight": 0.95
+    },
+    {
+      "id": "top-asymptotic",
+      "subject_id": "sub-dsa",
+      "name": "Asymptotic Analysis & Recurrences",
+      "description": "Big-O, Big-Omega, Big-Theta bounds, recursion tree analysis, Master Theorem for divide-and-conquer, space complexity.",
+      "importance_weight": 1
     }
   ],
   "questions": [
@@ -2894,6 +2922,86 @@
       ],
       "expected_time": 50,
       "xp_value": 25
+    },
+    {
+      "id": "q-dsa-hashing-collision",
+      "question": "In open addressing for hash tables, which probing technique effectively eliminates both primary and secondary clustering?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-amazon",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-hashing",
+      "difficulty": "Medium",
+      "correct_answer": "C",
+      "explanation": "Double hashing uses a probe sequence of h(k, i) = (h1(k) + i * h2(k)) mod m. Because the probe step depends on the key via h2(k), it eliminates both primary and secondary clustering.",
+      "tags": [
+        "DSA",
+        "Data Structures",
+        "Hashing",
+        "Medium"
+      ],
+      "expected_time": 45,
+      "xp_value": 25
+    },
+    {
+      "id": "q-dsa-trie-complexity",
+      "question": "What is the worst-case time complexity of searching for a word of length L in a Trie containing N words over an alphabet of size Sigma?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-google",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-trie",
+      "difficulty": "Medium",
+      "correct_answer": "B",
+      "explanation": "Searching in a Trie depends only on the length of the query word L. At each character, an O(1) pointer transition is performed, giving O(L) time regardless of the total number of words N in the Trie.",
+      "tags": [
+        "DSA",
+        "Data Structures",
+        "Trie",
+        "Medium"
+      ],
+      "expected_time": 40,
+      "xp_value": 20
+    },
+    {
+      "id": "q-dsa-dsu-complexity",
+      "question": "When implementing Disjoint Set Union (DSU) with both Path Compression and Union by Rank, what is the amortized time complexity per operation for M operations on N elements?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-microsoft",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-dsu",
+      "difficulty": "Hard",
+      "correct_answer": "C",
+      "explanation": "Combining path compression and union by rank yields an amortized time complexity of O(alpha(N)) per operation, where alpha is the extremely slowly growing Inverse Ackermann function.",
+      "tags": [
+        "DSA",
+        "Data Structures",
+        "Graphs",
+        "Hard"
+      ],
+      "expected_time": 50,
+      "xp_value": 30
+    },
+    {
+      "id": "q-dsa-master-theorem",
+      "question": "According to the Master Theorem, what is the asymptotic solution to the recurrence relation T(n) = 2T(n/2) + O(n)?",
+      "question_type": "MCQ",
+      "branch_id": "branch-cse",
+      "company_id": "comp-tcs",
+      "subject_id": "sub-dsa",
+      "topic_id": "top-asymptotic",
+      "difficulty": "Medium",
+      "correct_answer": "A",
+      "explanation": "Here a=2, b=2, and f(n)=O(n). Since log_b(a) = log_2(2) = 1, and f(n) = Theta(n^1), this corresponds to Case 2 of Master Theorem, giving T(n) = Theta(n log n). This is the exact recurrence of Merge Sort.",
+      "tags": [
+        "DSA",
+        "Algorithms",
+        "Complexity Analysis",
+        "Medium"
+      ],
+      "expected_time": 40,
+      "xp_value": 20
     }
   ],
   "questionOptions": [
@@ -5568,6 +5676,134 @@
       "option_text": "A BST search never degrades to O(N) because binary search always guarantees O(log N).",
       "is_correct": false,
       "explanation": "Binary Search guarantees O(log N) on contiguous arrays. A BST only guarantees O(height), which can become O(N) if unbalanced."
+    },
+    {
+      "id": "opt-q-dsa-hashing-collision-a",
+      "question_id": "q-dsa-hashing-collision",
+      "option_key": "A",
+      "option_text": "Linear Probing",
+      "is_correct": false,
+      "explanation": "Linear probing probes sequential slots (i, i+1, i+2...), which causes severe primary clustering as adjacent occupied blocks merge into long chains."
+    },
+    {
+      "id": "opt-q-dsa-hashing-collision-b",
+      "question_id": "q-dsa-hashing-collision",
+      "option_key": "B",
+      "option_text": "Quadratic Probing",
+      "is_correct": false,
+      "explanation": "Quadratic probing uses quadratic steps (c1*i + c2*i^2), eliminating primary clustering, but keys that hash to the same starting slot still follow identical probe sequences (secondary clustering)."
+    },
+    {
+      "id": "opt-q-dsa-hashing-collision-c",
+      "question_id": "q-dsa-hashing-collision",
+      "option_key": "C",
+      "option_text": "Double Hashing",
+      "is_correct": true,
+      "explanation": "Double hashing uses two independent hash functions where the step size is h2(key). This ensures distinct probe paths even for keys with the same initial hash, eliminating primary and secondary clustering."
+    },
+    {
+      "id": "opt-q-dsa-hashing-collision-d",
+      "question_id": "q-dsa-hashing-collision",
+      "option_key": "D",
+      "option_text": "Separate Chaining",
+      "is_correct": false,
+      "explanation": "Separate chaining is a closed-addressing (open hashing) scheme where entries are stored in external linked lists, not open addressing."
+    },
+    {
+      "id": "opt-q-dsa-trie-complexity-a",
+      "question_id": "q-dsa-trie-complexity",
+      "option_key": "A",
+      "option_text": "O(N * L)",
+      "is_correct": false,
+      "explanation": "O(N * L) would be the brute-force search time comparing against all N words in a list; a Trie avoids this by sharing common prefixes."
+    },
+    {
+      "id": "opt-q-dsa-trie-complexity-b",
+      "question_id": "q-dsa-trie-complexity",
+      "option_key": "B",
+      "option_text": "O(L)",
+      "is_correct": true,
+      "explanation": "In a Trie, each character of the word corresponds to one edge traversal in O(1) time. Searching a word of length L requires exactly L operations, strictly independent of total stored words N."
+    },
+    {
+      "id": "opt-q-dsa-trie-complexity-c",
+      "question_id": "q-dsa-trie-complexity",
+      "option_key": "C",
+      "option_text": "O(log N + L)",
+      "is_correct": false,
+      "explanation": "O(log N) would apply to binary search in a sorted array of words, but a Trie does not perform binary search on nodes."
+    },
+    {
+      "id": "opt-q-dsa-trie-complexity-d",
+      "question_id": "q-dsa-trie-complexity",
+      "option_key": "D",
+      "option_text": "O(Sigma * L)",
+      "is_correct": false,
+      "explanation": "Sigma represents the alphabet size. With direct array indexing (children[char - \"a\"]), the transition takes O(1) time, not O(Sigma)."
+    },
+    {
+      "id": "opt-q-dsa-dsu-complexity-a",
+      "question_id": "q-dsa-dsu-complexity",
+      "option_key": "A",
+      "option_text": "O(log N)",
+      "is_correct": false,
+      "explanation": "O(log N) is the time complexity when using only Union by Rank without Path Compression."
+    },
+    {
+      "id": "opt-q-dsa-dsu-complexity-b",
+      "question_id": "q-dsa-dsu-complexity",
+      "option_key": "B",
+      "option_text": "O(N)",
+      "is_correct": false,
+      "explanation": "O(N) occurs only in naive Disjoint Sets without optimizations where tree structures degenerate into linear chains."
+    },
+    {
+      "id": "opt-q-dsa-dsu-complexity-c",
+      "question_id": "q-dsa-dsu-complexity",
+      "option_key": "C",
+      "option_text": "O(alpha(N)) where alpha is the Inverse Ackermann function",
+      "is_correct": true,
+      "explanation": "The combination of path compression (which flattens trees during find) and union by rank (which bounds tree height) achieves O(alpha(N)) amortized time, which is practically <= 4 for all physical inputs."
+    },
+    {
+      "id": "opt-q-dsa-dsu-complexity-d",
+      "question_id": "q-dsa-dsu-complexity",
+      "option_key": "D",
+      "option_text": "O(1) strict worst-case for every single operation",
+      "is_correct": false,
+      "explanation": "Individual operations can take longer than O(1) due to path compression traversal; the bound is amortized across operations, not strict worst-case."
+    },
+    {
+      "id": "opt-q-dsa-master-theorem-a",
+      "question_id": "q-dsa-master-theorem",
+      "option_key": "A",
+      "option_text": "Theta(n log n)",
+      "is_correct": true,
+      "explanation": "With a=2, b=2, n^(log_b a) = n^1. Since f(n) = n = Theta(n^1), Case 2 applies: T(n) = Theta(n^(log_b a) * log n) = Theta(n log n)."
+    },
+    {
+      "id": "opt-q-dsa-master-theorem-b",
+      "question_id": "q-dsa-master-theorem",
+      "option_key": "B",
+      "option_text": "Theta(n^2)",
+      "is_correct": false,
+      "explanation": "Theta(n^2) would occur if f(n) = O(n^2), which is not the case here."
+    },
+    {
+      "id": "opt-q-dsa-master-theorem-c",
+      "question_id": "q-dsa-master-theorem",
+      "option_key": "C",
+      "option_text": "Theta(n)",
+      "is_correct": false,
+      "explanation": "Theta(n) would occur if work at root dominated (e.g. T(n) = T(n/2) + n), but here both subproblems contribute equal work at every level."
+    },
+    {
+      "id": "opt-q-dsa-master-theorem-d",
+      "question_id": "q-dsa-master-theorem",
+      "option_key": "D",
+      "option_text": "Theta(log n)",
+      "is_correct": false,
+      "explanation": "Theta(log n) applies to Binary Search where T(n) = T(n/2) + O(1), having only 1 recursive call per step."
     }
   ],
   "codingProblems": [
