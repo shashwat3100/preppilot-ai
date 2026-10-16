@@ -136,6 +136,66 @@ DSU tracks a partition of elements into disjoint (non-overlapping) subsets.
   * Union by Rank / Size (in Union): Attach the shorter tree under the root of the taller tree. Prevents tree degeneration into a linked list.
 - Time Complexity: With both Path Compression and Union by Rank, any sequence of m operations on n elements runs in O(m * alpha(n)) time, where alpha is the Inverse Ackermann function. In practice, alpha(n) <= 4 for all realistic values of n (even greater than the number of atoms in the universe), making operations effectively O(1) amortized.
 - Applications: Kruskal's Minimum Spanning Tree algorithm, detecting cycles in undirected graphs, and dynamic connectivity in networks.`
+  },
+  {
+    id: 'doc-os-deadlocks-scheduling',
+    title: 'Operating Systems: Process Scheduling, Concurrency & Deadlocks (Coffman Conditions)',
+    branch_id: 'branch-cse',
+    subject_id: 'sub-os',
+    company_id: 'comp-google',
+    category: 'CONCEPT',
+    summary: 'Comprehensive placement guide covering CPU scheduling algorithms (Round Robin, SRTF), synchronization primitives (Mutex, Semaphore), and Coffman deadlock conditions with Banker algorithm.',
+    keywords: ['operating systems', 'os', 'deadlock', 'coffman conditions', 'cpu scheduling', 'round robin', 'banker algorithm', 'mutex', 'semaphore', 'concurrency'],
+    content: `Operating Systems Concurrency, Scheduling, and Deadlock Management:
+1. CPU Scheduling Algorithms:
+- First-Come, First-Served (FCFS): Non-preemptive, suffers from the Convoy Effect.
+- Shortest Job First (SJF) / Shortest Remaining Time First (SRTF): Optimal minimum average waiting time. Preemptive SJF is SRTF. Can cause starvation of long processes.
+- Round Robin (RR): Preemptive, time-sliced allocation with a quantum q. Fair, interactive, performance heavily depends on quantum size (too large -> FCFS, too small -> context switch overhead).
+- Priority Scheduling: Preemptive or non-preemptive. Suffers from starvation; resolved via Aging (gradually increasing the priority of waiting processes).
+
+2. Critical Section Problem & Synchronization:
+A critical section must satisfy Mutual Exclusion, Progress, and Bounded Waiting.
+- Mutex: Locking mechanism with ownership (only the thread that locked the mutex can unlock it).
+- Semaphore: Signaling mechanism. Counting semaphore maintains an integer count; Binary semaphore acts like a mutex (0 or 1) without ownership enforcement.
+
+3. Deadlocks & The Four Coffman Conditions:
+A deadlock state occurs if and only if all four Coffman conditions hold simultaneously:
+1. Mutual Exclusion: At least one resource must be held in a non-shareable mode.
+2. Hold and Wait: A process holding at least one resource is actively waiting to acquire additional resources held by other processes.
+3. No Preemption: Resources cannot be forcibly confiscated from a process; they can only be released voluntarily.
+4. Circular Wait: A closed chain of processes exists such that each process holds a resource needed by the next process in the cycle (P0 -> P1 -> P2 -> ... -> P0).
+
+Deadlock Handling Strategies:
+- Prevention: Invalidate at least one of the four Coffman conditions (e.g., impose a global linear ordering on all resource acquisitions to eliminate Circular Wait).
+- Avoidance: Ensure the system never enters an Unsafe State using Dijkstra's Banker's Algorithm (allocating resources only if a safe execution sequence of processes exists).
+- Detection & Recovery: Allow deadlocks to occur, detect cycles using a Resource Allocation Graph (Wait-For Graph), and terminate processes or preempt resources.`
+  },
+  {
+    id: 'doc-cn-protocols',
+    title: 'Computer Networks: OSI 7-Layer Model, TCP/IP Suite & Handshake Protocols',
+    branch_id: 'branch-it',
+    subject_id: 'sub-cn',
+    company_id: 'comp-amazon',
+    category: 'CONCEPT',
+    summary: 'Core networking interview preparation covering OSI vs TCP/IP layer responsibilities, TCP 3-way handshake, SYN flood mitigation, UDP comparison, and DNS resolution.',
+    keywords: ['computer networks', 'osi layers', 'tcp', 'udp', '3-way handshake', 'ip addressing', 'subnetting', 'dns', 'http', 'https'],
+    content: `Computer Networks Core Protocol Architecture:
+1. OSI 7-Layer vs TCP/IP Protocol Stack:
+- Application Layer: HTTP/HTTPS, DNS, FTP, SMTP, SSH (Data units: Messages).
+- Transport Layer: End-to-end communication, port addressing, flow & error control. TCP (reliable, connection-oriented, byte-stream) vs UDP (unreliable, connectionless, datagram). (Data units: Segments / Datagrams).
+- Network Layer: Logical host-to-host addressing (IPv4/IPv6), packet routing (OSPF, BGP). (Data units: Packets).
+- Data Link Layer: Node-to-node framing, physical MAC addressing, error detection via CRC, CSMA/CD. (Data units: Frames).
+- Physical Layer: Raw binary bit transmission over physical media (cables, radio waves). (Data units: Bits).
+
+2. TCP 3-Way Handshake Connection Establishment:
+Step 1: Client -> Server: SYN (Synchronize Sequence Number = X, SYN flag = 1).
+Step 2: Server -> Client: SYN-ACK (Server Seq = Y, ACK = X + 1, SYN flag = 1, ACK flag = 1).
+Step 3: Client -> Server: ACK (Client Seq = X + 1, ACK = Y + 1, ACK flag = 1). Connection ESTABLISHED.
+- Security Note: SYN Flood attacks exploit half-open connections; mitigated via SYN Cookies.
+- TCP Connection Teardown (4-Way Handshake): FIN -> ACK -> FIN -> ACK (with TIME_WAIT state to ensure final ACK delivery).
+
+3. DNS Resolution Hierarchy:
+Client -> Local Recursive Resolver -> Root DNS Server ('.') -> TLD DNS Server ('.com') -> Authoritative DNS Server ('example.com') -> IP Address returned.`
   }
 ];
 
@@ -311,6 +371,16 @@ async function syncAdvancedCurriculum() {
   // Remove any obsolete q-gfg questions & options
   fixtures.questions = fixtures.questions.filter(q => !q.id.startsWith('q-gfg-'));
   fixtures.questionOptions = fixtures.questionOptions.filter(o => !o.id.includes('q-gfg-') && !o.question_id?.startsWith('q-gfg-'));
+  fixtures.knowledgeDocuments = (fixtures.knowledgeDocuments || []).filter(d => !d.id.startsWith('doc-gfg-'));
+
+  // Ensure clean knowledge documents exist
+  const existingDocIds = new Set(fixtures.knowledgeDocuments.map(d => d.id));
+  for (const doc of standardKnowledgeDocs) {
+    if (!existingDocIds.has(doc.id)) {
+      fixtures.knowledgeDocuments.push(doc);
+      existingDocIds.add(doc.id);
+    }
+  }
 
   // Ensure topics exist
   const existingTopicIds = new Set(fixtures.topics.map(t => t.id));
@@ -371,6 +441,7 @@ async function syncAdvancedCurriculum() {
     // Clean obsolete gfg records from SQLite
     sqlite.exec(`DELETE FROM questions WHERE id LIKE 'q-gfg-%'`);
     sqlite.exec(`DELETE FROM questionOptions WHERE id LIKE '%q-gfg-%' OR question_id LIKE 'q-gfg-%'`);
+    sqlite.exec(`DELETE FROM knowledgeDocuments WHERE id LIKE 'doc-gfg-%'`);
 
     // Insert topics
     const insertTopic = sqlite.prepare(`

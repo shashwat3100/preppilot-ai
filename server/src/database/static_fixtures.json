@@ -7454,6 +7454,106 @@
       ],
       "summary": "Mechanical technical interview questions for GET (Graduate Engineer Trainee) drives.",
       "content": "\nEssential Mechanical Engineering Placement Concepts:\n1. Zeroth Law: Establishes thermal equilibrium and temperature measurement.\n2. First Law: Conservation of energy (dQ = dU + dW for closed systems).\n3. Second Law:\n   - Kelvin-Planck statement: Impossible to construct an engine operating in a cycle that absorbs heat from a single reservoir and produces an equivalent amount of work.\n   - Clausius statement: Impossible to construct a cyclic device that transfers heat from a lower temperature body to a higher temperature body without external work input.\n4. Modes of Heat Transfer:\n   - Conduction (Fourier's Law: Q = -k * A * dT/dx)\n   - Convection (Newton's Law of Cooling: Q = h * A * (Ts - Tinf))\n   - Radiation (Stefan-Boltzmann Law: E = epsilon * sigma * A * T^4)\n      "
+    },
+    {
+      "id": "doc-dsa-placement-roadmap",
+      "title": "Data Structures & Algorithms: Complete Placement Preparation Roadmap",
+      "branch_id": "branch-cse",
+      "subject_id": "sub-dsa",
+      "company_id": "comp-amazon",
+      "category": "CONCEPT",
+      "summary": "A structured placement syllabus covering linear data structures, non-linear hierarchical structures, dynamic programming, and algorithmic paradigms.",
+      "keywords": [
+        "dsa roadmap",
+        "placement preparation",
+        "algorithms",
+        "data structures",
+        "problem solving"
+      ],
+      "content": "Data Structures & Algorithms Placement Framework:\nPhase 1: Foundations & Complexity Analysis\nMaster Big-O, Big-Omega, and Big-Theta notations. Learn the difference between worst-case, average-case, and amortized time complexity. Understand space complexity, including auxiliary space versus input space, and how the recursion call stack impacts memory usage.\n\nPhase 2: Linear Data Structures\n1. Arrays & Dynamic Vectors: Contiguous memory, cache locality, prefix sum arrays, two-pointer techniques, and Kadane's algorithm for maximum subarray sum.\n2. Strings: Character manipulation, rolling hash (Rabin-Karp), sliding window for substring problems, and Knuth-Morris-Pratt (KMP) pattern matching.\n3. Linked Lists: Singly, doubly, and circular linked lists. Fast and slow pointer technique (Floyd's cycle detection algorithm) to find cycles and midpoints in O(1) space.\n4. Stacks & Queues: LIFO vs FIFO principles. Monotonic stack for Next Greater Element and Largest Rectangle in Histogram. Circular queues and deques for sliding window minimums/maximums.\n5. Hashing: Hash tables, collision resolution via separate chaining vs open addressing (linear probing, quadratic probing, double hashing). Amortized O(1) average lookup.\n\nPhase 3: Hierarchical & Non-Linear Structures\n1. Trees & BSTs: Binary tree properties, DFS traversals (inorder, preorder, postorder) and BFS level order traversal. Binary Search Trees (BST) invariant: left < root < right. Lowest Common Ancestor (LCA) and height-balanced AVL/Red-Black tree concepts.\n2. Heaps & Priority Queues: Complete binary tree representation in an array. Min-heap and Max-heap. Building a heap in O(N) linear time using sift-down. Finding the Top-K elements and running median from data streams.\n3. Graphs: Adjacency list vs adjacency matrix representations. Breadth-First Search (BFS) for shortest path in unweighted graphs. Depth-First Search (DFS) for connectivity. Cycle detection in directed graphs using topological sorting (Kahn's algorithm) or 3-color DFS. Dijkstra's algorithm for shortest paths with non-negative edge weights using a min-heap in O((V + E) log V).\n4. Advanced Structures: Tries (Prefix Trees) for dictionary searches and prefix lookups in O(L) time where L is word length. Disjoint Set Union (DSU / Union-Find) with path compression and union by rank achieving nearly linear O(alpha(V)) time, widely used in Kruskal's Minimum Spanning Tree algorithm.\n\nPhase 4: Core Algorithmic Paradigms\n1. Searching & Sorting: Binary search on answer space, rotated sorted arrays, and lower/upper bounds. QuickSort partitioning (Lomuto vs Hoare) and MergeSort divide-and-conquer.\n2. Dynamic Programming: Optimal substructure and overlapping subproblems. Top-down memoization vs bottom-up tabulation. Standard classics: 0/1 Knapsack, Longest Common Subsequence (LCS), Longest Increasing Subsequence (LIS), and Matrix Chain Multiplication.\n3. Greedy Algorithms: Greedy choice property. Interval scheduling, Activity Selection, Fractional Knapsack, and Huffman Coding.\n4. Backtracking: Exploring decision trees with pruning. Classic problems: N-Queens, Sudoku Solver, Rat in a Maze, and generating permutations/subsets."
+    },
+    {
+      "id": "doc-dsa-hashing-guide",
+      "title": "Data Structures: Hashing, Collision Resolution & Open Addressing",
+      "branch_id": "branch-cse",
+      "subject_id": "sub-dsa",
+      "company_id": "comp-google",
+      "category": "CONCEPT",
+      "summary": "Comprehensive analysis of hash functions, separate chaining, open addressing (linear probing, quadratic probing, double hashing), load factor management, and rehashing.",
+      "keywords": [
+        "hashing",
+        "hash table",
+        "collision resolution",
+        "separate chaining",
+        "open addressing",
+        "double hashing",
+        "load factor"
+      ],
+      "content": "Hashing is a fundamental technique to achieve average-case O(1) insertion, deletion, and search operations.\n1. Hash Functions:\nA good hash function maps large keys uniformly across the table slots, minimizing clustering. Common methods include the Division Method (h(k) = k mod m, where m is prime) and the Multiplication Method.\n\n2. Collision Resolution Techniques:\nWhen two keys hash to the same bucket (h(k1) == h(k2)), collisions must be resolved:\nA. Separate Chaining (Open Hashing):\nEach bucket in the hash table points to a linked list (or balanced BST in Java 8+ HashMap when bucket size exceeds 8).\n- Advantages: Simple to implement, table never fills up completely, less sensitive to load factor alpha.\n- Disadvantages: Cache misses due to pointer chasing, extra memory overhead for pointers.\n\nB. Open Addressing (Closed Hashing):\nAll elements are stored directly inside the hash table array. If a collision occurs, alternative slots are systematically probed:\n- Linear Probing: h(k, i) = (h'(k) + i) mod m. Suffers from Primary Clustering (long contiguous runs of occupied slots build up, degrading performance to O(N)).\n- Quadratic Probing: h(k, i) = (h'(k) + c1*i + c2*i^2) mod m. Reduces primary clustering but suffers from Secondary Clustering (keys hashing to the same starting slot follow the exact same probe sequence).\n- Double Hashing: h(k, i) = (h1(k) + i * h2(k)) mod m. Best open addressing method. Uses a second hash function h2(k) that must never evaluate to 0 and must be relatively prime to table size m. Eliminates both primary and secondary clustering.\n\n3. Load Factor (alpha) & Rehashing:\nLoad factor alpha = n / m (where n is the number of keys and m is table size). In open addressing, alpha must be strictly less than 1 (typically kept under 0.7). When alpha exceeds the threshold, rehashing is triggered: a new table of approximately 2x size (prime) is allocated, and all keys are recomputed and re-inserted."
+    },
+    {
+      "id": "doc-dsa-advanced-structures",
+      "title": "Advanced Data Structures: Tries (Prefix Trees) & Disjoint Set Union (DSU)",
+      "branch_id": "branch-cse",
+      "subject_id": "sub-dsa",
+      "company_id": "comp-microsoft",
+      "category": "CONCEPT",
+      "summary": "Implementation details and asymptotic complexities of Trie (Prefix Tree) and Disjoint Set Union (DSU) with Path Compression and Union by Rank.",
+      "keywords": [
+        "trie",
+        "prefix tree",
+        "dsu",
+        "union find",
+        "path compression",
+        "union by rank",
+        "kruskal",
+        "ackermann"
+      ],
+      "content": "Advanced Data Structures frequently tested in Product Company Interviews:\n\n1. Trie (Prefix Tree):\nA Trie is an efficient tree-like data structure used for storing and retrieving strings over an alphabet (e.g., lowercase English letters a-z).\n- Structure: Each node contains an array of child pointers (children[26]) or a hash map, and a boolean flag isEndOfWord.\n- Operations:\n  * Insert(word): Traverse node by node. If character node does not exist, create it. Mark last node isEndOfWord = true. Time: O(L), Space: O(L * alphabet_size) where L is string length.\n  * Search(word): Traverse characters. If any child pointer is null, return false. Return isEndOfWord at the end. Time: O(L).\n  * StartsWith(prefix): Identical to search, but returns true as long as prefix traversal succeeds, regardless of isEndOfWord. Time: O(L).\n- Applications: Autocomplete search suggestions, spell checkers, IP routing longest-prefix match, and Bitwise Trie for maximum XOR pair queries.\n\n2. Disjoint Set Union (DSU / Union-Find):\nDSU tracks a partition of elements into disjoint (non-overlapping) subsets.\n- Primary Operations:\n  * Find(x): Determines which set element x belongs to by returning the representative (root) of its set.\n  * Union(x, y): Merges the set containing x with the set containing y.\n- Optimizations:\n  * Path Compression (in Find): During find(x), redirect all traversed nodes to point directly to the root: parent[x] = find(parent[x]). Flattens tree height dramatically.\n  * Union by Rank / Size (in Union): Attach the shorter tree under the root of the taller tree. Prevents tree degeneration into a linked list.\n- Time Complexity: With both Path Compression and Union by Rank, any sequence of m operations on n elements runs in O(m * alpha(n)) time, where alpha is the Inverse Ackermann function. In practice, alpha(n) <= 4 for all realistic values of n (even greater than the number of atoms in the universe), making operations effectively O(1) amortized.\n- Applications: Kruskal's Minimum Spanning Tree algorithm, detecting cycles in undirected graphs, and dynamic connectivity in networks."
+    },
+    {
+      "id": "doc-os-deadlocks-scheduling",
+      "title": "Operating Systems: Process Scheduling, Concurrency & Deadlocks (Coffman Conditions)",
+      "branch_id": "branch-cse",
+      "subject_id": "sub-os",
+      "company_id": "comp-google",
+      "category": "CONCEPT",
+      "summary": "Comprehensive placement guide covering CPU scheduling algorithms (Round Robin, SRTF), synchronization primitives (Mutex, Semaphore), and Coffman deadlock conditions with Banker algorithm.",
+      "keywords": [
+        "operating systems",
+        "os",
+        "deadlock",
+        "coffman conditions",
+        "cpu scheduling",
+        "round robin",
+        "banker algorithm",
+        "mutex",
+        "semaphore",
+        "concurrency"
+      ],
+      "content": "Operating Systems Concurrency, Scheduling, and Deadlock Management:\n1. CPU Scheduling Algorithms:\n- First-Come, First-Served (FCFS): Non-preemptive, suffers from the Convoy Effect.\n- Shortest Job First (SJF) / Shortest Remaining Time First (SRTF): Optimal minimum average waiting time. Preemptive SJF is SRTF. Can cause starvation of long processes.\n- Round Robin (RR): Preemptive, time-sliced allocation with a quantum q. Fair, interactive, performance heavily depends on quantum size (too large -> FCFS, too small -> context switch overhead).\n- Priority Scheduling: Preemptive or non-preemptive. Suffers from starvation; resolved via Aging (gradually increasing the priority of waiting processes).\n\n2. Critical Section Problem & Synchronization:\nA critical section must satisfy Mutual Exclusion, Progress, and Bounded Waiting.\n- Mutex: Locking mechanism with ownership (only the thread that locked the mutex can unlock it).\n- Semaphore: Signaling mechanism. Counting semaphore maintains an integer count; Binary semaphore acts like a mutex (0 or 1) without ownership enforcement.\n\n3. Deadlocks & The Four Coffman Conditions:\nA deadlock state occurs if and only if all four Coffman conditions hold simultaneously:\n1. Mutual Exclusion: At least one resource must be held in a non-shareable mode.\n2. Hold and Wait: A process holding at least one resource is actively waiting to acquire additional resources held by other processes.\n3. No Preemption: Resources cannot be forcibly confiscated from a process; they can only be released voluntarily.\n4. Circular Wait: A closed chain of processes exists such that each process holds a resource needed by the next process in the cycle (P0 -> P1 -> P2 -> ... -> P0).\n\nDeadlock Handling Strategies:\n- Prevention: Invalidate at least one of the four Coffman conditions (e.g., impose a global linear ordering on all resource acquisitions to eliminate Circular Wait).\n- Avoidance: Ensure the system never enters an Unsafe State using Dijkstra's Banker's Algorithm (allocating resources only if a safe execution sequence of processes exists).\n- Detection & Recovery: Allow deadlocks to occur, detect cycles using a Resource Allocation Graph (Wait-For Graph), and terminate processes or preempt resources."
+    },
+    {
+      "id": "doc-cn-protocols",
+      "title": "Computer Networks: OSI 7-Layer Model, TCP/IP Suite & Handshake Protocols",
+      "branch_id": "branch-it",
+      "subject_id": "sub-cn",
+      "company_id": "comp-amazon",
+      "category": "CONCEPT",
+      "summary": "Core networking interview preparation covering OSI vs TCP/IP layer responsibilities, TCP 3-way handshake, SYN flood mitigation, UDP comparison, and DNS resolution.",
+      "keywords": [
+        "computer networks",
+        "osi layers",
+        "tcp",
+        "udp",
+        "3-way handshake",
+        "ip addressing",
+        "subnetting",
+        "dns",
+        "http",
+        "https"
+      ],
+      "content": "Computer Networks Core Protocol Architecture:\n1. OSI 7-Layer vs TCP/IP Protocol Stack:\n- Application Layer: HTTP/HTTPS, DNS, FTP, SMTP, SSH (Data units: Messages).\n- Transport Layer: End-to-end communication, port addressing, flow & error control. TCP (reliable, connection-oriented, byte-stream) vs UDP (unreliable, connectionless, datagram). (Data units: Segments / Datagrams).\n- Network Layer: Logical host-to-host addressing (IPv4/IPv6), packet routing (OSPF, BGP). (Data units: Packets).\n- Data Link Layer: Node-to-node framing, physical MAC addressing, error detection via CRC, CSMA/CD. (Data units: Frames).\n- Physical Layer: Raw binary bit transmission over physical media (cables, radio waves). (Data units: Bits).\n\n2. TCP 3-Way Handshake Connection Establishment:\nStep 1: Client -> Server: SYN (Synchronize Sequence Number = X, SYN flag = 1).\nStep 2: Server -> Client: SYN-ACK (Server Seq = Y, ACK = X + 1, SYN flag = 1, ACK flag = 1).\nStep 3: Client -> Server: ACK (Client Seq = X + 1, ACK = Y + 1, ACK flag = 1). Connection ESTABLISHED.\n- Security Note: SYN Flood attacks exploit half-open connections; mitigated via SYN Cookies.\n- TCP Connection Teardown (4-Way Handshake): FIN -> ACK -> FIN -> ACK (with TIME_WAIT state to ensure final ACK delivery).\n\n3. DNS Resolution Hierarchy:\nClient -> Local Recursive Resolver -> Root DNS Server ('.') -> TLD DNS Server ('.com') -> Authoritative DNS Server ('example.com') -> IP Address returned."
     }
   ],
   "announcements": [
