@@ -125,6 +125,23 @@ const TABLE_SCHEMAS = {
     );
     CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
     CREATE INDEX IF NOT EXISTS idx_attempts_question ON attempts(question_id);
+  `,
+  accessLogs: `
+    CREATE TABLE IF NOT EXISTS accessLogs (
+      id TEXT PRIMARY KEY,
+      ip TEXT,
+      method TEXT,
+      path TEXT,
+      status_code INTEGER,
+      response_time_ms INTEGER,
+      user_agent TEXT,
+      user_id TEXT,
+      referrer TEXT,
+      data TEXT NOT NULL,
+      created_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_access_logs_created ON accessLogs(created_at);
+    CREATE INDEX IF NOT EXISTS idx_access_logs_ip ON accessLogs(ip);
   `
 };
 
@@ -155,7 +172,8 @@ const ALL_TABLE_NAMES = [
   'codingAssessments',
   'codingAssessmentAttempts',
   'adminInvitations',
-  'facultyApplications'
+  'facultyApplications',
+  'accessLogs'
 ];
 
 let sqlite = null;
@@ -443,6 +461,23 @@ const insertRow = (table, item) => {
       item.user_id || null,
       item.question_id || null,
       item.session_id || null,
+      jsonStr,
+      item.created_at || now
+    );
+  } else if (table === 'accessLogs') {
+    sqlite.prepare(`
+      INSERT OR REPLACE INTO accessLogs (id, ip, method, path, status_code, response_time_ms, user_agent, user_id, referrer, data, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      item.ip || null,
+      item.method || 'GET',
+      item.path || '/',
+      item.status_code || 200,
+      item.response_time_ms || 0,
+      item.user_agent || null,
+      item.user_id || null,
+      item.referrer || null,
       jsonStr,
       item.created_at || now
     );

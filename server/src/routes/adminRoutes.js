@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import db from '../database/db.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { getPostgresAccessStats, isPostgresConfigured } from '../database/postgres.js';
 
 const router = express.Router();
 
@@ -940,6 +941,47 @@ router.post('/faculty/applications/:id/approve', (req, res) => {
     message: `Application for ${app.name} approved. Invitation token issued.`,
     invitation_token: token
   });
+});
+
+// Live visitor access logs & telemetry
+router.get('/access-logs', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+
+    // Try PostgreSQL stats first if active
+    if (isPostgresConfigured()) {
+      const pgStats = await getPostgresAccessStats(limit);
+      if (pgStats) {
+        return res.json({
+          success: true,
+          engine: 'PostgreSQL (Cloud Active)',
+          ...pgStats
+        });
+      }
+    }
+
+    // Fallback to local SQLite store
+    const allLogs = db.getAll('accessLogs');
+    allLogs.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+    const total_visits = allLogs.length;
+    const unique_ips = new Set(allLogs.map(l => l.ip).filter(Boolean)).size;
+    const avg_response_time_ms = total_visits > 0
+      ? Math.round(allLogs.reduce((acc, l) => acc + (l.response_time_ms || 0), 0) / total_visits)
+      : 0;
+
+    return res.json({
+      success: true,
+      engine: 'SQLite (Local / Vercel Fallback)',
+      source: 'SQLite',
+      total_visits,
+      unique_ips,
+      avg_response_time_ms,
+      recent_logs: allLogs.slice(0, limit)
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to retrieve access telemetry logs.' });
+  }
 });
 
 export default router;

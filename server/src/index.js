@@ -22,6 +22,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import deanRoutes from './routes/deanRoutes.js';
 import codingRoutes from './routes/codingRoutes.js';
 import { authLimiter } from './middleware/rateLimiter.js';
+import { accessLogger } from './middleware/accessLogger.js';
 
 dotenv.config();
 
@@ -74,6 +75,9 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Telemetry & Visitor Access Logger (Tracks website visits into PostgreSQL & local database)
+app.use(accessLogger);
 
 // Security Headers Middleware
 app.use((req, res, next) => {
