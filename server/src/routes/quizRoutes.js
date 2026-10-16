@@ -74,7 +74,7 @@ router.post('/:id/submit', authenticate, (req, res) => {
 // GET /api/quiz/session/:id
 router.get('/session/:id', authenticate, (req, res) => {
   const session = db.get('quizSessions', req.params.id);
-  if (!session) {
+  if (!session || (session.user_id !== req.user.id && req.user.role !== 'ADMIN')) {
     return res.status(404).json({ success: false, message: 'Quiz session not found.' });
   }
   return res.json({ success: true, session });

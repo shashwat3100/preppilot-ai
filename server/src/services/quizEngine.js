@@ -231,6 +231,10 @@ export class QuizEngine {
     const user = db.get('users', userId);
     if (!user) throw new Error('User not found');
 
+    if (session.user_id !== userId && user.role !== 'ADMIN') {
+      throw new Error('Unauthorized: You cannot submit answers for another student\'s quiz session.');
+    }
+
     const allQuestions = db.getAll('questions');
     let correctCount = 0;
     let earnedXp = 0;
