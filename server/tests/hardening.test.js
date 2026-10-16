@@ -1,3 +1,5 @@
+import http from 'http';
+import app from '../src/index.js';
 import { runCode, runTestCases } from '../src/services/codeExecutionService.js';
 import db, { initDb } from '../src/database/db.js';
 
@@ -191,8 +193,12 @@ async function runHardeningTests() {
   // TEST 8: Live API Route Endpoints via HTTP
   // ----------------------------------------------------
   console.log('\n--- Test Suite 4: Live HTTP API Endpoints & Auth ---');
+  let testServer = null;
   try {
-    const BASE_URL = 'http://127.0.0.1:5000';
+    testServer = http.createServer(app);
+    await new Promise((resolve) => testServer.listen(0, resolve));
+    const BASE_URL = `http://127.0.0.1:${testServer.address().port}`;
+
     // 1. Unauthenticated request to /api/coding/problems
     try {
       const unauthRes = await fetch(`${BASE_URL}/api/coding/problems`);
@@ -254,6 +260,10 @@ async function runHardeningTests() {
     }
   } catch (err) {
     assert('4.0 Live HTTP suite error', false, err.message);
+  } finally {
+    if (testServer) {
+      testServer.close();
+    }
   }
 
   console.log('\n====================================================');
