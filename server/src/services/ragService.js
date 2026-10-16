@@ -10,12 +10,14 @@ const STOP_WORDS = new Set([
   'function', 'please', 'describe', 'give', 'me', 'it', 'this', 'that', 'from'
 ]);
 
+const TECHNICAL_ACRONYMS_2 = new Set(['os', 'ip', 'dp', 'db', 'io', 'ai', 'ml', 'cs', 'cn']);
+
 function tokenize(text) {
   return (text || '')
     .toLowerCase()
     .replace(/[^\w\s]/g, ' ')
     .split(/\s+/)
-    .filter(token => token.length > 2 && !STOP_WORDS.has(token));
+    .filter(token => (token.length > 2 || TECHNICAL_ACRONYMS_2.has(token)) && !STOP_WORDS.has(token));
 }
 
 function calculateCosineSimilarity(queryTokens, docTokens) {
