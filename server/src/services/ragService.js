@@ -284,7 +284,151 @@ Which subject or company pattern would you like to begin with?`;
       }
     }
 
-    // 5. Direct, Targeted Grounded Synthesis (Clean, Academic, Zero Emojis, No Raw Document Dumps)
+    // 5. Intelligent Intent Routing for Placement Preparation & Platform Queries
+
+    // Intent 1: Student Portal Access & Authentication Queries
+    if (
+      qLower.includes('without login') ||
+      qLower.includes('sign in') ||
+      (qLower.includes('login') && (qLower.includes('access') || qLower.includes('can i') || qLower.includes('without') || qLower.includes('need') || qLower.includes('require'))) ||
+      (qLower.includes('access') && qLower.includes('student') && (qLower.includes('without') || qLower.includes('can')))
+    ) {
+      const accessMarkdown = `### PrepPilot Platform Access: Public vs. Student Login
+
+Here is how student access works on the PrepPilot platform:
+
+#### 1. What You Can Access Without Logging In:
+- **Public Practice Overview:** Explore syllabus curriculum outlines, company assessment blueprints, and high-level placement topics.
+- **Platform Navigation:** View available technical domains (DBMS, OS, DSA, Computer Networks) and assessment catalogs.
+
+#### 2. Features Requiring a Student Login:
+- **Interactive Coding Arena:** Writing, compiling, and running code against hidden test cases with sandboxed execution.
+- **Timed Placement Assessments:** Taking official 20-question Core CS or 30-question TCS/Infosys mock assessments with automated grading.
+- **XP, Streaks & Gamification:** Earning experience points, maintaining daily streaks, and leveling up your candidate profile.
+- **Personalized Placement Analytics:** Accessing your readiness score, weak topic diagnostics, and recruiter benchmark radar.
+
+> **How to Sign In:** Click **Login** or **Register** in the top navigation bar to create a free student account and begin practicing immediately.`;
+
+      return {
+        answer: accessMarkdown,
+        speechText: "You can browse the curriculum publicly, but logging into your student account is required to execute code, take timed placement assessments, and save your analytics.",
+        retrievedDocuments: [],
+        sources: ['PrepPilot Platform Guide'],
+        model: validModel,
+        isLiveApi: false
+      };
+    }
+
+    // Intent 2: Question Serving ("give me five question", "give me questions", "practice questions", "ask me questions")
+    if (
+      (qLower.includes('question') || qLower.includes('questions')) &&
+      (qLower.includes('give') || qLower.includes('ask') || qLower.includes('show') || qLower.includes('provide') || qLower.includes('practice') || qLower.includes('five') || qLower.includes('5') || qLower.includes('10') || qLower.includes('mcq') || qLower.includes('test me'))
+    ) {
+      let count = 5;
+      if (qLower.includes('ten') || qLower.includes('10')) count = 10;
+      else if (qLower.includes('three') || qLower.includes('3')) count = 3;
+      else if (qLower.includes('one') || qLower.includes('1 ') || qLower === 'give me a question') count = 1;
+
+      const allQuestions = db.getAll('questions') || [];
+      const allOptions = db.getAll('questionOptions') || [];
+
+      // Filter by subject / company if specified in query
+      let matchedQuestions = allQuestions;
+      if (qLower.includes('dbms') || qLower.includes('database') || qLower.includes('sql')) {
+        matchedQuestions = allQuestions.filter(qItem => qItem.subject_id === 'sub-dbms');
+      } else if (qLower.includes('os') || qLower.includes('operating system')) {
+        matchedQuestions = allQuestions.filter(qItem => qItem.subject_id === 'sub-os');
+      } else if (qLower.includes('dsa') || qLower.includes('data structure') || qLower.includes('algorithm')) {
+        matchedQuestions = allQuestions.filter(qItem => qItem.subject_id === 'sub-dsa');
+      } else if (qLower.includes('network') || qLower.includes('cn')) {
+        matchedQuestions = allQuestions.filter(qItem => qItem.subject_id === 'sub-cn');
+      } else if (qLower.includes('tcs') || qLower.includes('ninja')) {
+        matchedQuestions = allQuestions.filter(qItem => qItem.company_id === 'comp-tcs');
+      }
+
+      if (matchedQuestions.length < count) {
+        matchedQuestions = allQuestions;
+      }
+
+      const selectedQuestions = matchedQuestions.slice(0, count);
+
+      let questionsFormatted = `### ${selectedQuestions.length} Practice Placement Questions\n\nHere are ${selectedQuestions.length} targeted questions from the PrepPilot question bank:\n\n`;
+
+      selectedQuestions.forEach((qItem, idx) => {
+        const options = allOptions.filter(o => o.question_id === qItem.id);
+        const subjectObj = qItem.subject_id ? db.get('subjects', qItem.subject_id) : null;
+        const subjectName = subjectObj ? subjectObj.name : 'Technical';
+
+        questionsFormatted += `#### Question ${idx + 1} (${subjectName} | ${qItem.difficulty || 'Medium'})\n`;
+        questionsFormatted += `${qItem.question}\n\n`;
+
+        if (options.length > 0) {
+          options.forEach(opt => {
+            questionsFormatted += `- **${opt.option_key})** ${opt.option_text}\n`;
+          });
+        }
+
+        const correctOpt = options.find(o => o.option_key === qItem.correct_answer || o.is_correct);
+        const correctText = correctOpt ? `${qItem.correct_answer}) ${correctOpt.option_text}` : qItem.correct_answer;
+
+        questionsFormatted += `\n> **Correct Answer:** **${correctText}**\n`;
+        if (qItem.explanation) {
+          questionsFormatted += `> *Explanation:* ${qItem.explanation}\n`;
+        }
+        questionsFormatted += `\n`;
+      });
+
+      questionsFormatted += `> **Interview Tip:** Practice writing out the rationale for each option before selecting your answer in technical placement screenings.`;
+
+      return {
+        answer: questionsFormatted,
+        speechText: `Here are ${selectedQuestions.length} targeted placement questions from our question bank covering core technical topics. Review each question and option to test your placement readiness.`,
+        retrievedDocuments: [],
+        sources: ['PrepPilot Question Bank'],
+        model: validModel,
+        isLiveApi: false
+      };
+    }
+
+    // Intent 3: Placement Preparation Roadmap & Schedule (e.g. 20-day TCS Ninja plan)
+    if (
+      (qLower.includes('day') || qLower.includes('week') || qLower.includes('plan') || qLower.includes('roadmap') || qLower.includes('schedule') || qLower.includes('strategy')) &&
+      (qLower.includes('tcs') || qLower.includes('ninja') || qLower.includes('placement') || qLower.includes('prep') || qLower.includes('easy medium') || qLower.includes('interview'))
+    ) {
+      const roadmapMarkdown = `### 20-Day TCS Ninja Placement Preparation Roadmap
+
+Here is a structured, day-by-day technical preparation plan organized across **Easy**, **Medium**, and **Hard** difficulty tiers:
+
+#### Phase 1: Days 1–6 (Easy — Foundational Speed & Cognitive Accuracy)
+- **Day 1–2 (Quantitative & Reasoning):** Number systems, percentages, ratios, blood relations, and syllogisms (TCS Cognitive Section).
+- **Day 3–4 (Basic Coding & Syntax):** String operations (palindrome, anagram, character frequency counting) without built-in library functions.
+- **Day 5–6 (Array Basics):** Array reversal, finding min/max, linear search, and basic frequency arrays.
+
+#### Phase 2: Days 7–14 (Medium — Core Engineering & Standard Algorithmic Patterns)
+- **Day 7–8 (Array Patterns):** Two-pointer techniques, sliding window, prefix sums, and binary search on sorted arrays.
+- **Day 9–10 (Data Structures):** Singly linked lists, stack push/pop, queue BFS traversals, and recursion tree tracing.
+- **Day 11–12 (DBMS & SQL):** Normalization (1NF, 2NF, 3NF, BCNF), Primary vs Foreign Keys, and writing JOIN / GROUP BY queries.
+- **Day 13–14 (Operating Systems & Networks):** CPU scheduling (FCFS convoy effect, Round Robin), Deadlock 4 Coffman conditions, and OSI 7 layers.
+
+#### Phase 3: Days 15–20 (Hard — Advanced Assessment & Technical Interview Mock)
+- **Day 15–16 (Advanced Coding):** Matrix spiral traversal, dynamic programming (0/1 Knapsack, Longest Common Subsequence), and Tree inorder/preorder.
+- **Day 17–18 (Timed Coding Arena):** Solve 2 to 3 coding problems in PrepPilot's Coding Arena within the 45-minute TCS test timer.
+- **Day 19 (OOP & System Viva):** 4 pillars of OOP (Encapsulation, Abstraction, Polymorphism, Inheritance), runtime vs compile-time polymorphism.
+- **Day 20 (Final Mock Assessment):** Take a full 30-question TCS Ninja Assessment in PrepPilot's Assessment module to verify placement readiness.
+
+> **Key Placement Interview Consideration:** In TCS Ninja technical rounds, interviewers evaluate code cleanliness, time complexity awareness ($O(n)$ vs $O(n^2)$), and whether you can trace your logic with edge cases.`;
+
+      return {
+        answer: roadmapMarkdown,
+        speechText: "Here is your 20-day TCS Ninja preparation plan organized into three phases: foundational aptitude and basic strings for days 1 to 6, core data structures and DBMS for days 7 to 14, and advanced algorithms with mock assessments for days 15 to 20.",
+        retrievedDocuments: [],
+        sources: ['TCS Ninja Placement Syllabus'],
+        model: validModel,
+        isLiveApi: false
+      };
+    }
+
+    // 6. Direct, Targeted Grounded Synthesis (Clean, Academic, Zero Emojis, No Raw Document Dumps)
     let responseMarkdown = '';
     let speechFriendly = '';
 

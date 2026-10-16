@@ -88,8 +88,34 @@ async function runRagQATests() {
   assert(q7.speechText.length > 20, 'Generates clean spoken speech text');
   console.log('  ✓ Extractive answering works cleanly for general curriculum queries');
 
+  // Test 14: Question serving intent ("give me five question")
+  const qQuestions = await RagService.answerStudentQuery('give me five question');
+  assert(qQuestions.answer.includes('Practice Placement Questions'), 'Returns practice placement questions');
+  assert(qQuestions.answer.includes('Question 1'), 'Includes Question 1');
+  assert(qQuestions.answer.includes('Question 5'), 'Includes Question 5');
+  assert(qQuestions.answer.includes('Correct Answer:'), 'Includes answer key and explanations');
+  assert(qQuestions.speechText.includes('placement questions'), 'SpeechText explains questions');
+  console.log('  ✓ Query "give me five question" delivers 5 questions with options and explanations');
+
+  // Test 15: TCS Ninja 20-Day roadmap intent
+  const qRoadmap = await RagService.answerStudentQuery('2 minute 20 days a questions for a TCS Ninja placement interview ground by easy medium and hard');
+  assert(qRoadmap.answer.includes('20-Day TCS Ninja Placement Preparation Roadmap'), 'Returns 20-day roadmap');
+  assert(qRoadmap.answer.includes('Phase 1: Days 1–6 (Easy'), 'Includes Easy phase');
+  assert(qRoadmap.answer.includes('Phase 2: Days 7–14 (Medium'), 'Includes Medium phase');
+  assert(qRoadmap.answer.includes('Phase 3: Days 15–20 (Hard'), 'Includes Hard phase');
+  assert(qRoadmap.speechText.includes('20-day TCS Ninja preparation plan'), 'SpeechText summarizes roadmap');
+  console.log('  ✓ Query "20 days TCS Ninja... easy medium hard" returns structured preparation roadmap');
+
+  // Test 16: Platform access without login intent
+  const qLogin = await RagService.answerStudentQuery('can I access the student that would without login in');
+  assert(qLogin.answer.includes('PrepPilot Platform Access: Public vs. Student Login'), 'Answers login access query');
+  assert(qLogin.answer.includes('What You Can Access Without Logging In:'), 'Explains public access');
+  assert(qLogin.answer.includes('Features Requiring a Student Login:'), 'Explains student login requirements');
+  assert(qLogin.speechText.includes('logging into your student account is required'), 'SpeechText clarifies login requirement');
+  console.log('  ✓ Query "can I access the student that would without login in" returns clear platform access guidance');
+
   console.log('\n==================================================================');
-  console.log('ALL 13 RAG TARGETED QA TESTS PASSED CLEANLY');
+  console.log('ALL 16 RAG TARGETED QA TESTS PASSED CLEANLY');
   console.log('==================================================================\n');
 }
 
