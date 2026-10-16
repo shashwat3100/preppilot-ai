@@ -52,12 +52,14 @@ export const generateMigration = async (executeDirectly = false) => {
 
   // 1. Branches
   const branches = db.getAll('branches');
+  const knownBranchIds = new Set(branches.map(b => b.id));
   generateInserts('branches', branches, ['id', 'name', 'code', 'description'], b => [
     escapeStr(b.id), escapeStr(b.name), escapeStr(b.code), escapeStr(b.description)
   ]);
 
   // 2. Companies
   const companies = db.getAll('companies');
+  const knownCompanyIds = new Set(companies.map(c => c.id));
   generateInserts('companies', companies, ['id', 'name', 'tier', 'pattern_description', 'website', 'logo_icon', 'hiring_rounds'], c => [
     escapeStr(c.id), escapeStr(c.name), escapeStr(c.tier || 'Product/Service'), escapeStr(c.pattern_description), escapeStr(c.website), escapeStr(c.logo_icon), escapeStr(c.hiring_rounds || [])
   ]);
@@ -82,14 +84,27 @@ export const generateMigration = async (executeDirectly = false) => {
 
   // 5. Subjects
   const subjects = db.getAll('subjects');
+  const knownSubjectIds = new Set(subjects.map(s => s.id));
   generateInserts('subjects', subjects, ['id', 'name', 'code', 'branch_id', 'description', 'icon'], s => [
-    escapeStr(s.id), escapeStr(s.name), escapeStr(s.code), escapeStr(s.branch_id), escapeStr(s.description), escapeStr(s.icon)
+    escapeStr(s.id), escapeStr(s.name), escapeStr(s.code), escapeStr(knownBranchIds.has(s.branch_id) ? s.branch_id : null), escapeStr(s.description), escapeStr(s.icon)
   ]);
 
   // 6. Topics
   const topics = db.getAll('topics');
+  const knownTopicIds = new Set(topics.map(t => t.id));
+  const extraTopics = [
+    { id: 'top-stack-queue', subject_id: 'sub-dsa', name: 'Stacks & Queues', description: 'LIFO, FIFO, monotonic queues and stack evaluation', importance_weight: 1.0 },
+    { id: 'top-searching-sorting', subject_id: 'sub-dsa', name: 'Searching & Sorting', description: 'Binary search, merge sort, quick sort and variants', importance_weight: 1.0 },
+    { id: 'top-strings', subject_id: 'sub-dsa', name: 'String Algorithms', description: 'String manipulation, two-pointer, hashing and palindromes', importance_weight: 1.0 }
+  ];
+  for (const et of extraTopics) {
+    if (!knownTopicIds.has(et.id)) {
+      topics.push(et);
+      knownTopicIds.add(et.id);
+    }
+  }
   generateInserts('topics', topics, ['id', 'subject_id', 'name', 'description', 'importance_weight'], t => [
-    escapeStr(t.id), escapeStr(t.subject_id), escapeStr(t.name), escapeStr(t.description), escapeStr(t.importance_weight || 1.0)
+    escapeStr(t.id), escapeStr(knownSubjectIds.has(t.subject_id) ? t.subject_id : null), escapeStr(t.name), escapeStr(t.description), escapeStr(t.importance_weight || 1.0)
   ]);
 
   // 7. Questions
@@ -98,39 +113,54 @@ export const generateMigration = async (executeDirectly = false) => {
     'id', 'question', 'question_type', 'branch_id', 'company_id', 'subject_id', 'topic_id',
     'difficulty', 'correct_answer', 'explanation', 'tags', 'expected_time', 'xp_value'
   ], q => [
-    escapeStr(q.id), escapeStr(q.question), escapeStr(q.question_type || 'MCQ'), escapeStr(q.branch_id),
-    escapeStr(q.company_id), escapeStr(q.subject_id), escapeStr(q.topic_id), escapeStr(q.difficulty || 'Medium'),
+    escapeStr(q.id), escapeStr(q.question), escapeStr(q.question_type || 'MCQ'),
+    escapeStr(knownBranchIds.has(q.branch_id) ? q.branch_id : null),
+    escapeStr(knownCompanyIds.has(q.company_id) ? q.company_id : null),
+    escapeStr(knownSubjectIds.has(q.subject_id) ? q.subject_id : null),
+    escapeStr(knownTopicIds.has(q.topic_id) ? q.topic_id : null),
+    escapeStr(q.difficulty || 'Medium'),
     escapeStr(q.correct_answer), escapeStr(q.explanation), escapeStr(q.tags || []), escapeStr(q.expected_time || 60), escapeStr(q.xp_value || 20)
   ]);
 
   // 8. Question Options
   const questionOptions = db.getAll('questionOptions');
-  generateInserts('question_options', questionOptions, ['id', 'question_id', 'option_key', 'option_text', 'is_correct', 'explanation'], opt => [
+  const knownQuestionIds = new Set(questions.map(q => q.id));
+  const validOptions = questionOptions.filter(opt => knownQuestionIds.has(opt.question_id));
+  generateInserts('question_options', validOptions, ['id', 'question_id', 'option_key', 'option_text', 'is_correct', 'explanation'], opt => [
     escapeStr(opt.id), escapeStr(opt.question_id), escapeStr(opt.option_key), escapeStr(opt.option_text), escapeStr(Boolean(opt.is_correct)), escapeStr(opt.explanation)
   ]);
 
   // 9. Knowledge Documents (RAG)
   const knowledgeDocs = db.getAll('knowledgeDocuments');
   generateInserts('knowledge_documents', knowledgeDocs, ['id', 'title', 'branch_id', 'subject_id', 'company_id', 'category', 'content', 'summary', 'keywords'], kd => [
-    escapeStr(kd.id), escapeStr(kd.title), escapeStr(kd.branch_id), escapeStr(kd.subject_id), escapeStr(kd.company_id),
+    escapeStr(kd.id), escapeStr(kd.title),
+    escapeStr(knownBranchIds.has(kd.branch_id) ? kd.branch_id : null),
+    escapeStr(knownSubjectIds.has(kd.subject_id) ? kd.subject_id : null),
+    escapeStr(knownCompanyIds.has(kd.company_id) ? kd.company_id : null),
     escapeStr(kd.category || 'CONCEPT'), escapeStr(kd.content), escapeStr(kd.summary), escapeStr(kd.keywords || [])
   ]);
 
   // 10. Coding Problems
   const codingProblems = db.getAll('codingProblems');
+  const knownProblemIds = new Set(codingProblems.map(p => p.id));
   generateInserts('coding_problems', codingProblems, [
     'id', 'title', 'difficulty', 'branch_id', 'company_id', 'subject_id', 'topic_id', 'tags',
     'description', 'constraints', 'time_limit_ms', 'memory_limit_mb', 'starter_code', 'hints', 'editorial'
   ], p => [
-    escapeStr(p.id), escapeStr(p.title), escapeStr(p.difficulty || 'Medium'), escapeStr(p.branch_id), escapeStr(p.company_id),
-    escapeStr(p.subject_id), escapeStr(p.topic_id), escapeStr(p.tags || []), escapeStr(p.description), escapeStr(p.constraints),
+    escapeStr(p.id), escapeStr(p.title), escapeStr(p.difficulty || 'Medium'),
+    escapeStr(knownBranchIds.has(p.branch_id) ? p.branch_id : null),
+    escapeStr(knownCompanyIds.has(p.company_id) ? p.company_id : null),
+    escapeStr(knownSubjectIds.has(p.subject_id) ? p.subject_id : null),
+    escapeStr(knownTopicIds.has(p.topic_id) ? p.topic_id : null),
+    escapeStr(p.tags || []), escapeStr(p.description), escapeStr(p.constraints),
     escapeStr(p.time_limit_ms || p.timeLimit || 2000), escapeStr(p.memory_limit_mb || p.memoryLimit || 256),
     escapeStr(p.starter_code || p.starterCode || {}), escapeStr(p.hints || []), escapeStr(p.editorial || {})
   ]);
 
   // 11. Coding Test Cases
   const codingTestCases = db.getAll('codingTestCases');
-  generateInserts('coding_test_cases', codingTestCases, ['id', 'problem_id', 'input', 'expected_output', 'is_hidden', 'explanation'], tc => [
+  const validTestCases = codingTestCases.filter(tc => knownProblemIds.has(tc.problem_id));
+  generateInserts('coding_test_cases', validTestCases, ['id', 'problem_id', 'input', 'expected_output', 'is_hidden', 'explanation'], tc => [
     escapeStr(tc.id), escapeStr(tc.problem_id), escapeStr(tc.input), escapeStr(tc.expected_output || tc.expectedOutput),
     escapeStr(Boolean(tc.is_hidden || tc.isHidden)), escapeStr(tc.explanation)
   ]);
@@ -144,8 +174,9 @@ export const generateMigration = async (executeDirectly = false) => {
 
   // 13. Achievements
   const achievements = db.getAll('achievements');
-  generateInserts('achievements', achievements, ['id', 'title', 'description', 'icon', 'category', 'xp_reward'], ach => [
-    escapeStr(ach.id), escapeStr(ach.title), escapeStr(ach.description), escapeStr(ach.icon), escapeStr(ach.category || 'General'), escapeStr(ach.xp_reward || 50)
+  generateInserts('achievements', achievements, ['id', 'title', 'description', 'badge_icon', 'category', 'xp_reward', 'condition_type', 'threshold'], ach => [
+    escapeStr(ach.id), escapeStr(ach.title), escapeStr(ach.description), escapeStr(ach.badge_icon || ach.icon || 'Rocket'),
+    escapeStr(ach.category || 'PRACTICE'), escapeStr(ach.xp_reward || 50), escapeStr(ach.condition_type || 'QUIZ_COUNT'), escapeStr(ach.threshold || 1)
   ]);
 
   sql += `COMMIT;\n`;
