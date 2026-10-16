@@ -428,6 +428,81 @@ Here is a structured, day-by-day technical preparation plan organized across **E
       };
     }
 
+    // Intent 4: Company Targeting & Recruitment Blueprint ("how can I target Google", "target Amazon", "crack Microsoft", "prepare for TCS")
+    const allCompanies = db.getAll('companies') || [];
+    const matchedCompany = allCompanies.find(c => {
+      const cName = c.name.toLowerCase();
+      return qLower.includes(cName) || (c.id && qLower.includes(c.id.replace('comp-', '')));
+    });
+
+    const isTargetingQuery =
+      qLower.includes('target') ||
+      qLower.includes('crack') ||
+      qLower.includes('prepare for') ||
+      qLower.includes('get into') ||
+      qLower.includes('join') ||
+      qLower.includes('hiring') ||
+      qLower.includes('interview process') ||
+      qLower.includes('selection process') ||
+      qLower.includes('how to clear') ||
+      qLower.includes('how can i');
+
+    if (matchedCompany && isTargetingQuery) {
+      const rounds = matchedCompany.hiring_rounds || [
+        'Online Assessment (Coding & Aptitude)',
+        'Technical Interview 1 (DSA)',
+        'Technical Interview 2 (System Design & CS Core)',
+        'HR / Managerial Round'
+      ];
+
+      const focusAreas = matchedCompany.interview_focus_areas || [
+        'Data Structures & Algorithms',
+        'Time & Space Complexity Optimization',
+        'Database Systems & SQL Queries',
+        'Operating Systems & Multithreading'
+      ];
+
+      const ctcInfo = matchedCompany.ctc_breakdown
+        ? `${matchedCompany.ctc_breakdown.min_lpa} LPA - ${matchedCompany.ctc_breakdown.max_lpa} LPA (Average: ~${matchedCompany.ctc_breakdown.average_lpa} LPA)`
+        : 'Competitive Industry Standard';
+
+      const eligibility = matchedCompany.eligibility_criteria
+        ? `Min CGPA: ${matchedCompany.eligibility_criteria.min_cgpa || '7.0'}, 10th/12th: ${matchedCompany.eligibility_criteria.min_percentage_10_12 || '60'}%+, Backlogs: ${matchedCompany.eligibility_criteria.max_backlogs ?? 0}`
+        : '60%+ aggregate across 10th, 12th, and B.Tech with no active backlogs';
+
+      const companyMarkdown = `### How to Target and Crack ${matchedCompany.name} (${matchedCompany.tier || 'Tier-1 Engineering'})
+
+To successfully clear the placement drive and technical interviews for **${matchedCompany.name}**, follow this structured four-pillar preparation strategy:
+
+#### 1. Hiring Process & Interview Pipeline:
+${rounds.map((r, i) => `${i + 1}. **Round ${i + 1} — ${r}:** ${i === 0 ? 'Evaluates initial algorithmic problem solving and cognitive accuracy under time constraints.' : i === rounds.length - 1 ? 'Evaluates cultural alignment, leadership values, and behavioral scenario handling.' : 'Evaluates clean code generation, algorithmic optimization, and technical depth.'}`).join('\n')}
+
+#### 2. High-Yield Technical Focus Areas:
+${focusAreas.map(fa => `- **${fa}:** High-frequency topic tested extensively across screening and technical interview rounds.`).join('\n')}
+
+#### 3. 4-Step Engineering Action Plan:
+1. **Master Core Algorithmic Patterns:** Focus on Graphs (BFS/DFS, Dijkstra), Trees (BST, Lowest Common Ancestor), Dynamic Programming, and Two-Pointers. Aim to solve medium-to-hard problems in under 30 minutes with optimal time complexity.
+2. **Practice Whiteboard & "Think-Aloud" Communication:** ${matchedCompany.name} interviewers prioritize candidate thought process over memorized answers. Clarify constraints upfront, outline edge cases (null inputs, duplicates, integer overflows), and trace your code before declaring it complete.
+3. **Strengthen CS Fundamentals:** Deepen your mastery of Database Indexing (B+ Trees), Concurrency (Deadlocks, Mutex vs Semaphore), Memory Management (Virtual Memory, Paging), and the OSI/TCP-IP networking model.
+4. **Behavioral & Culture Alignment:** Prepare STAR-method (Situation, Task, Action, Result) stories for past projects, handling team disagreements, architectural trade-offs, and technical failures.
+
+#### 4. Compensation & Eligibility Benchmark:
+- **Typical Package Range:** ${ctcInfo}
+- **Eligibility Benchmark:** ${eligibility}
+- **Selection Ratio:** ${matchedCompany.selection_ratio || 'Top percentile of university and off-campus applicants.'}
+
+> **Key Placement Interview Consideration:** Interviewers at ${matchedCompany.name} evaluate code explainability, Big-O awareness ($O(n \\log n)$ vs $O(n^2)$), and how you respond to follow-up optimization questions when your first solution works.`;
+
+      return {
+        answer: companyMarkdown,
+        speechText: `To target ${matchedCompany.name}, focus on mastering advanced data structures and algorithms, practice communicating your thought process out loud during coding, and prepare for behavioral and leadership rounds.`,
+        retrievedDocuments: [],
+        sources: [`${matchedCompany.name} Placement Blueprint`],
+        model: validModel,
+        isLiveApi: false
+      };
+    }
+
     // 6. Direct, Targeted Grounded Synthesis (Clean, Academic, Zero Emojis, No Raw Document Dumps)
     let responseMarkdown = '';
     let speechFriendly = '';

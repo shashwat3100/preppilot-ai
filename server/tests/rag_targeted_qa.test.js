@@ -112,10 +112,16 @@ async function runRagQATests() {
   assert(qLogin.answer.includes('What You Can Access Without Logging In:'), 'Explains public access');
   assert(qLogin.answer.includes('Features Requiring a Student Login:'), 'Explains student login requirements');
   assert(qLogin.speechText.includes('logging into your student account is required'), 'SpeechText clarifies login requirement');
-  console.log('  ✓ Query "can I access the student that would without login in" returns clear platform access guidance');
+  // Test 17: Company targeting intent ("how can I target Google")
+  const qGoogle = await RagService.answerStudentQuery('how can I target Google');
+  assert(qGoogle.answer.includes('How to Target and Crack Google'), 'Answers how to target Google');
+  assert(qGoogle.answer.includes('Google Online Challenge'), 'Includes Google hiring pipeline');
+  assert(qGoogle.answer.includes('Segment Trees, Trie & Dynamic Programming'), 'Includes technical focus areas');
+  assert(qGoogle.speechText.includes('To target Google'), 'SpeechText explains targeting Google');
+  console.log('  ✓ Query "how can I target Google" returns structured hiring blueprint & 4-step action plan');
 
   console.log('\n==================================================================');
-  console.log('ALL 16 RAG TARGETED QA TESTS PASSED CLEANLY');
+  console.log('ALL 17 RAG TARGETED QA TESTS PASSED CLEANLY');
   console.log('==================================================================\n');
 }
 
