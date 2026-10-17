@@ -103,20 +103,35 @@ router.get('/overview', (req, res) => {
       };
     }).sort((a, b) => b.student_count - a.student_count);
 
+    const overviewData = {
+      total_students: totalStudents,
+      new_joinees_count: newJoinees.length,
+      active_students: activeStudents.length,
+      active_students_7d: activeStudents.length,
+      blocked_students: blockedStudents.length,
+      total_questions: totalQuestions,
+      total_sessions: sessions.length,
+      completed_quizzes: completedSessions,
+      completed_sessions: completedSessions,
+      assessment_completion_rate: quizCompletionRate,
+      quiz_completion_rate: quizCompletionRate,
+      total_attempts: attempts.length,
+      platform_average_accuracy: avgAccuracy,
+      total_coding_submissions: (db.getAll('codingSubmissions') || []).length,
+      coding_acceptance_rate: (() => {
+        const subs = db.getAll('codingSubmissions') || [];
+        if (subs.length === 0) return 100;
+        const passed = subs.filter(s => s.status === 'ACCEPTED').length;
+        return Math.round((passed / subs.length) * 100);
+      })(),
+      weakest_topics_platform: topicRankings.slice(0, 5),
+      most_selected_companies: topCompanies
+    };
+
     return res.json({
       success: true,
-      stats: {
-        total_students: totalStudents,
-        new_joinees_count: newJoinees.length,
-        active_students: activeStudents.length,
-        blocked_students: blockedStudents.length,
-        total_questions: totalQuestions,
-        completed_quizzes: completedSessions,
-        quiz_completion_rate: quizCompletionRate,
-        platform_average_accuracy: avgAccuracy,
-        weakest_topics_platform: topicRankings.slice(0, 5),
-        most_selected_companies: topCompanies
-      }
+      overview: overviewData,
+      stats: overviewData
     });
   } catch (err) {
     console.error('[Admin Overview Error]:', err);

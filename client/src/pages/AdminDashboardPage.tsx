@@ -151,7 +151,21 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         api.getTopics()
       ]);
 
-      if (oRes && oRes.success) setOverview(oRes.overview);
+      if (oRes && oRes.success) {
+        const data = oRes.overview || oRes.stats || oRes.data || {};
+        setOverview({
+          total_students: data.total_students ?? 0,
+          active_students_7d: data.active_students_7d ?? data.active_students ?? 0,
+          blocked_students: data.blocked_students ?? 0,
+          total_questions: data.total_questions ?? 0,
+          total_sessions: data.total_sessions ?? data.completed_quizzes ?? 0,
+          assessment_completion_rate: data.assessment_completion_rate ?? data.quiz_completion_rate ?? 100,
+          total_attempts: data.total_attempts ?? 0,
+          total_coding_submissions: data.total_coding_submissions ?? 0,
+          coding_acceptance_rate: data.coding_acceptance_rate ?? 0,
+          ...data
+        });
+      }
       if (qRes && qRes.success) setQuestions(qRes.questions || []);
       if (sRes && sRes.success) setStudents(sRes.students || []);
       if (fRes && fRes.success) setFacultyList(fRes.faculty || []);
@@ -556,106 +570,113 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       {/* ===================================================================== */}
       {/* SECTION 1: OVERVIEW METRICS                                           */}
       {/* ===================================================================== */}
-      {activeSection === 'admin-overview' && overview && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
-              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                Total Registered Students
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-[var(--text-primary)]">
-                  {overview.total_students}
+      {activeSection === 'admin-overview' && (
+        loading && !overview ? (
+          <div className="py-20 flex flex-col items-center justify-center space-y-3 text-[var(--text-muted)]">
+            <RefreshCw size={24} className="animate-spin text-amber-500" />
+            <span className="text-xs font-semibold">Loading platform overview metrics...</span>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  Total Registered Students
                 </span>
-                <span className="text-[11px] font-semibold text-emerald-400">
-                  {overview.active_students_7d} active
-                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-[var(--text-primary)]">
+                    {overview?.total_students ?? students.length}
+                  </span>
+                  <span className="text-[11px] font-semibold text-emerald-400">
+                    {overview?.active_students_7d ?? overview?.active_students ?? 0} active
+                  </span>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)]">{overview?.blocked_students ?? 0} suspended accounts</p>
               </div>
-              <p className="text-[10px] text-[var(--text-muted)]">{overview.blocked_students} suspended accounts</p>
+
+              <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  Questions in Bank
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-amber-400">
+                    {overview?.total_questions ?? questions.length}
+                  </span>
+                  <span className="text-[11px] font-semibold text-[var(--text-secondary)]">
+                    across {subjects.length} subjects
+                  </span>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)]">Verified question assets</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  Assessments & Quizzes
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-indigo-400">
+                    {overview?.total_sessions ?? 0}
+                  </span>
+                  <span className="text-[11px] font-semibold text-indigo-300">
+                    {overview?.assessment_completion_rate ?? overview?.quiz_completion_rate ?? 100}% completion
+                  </span>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)]">{overview?.total_attempts ?? 0} question attempts</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  Coding Submissions
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-cyan-400">
+                    {overview?.total_coding_submissions ?? 0}
+                  </span>
+                  <span className="text-[11px] font-semibold text-cyan-300">
+                    {overview?.coding_acceptance_rate ?? 0}% pass
+                  </span>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)]">Compilations & test runs</p>
+              </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
-              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                Questions in Bank
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-amber-400">
-                  {overview.total_questions}
-                </span>
-                <span className="text-[11px] font-semibold text-[var(--text-secondary)]">
-                  across {subjects.length} subjects
-                </span>
-              </div>
-              <p className="text-[10px] text-[var(--text-muted)]">Verified question assets</p>
-            </div>
+            {/* Quick Action Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button
+                onClick={() => setSection('admin-students')}
+                className="p-5 rounded-2xl bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] text-left transition-all cursor-pointer group"
+              >
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                  <Users size={18} />
+                </div>
+                <h4 className="text-sm font-bold text-[var(--text-primary)]">Manage Student Accounts</h4>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Search student roster, inspect dossiers, and manage account statuses.</p>
+              </button>
 
-            <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
-              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                Assessments & Quizzes
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-indigo-400">
-                  {overview.total_sessions}
-                </span>
-                <span className="text-[11px] font-semibold text-indigo-300">
-                  {overview.assessment_completion_rate}% completion
-                </span>
-              </div>
-              <p className="text-[10px] text-[var(--text-muted)]">{overview.total_attempts} question attempts</p>
-            </div>
+              <button
+                onClick={() => setSection('admin-questions')}
+                className="p-5 rounded-2xl bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] text-left transition-all cursor-pointer group"
+              >
+                <div className="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                  <Plus size={18} />
+                </div>
+                <h4 className="text-sm font-bold text-[var(--text-primary)]">Question Bank Management</h4>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Create, edit, organize, or purge multiple-choice questions.</p>
+              </button>
 
-            <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
-              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                Coding Submissions
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-cyan-400">
-                  {overview.total_coding_submissions || 0}
-                </span>
-                <span className="text-[11px] font-semibold text-cyan-300">
-                  {overview.coding_acceptance_rate || 0}% pass
-                </span>
-              </div>
-              <p className="text-[10px] text-[var(--text-muted)]">Compilations & test runs</p>
+              <button
+                onClick={() => setSection('admin-users')}
+                className="p-5 rounded-2xl bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] text-left transition-all cursor-pointer group"
+              >
+                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                  <Shield size={18} />
+                </div>
+                <h4 className="text-sm font-bold text-[var(--text-primary)]">User & Access Management</h4>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Appoint Deans and Administrators, issue invitation secrets, and revoke roles.</p>
+              </button>
             </div>
           </div>
-
-          {/* Quick Action Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => setSection('admin-students')}
-              className="p-5 rounded-2xl bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] text-left transition-all cursor-pointer group"
-            >
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                <Users size={18} />
-              </div>
-              <h4 className="text-sm font-bold text-[var(--text-primary)]">Manage Student Accounts</h4>
-              <p className="text-xs text-[var(--text-muted)] mt-1">Search student roster, inspect dossiers, and manage account statuses.</p>
-            </button>
-
-            <button
-              onClick={() => setSection('admin-questions')}
-              className="p-5 rounded-2xl bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] text-left transition-all cursor-pointer group"
-            >
-              <div className="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                <Plus size={18} />
-              </div>
-              <h4 className="text-sm font-bold text-[var(--text-primary)]">Question Bank Management</h4>
-              <p className="text-xs text-[var(--text-muted)] mt-1">Create, edit, organize, or purge multiple-choice questions.</p>
-            </button>
-
-            <button
-              onClick={() => setSection('admin-users')}
-              className="p-5 rounded-2xl bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] text-left transition-all cursor-pointer group"
-            >
-              <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                <Shield size={18} />
-              </div>
-              <h4 className="text-sm font-bold text-[var(--text-primary)]">User & Access Management</h4>
-              <p className="text-xs text-[var(--text-muted)] mt-1">Appoint Deans and Administrators, issue invitation secrets, and revoke roles.</p>
-            </button>
-          </div>
-        </div>
+        )
       )}
 
       {/* ===================================================================== */}
