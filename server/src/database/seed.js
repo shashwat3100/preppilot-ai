@@ -118,7 +118,7 @@ export const seedDatabase = async (force = false) => {
   }
 
   // Check if demo student already exists
-  const existingDemoUser = db.findOne('users', u => u.email === 'student@careerprep.ai');
+  const existingDemoUser = db.findOne('users', u => u.email === 'student@preppilot.ai');
   if (existingDemoUser && !force) {
     console.log('[Seed] Demo accounts already present. Skipping duplicate seed.');
     return;
@@ -171,25 +171,6 @@ export const seedDatabase = async (force = false) => {
       last_active_date: new Date().toISOString().split('T')[0]
     },
     {
-      id: 'user-student-demo',
-      name: 'Aditya Sharma',
-      email: 'student@careerprep.ai',
-      password_hash: studentHash1,
-      role: 'STUDENT',
-      branch_id: 'branch-it',
-      year: '4th Year',
-      graduation_year: 2026,
-      preferred_job_role_id: 'role-sde',
-      target_companies: ['comp-tcs', 'comp-infosys', 'comp-amazon'],
-      skill_level: 'Intermediate',
-      areas_of_interest: ['DBMS', 'DSA', 'Operating Systems', 'System Design'],
-      total_xp: 420,
-      current_level: 3,
-      current_streak: 5,
-      longest_streak: 9,
-      last_active_date: new Date().toISOString().split('T')[0]
-    },
-    {
       id: 'user-student-college',
       name: 'Student Candidate',
       email: 'student@college.edu',
@@ -206,26 +187,6 @@ export const seedDatabase = async (force = false) => {
       current_level: 3,
       current_streak: 5,
       longest_streak: 9,
-      last_active_date: new Date().toISOString().split('T')[0]
-    },
-    {
-      id: 'user-admin-demo',
-      name: 'Administrator',
-      email: 'admin@careerprep.ai',
-      password_hash: adminHash1,
-      role: 'ADMIN',
-      designation: 'Administrator',
-      branch_id: 'branch-cse',
-      year: 'Faculty / Admin',
-      graduation_year: 2020,
-      preferred_job_role_id: 'role-sde',
-      target_companies: ['comp-tcs', 'comp-infosys', 'comp-wipro', 'comp-accenture'],
-      skill_level: 'Advanced',
-      areas_of_interest: ['Campus Placement Drives', 'Assessment Evaluation', 'Curriculum Mapping'],
-      total_xp: 0,
-      current_level: 1,
-      current_streak: 0,
-      longest_streak: 0,
       last_active_date: new Date().toISOString().split('T')[0]
     },
     {

@@ -309,8 +309,23 @@ export const initDb = async () => {
     }
   }
 
-  // Automatic migration: normalize Dean & Admin labels and roles
+  // Automatic migration: normalize Dean & Admin labels, roles, and eliminate legacy careerprep.ai emails
   try {
+    // 1. Remove duplicate or legacy careerprep.ai demo accounts if preppilot.ai counterparts exist
+    const hasAdminPrepPilot = sqlite.prepare('SELECT id FROM users WHERE email = ?').get('admin@preppilot.ai');
+    if (hasAdminPrepPilot) {
+      sqlite.prepare("DELETE FROM users WHERE email = 'admin@careerprep.ai'").run();
+    } else {
+      sqlite.prepare("UPDATE users SET email = 'admin@preppilot.ai' WHERE email = 'admin@careerprep.ai'").run();
+    }
+
+    const hasStudentPrepPilot = sqlite.prepare('SELECT id FROM users WHERE email = ?').get('student@preppilot.ai');
+    if (hasStudentPrepPilot) {
+      sqlite.prepare("DELETE FROM users WHERE email = 'student@careerprep.ai'").run();
+    } else {
+      sqlite.prepare("UPDATE users SET email = 'student@preppilot.ai' WHERE email = 'student@careerprep.ai'").run();
+    }
+
     const userRows = sqlite.prepare('SELECT id, email, name, role, data FROM users').all();
     for (const u of userRows) {
       let data = {};
@@ -318,7 +333,7 @@ export const initDb = async () => {
       let changed = false;
 
       // Normalize Admin
-      if (u.email === 'admin@careerprep.ai') {
+      if (u.email === 'admin@preppilot.ai' || u.email === 'admin@careerprep.ai') {
         if (u.name !== 'Administrator' || data.name !== 'Administrator') {
           u.name = 'Administrator';
           data.name = 'Administrator';

@@ -186,7 +186,7 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
     setExportSuccess(null);
     try {
       const url = api.exportDeanReportUrl(reportType);
-      const token = localStorage.getItem('careerprep_token');
+      const token = localStorage.getItem('preppilot_token') || localStorage.getItem('careerprep_token');
       const response = await fetch(url, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });

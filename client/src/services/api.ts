@@ -65,7 +65,7 @@ const safeFetch = async (url: string, options?: RequestInit): Promise<any> => {
 };
 
 const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem('careerprep_token');
+  const token = localStorage.getItem('preppilot_token') || localStorage.getItem('careerprep_token');
   return {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {})

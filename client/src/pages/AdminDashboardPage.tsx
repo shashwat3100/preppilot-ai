@@ -1030,35 +1030,48 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       {/* ===================================================================== */}
       {/* SECTION 5: PLATFORM ANALYTICS                                         */}
       {/* ===================================================================== */}
-      {activeSection === 'admin-analytics' && overview && (
-        <div className="space-y-6">
-          <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-[var(--text-primary)]">Platform Activity & Usage Metrics</h3>
-              <p className="text-xs text-[var(--text-muted)]">Real-time aggregate activity across quizzes, coding submissions, and student engagement</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
-              <div className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-1.5">
-                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase">Assessment Sessions</span>
-                <div className="text-xl font-black text-indigo-400">{overview.total_sessions}</div>
-                <p className="text-[10px] text-[var(--text-muted)]">Completed tests across all enrolled candidates</p>
+      {activeSection === 'admin-analytics' && (
+        loading && !overview ? (
+          <div className="py-20 flex flex-col items-center justify-center space-y-3 text-[var(--text-muted)]">
+            <RefreshCw size={24} className="animate-spin text-amber-500" />
+            <span className="text-xs font-semibold">Loading platform analytics...</span>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-4">
+              <div>
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">Platform Activity & Usage Metrics</h3>
+                <p className="text-xs text-[var(--text-muted)]">Real-time aggregate activity across quizzes, coding submissions, and student engagement</p>
               </div>
 
-              <div className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-1.5">
-                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase">Coding Executions</span>
-                <div className="text-xl font-black text-cyan-400">{overview.total_coding_submissions || 0}</div>
-                <p className="text-[10px] text-[var(--text-muted)]">Algorithmic sandbox code executions</p>
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+                <div className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-1.5">
+                  <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase">Assessment Sessions</span>
+                  <div className="text-xl font-black text-indigo-400">
+                    {overview?.total_sessions ?? overview?.completed_quizzes ?? 0}
+                  </div>
+                  <p className="text-[10px] text-[var(--text-muted)]">Completed tests across all enrolled candidates</p>
+                </div>
 
-              <div className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-1.5">
-                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase">Active Joinees</span>
-                <div className="text-xl font-black text-emerald-400">{overview.new_joinees_7d}</div>
-                <p className="text-[10px] text-[var(--text-muted)]">New students joined in the past 7 days</p>
+                <div className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-1.5">
+                  <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase">Coding Executions</span>
+                  <div className="text-xl font-black text-cyan-400">
+                    {overview?.total_coding_submissions ?? 0}
+                  </div>
+                  <p className="text-[10px] text-[var(--text-muted)]">Algorithmic sandbox code executions</p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-1.5">
+                  <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase">Active Joinees</span>
+                  <div className="text-xl font-black text-emerald-400">
+                    {overview?.new_joinees_7d ?? overview?.active_students_7d ?? 0}
+                  </div>
+                  <p className="text-[10px] text-[var(--text-muted)]">New students joined in the past 7 days</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )
       )}
 
       {/* ===================================================================== */}
@@ -1114,52 +1127,58 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             )}
 
             {/* Faculty & Admins Table */}
-            <div className="overflow-x-auto rounded-xl border border-[var(--surface-border)] pt-1">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[var(--surface-elevated)] text-[var(--text-muted)] uppercase text-[10px] font-bold border-b border-[var(--surface-border)]">
-                  <tr>
-                    <th className="py-3 px-4">Member Name</th>
-                    <th className="py-3 px-4">Institutional Email</th>
-                    <th className="py-3 px-4">Role</th>
-                    <th className="py-3 px-4">Designation</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--surface-border)]">
-                  {facultyList.map((f) => (
-                    <tr key={f.id} className="hover:bg-[var(--surface-hover)] transition-colors">
-                      <td className="py-3 px-4 font-bold text-[var(--text-primary)]">
-                        {f.name}
-                      </td>
-                      <td className="py-3 px-4 text-[var(--text-secondary)]">
-                        {f.email}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          f.role === 'ADMIN'
-                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                        }`}>
-                          {f.role === 'ADMIN' ? 'Administrator' : 'Dean'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-[var(--text-muted)]">
-                        {f.designation || (f.role === 'ADMIN' ? 'Administrator' : 'Dean')}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={() => handleRevokeStaff(f)}
-                          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-rose-400 hover:bg-rose-500/10 border border-[var(--surface-border)] text-xs font-bold cursor-pointer transition-colors"
-                          title="Revoke Credentials"
-                        >
-                          <UserX size={14} />
-                        </button>
-                      </td>
+            {facultyList.length === 0 ? (
+              <div className="py-8 text-center text-xs text-[var(--text-muted)] border rounded-xl border-[var(--surface-border)] bg-[var(--surface-elevated)]">
+                No faculty or administrative users found. Click "Appoint Staff" or "Issue Invitation Token" to onboard users.
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-[var(--surface-border)] pt-1">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[var(--surface-elevated)] text-[var(--text-muted)] uppercase text-[10px] font-bold border-b border-[var(--surface-border)]">
+                    <tr>
+                      <th className="py-3 px-4">Member Name</th>
+                      <th className="py-3 px-4">Institutional Email</th>
+                      <th className="py-3 px-4">Role</th>
+                      <th className="py-3 px-4">Designation</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--surface-border)]">
+                    {facultyList.map((f) => (
+                      <tr key={f.id} className="hover:bg-[var(--surface-hover)] transition-colors">
+                        <td className="py-3 px-4 font-bold text-[var(--text-primary)]">
+                          {f.name}
+                        </td>
+                        <td className="py-3 px-4 text-[var(--text-secondary)]">
+                          {f.email}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            f.role === 'ADMIN'
+                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                          }`}>
+                            {f.role === 'ADMIN' ? 'Administrator' : 'Dean'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-[var(--text-muted)]">
+                          {f.designation || (f.role === 'ADMIN' ? 'Administrator' : 'Dean')}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button
+                            onClick={() => handleRevokeStaff(f)}
+                            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-rose-400 hover:bg-rose-500/10 border border-[var(--surface-border)] text-xs font-bold cursor-pointer transition-colors"
+                            title="Revoke Credentials"
+                          >
+                            <UserX size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

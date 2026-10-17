@@ -7254,7 +7254,7 @@
     {
       "id": "ach-first-step",
       "title": "First Flight",
-      "description": "Complete your first practice quiz on CareerPrep AI.",
+      "description": "Complete your first practice quiz on PrepPilot AI.",
       "badge_icon": "Rocket",
       "category": "PRACTICE",
       "xp_reward": 50,
@@ -7627,7 +7627,7 @@
     {
       "id": "user-student-demo",
       "name": "Aditya Sharma",
-      "email": "student@careerprep.ai",
+      "email": "student@preppilot.ai",
       "password_hash": "$2b$10$e8yR4sXEjrw2LRvAUnIfIezLVvmGzzwg.f.7AklziqrfwLovfFCmS",
       "role": "STUDENT",
       "branch_id": "branch-it",
@@ -7654,7 +7654,7 @@
     {
       "id": "user-admin-demo",
       "name": "Administrator",
-      "email": "admin@careerprep.ai",
+      "email": "admin@preppilot.ai",
       "password_hash": "$2b$10$e8yR4sXEjrw2LRvAUnIfIeuoxaRt1WpAMQzo.Z23yq5CIwKF7aXXK",
       "role": "ADMIN",
       "designation": "Administrator",

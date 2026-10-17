@@ -168,23 +168,46 @@ const DEMO_FALLBACK_USERS: Record<string, { pass: string; user: User }> = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const getStoredToken = (): string | null => {
+  return localStorage.getItem('preppilot_token') || localStorage.getItem('careerprep_token');
+};
+
+const getStoredUser = (): User | null => {
+  try {
+    const raw = localStorage.getItem('preppilot_user') || localStorage.getItem('careerprep_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setStoredAuth = (token: string, user: any) => {
+  localStorage.setItem('preppilot_token', token);
+  localStorage.setItem('careerprep_token', token);
+  if (user) {
+    const serialized = JSON.stringify(user);
+    localStorage.setItem('preppilot_user', serialized);
+    localStorage.setItem('careerprep_user', serialized);
+  }
+};
+
+const clearStoredAuth = () => {
+  localStorage.removeItem('preppilot_token');
+  localStorage.removeItem('careerprep_token');
+  localStorage.removeItem('preppilot_user');
+  localStorage.removeItem('careerprep_user');
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    try {
-      const stored = localStorage.getItem('careerprep_user');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
-  const [token, setToken] = useState<string | null>(localStorage.getItem('careerprep_token'));
+  const [user, setUser] = useState<User | null>(() => getStoredUser());
+  const [token, setToken] = useState<string | null>(() => getStoredToken());
   const [loading, setLoading] = useState<boolean>(true);
   const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
 
   const refreshUser = async () => {
     try {
-      const storedToken = localStorage.getItem('careerprep_token');
-      const storedUser = localStorage.getItem('careerprep_user');
+      const storedToken = getStoredToken();
+      const storedUser = getStoredUser();
 
       if (!storedToken) {
         setUser(null);
@@ -194,10 +217,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // If token is an offline session token, restore local user directly
       if (storedToken.startsWith('offline_session_') && storedUser) {
-        try {
-          setUser(JSON.parse(storedUser));
-          setIsOfflineMode(true);
-        } catch {}
+        setUser(storedUser);
+        setIsOfflineMode(true);
         setLoading(false);
         return;
       }
@@ -205,20 +226,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await api.getMe();
       if (res.success && res.user) {
         setUser(res.user);
-        localStorage.setItem('careerprep_user', JSON.stringify(res.user));
+        setStoredAuth(storedToken, res.user);
         setIsOfflineMode(false);
       } else if (res.isNetworkError) {
-        // Backend temporarily unreachable (e.g. running via Live Server without backend daemon)
-        // Keep user logged in from local cache!
         if (storedUser) {
-          try {
-            setUser(JSON.parse(storedUser));
-            setIsOfflineMode(true);
-          } catch {}
+          setUser(storedUser);
+          setIsOfflineMode(true);
         }
       } else if (res.message && (res.message.includes('401') || res.message.toLowerCase().includes('token') || res.message.toLowerCase().includes('unauthorized'))) {
-        localStorage.removeItem('careerprep_token');
-        localStorage.removeItem('careerprep_user');
+        clearStoredAuth();
         setToken(null);
         setUser(null);
       }
@@ -240,10 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await api.login(credentials);
 
       if (res.success && res.token) {
-        localStorage.setItem('careerprep_token', res.token);
-        if (res.user) {
-          localStorage.setItem('careerprep_user', JSON.stringify(res.user));
-        }
+        setStoredAuth(res.token, res.user);
         setToken(res.token);
         setUser(res.user);
         setIsOfflineMode(false);
@@ -255,8 +268,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const fallback = DEMO_FALLBACK_USERS[cleanEmail];
         if (fallback && fallback.pass === credentials.password) {
           const fallbackToken = 'offline_session_' + Date.now();
-          localStorage.setItem('careerprep_token', fallbackToken);
-          localStorage.setItem('careerprep_user', JSON.stringify(fallback.user));
+          setStoredAuth(fallbackToken, fallback.user);
           setToken(fallbackToken);
           setUser(fallback.user);
           setIsOfflineMode(true);
@@ -278,8 +290,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const fallback = DEMO_FALLBACK_USERS[cleanEmail];
       if (fallback && fallback.pass === credentials.password) {
         const fallbackToken = 'offline_session_' + Date.now();
-        localStorage.setItem('careerprep_token', fallbackToken);
-        localStorage.setItem('careerprep_user', JSON.stringify(fallback.user));
+        setStoredAuth(fallbackToken, fallback.user);
         setToken(fallbackToken);
         setUser(fallback.user);
         setIsOfflineMode(true);
@@ -297,10 +308,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.register(data);
       if (res.success && res.token) {
-        localStorage.setItem('careerprep_token', res.token);
-        if (res.user) {
-          localStorage.setItem('careerprep_user', JSON.stringify(res.user));
-        }
+        setStoredAuth(res.token, res.user);
         setToken(res.token);
         setUser(res.user);
         setIsOfflineMode(false);
@@ -316,10 +324,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.registerDean(data);
       if (res.success && res.token) {
-        localStorage.setItem('careerprep_token', res.token);
-        if (res.user) {
-          localStorage.setItem('careerprep_user', JSON.stringify(res.user));
-        }
+        setStoredAuth(res.token, res.user);
         setToken(res.token);
         setUser(res.user);
         setIsOfflineMode(false);
@@ -332,8 +337,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    localStorage.removeItem('careerprep_token');
-    localStorage.removeItem('careerprep_user');
+    clearStoredAuth();
     setToken(null);
     setUser(null);
     setIsOfflineMode(false);

@@ -27,8 +27,8 @@ echo   - Web Application: http://localhost:5000
 echo   - VS Code Live Server: http://127.0.0.1:5500
 echo.
 echo   Demo Logins:
-echo   - Student: student@careerprep.ai (password: password123)
-echo   - Dean:    admin@careerprep.ai   (password: admin123)
+echo   - Student: student@preppilot.ai (password: password123)
+echo   - Dean:    admin@preppilot.ai   (password: admin123)
 echo ==================================================================
 echo.
 echo Keep this window or the background server window open while using the app.

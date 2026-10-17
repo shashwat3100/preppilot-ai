@@ -149,11 +149,15 @@ router.post('/login', authLimiter, async (req, res) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    let user = db.findOne('users', u => (u.email || '').toLowerCase() === cleanEmail);
+    let searchEmail = cleanEmail;
+    if (searchEmail === 'admin@careerprep.ai') searchEmail = 'admin@preppilot.ai';
+    if (searchEmail === 'student@careerprep.ai') searchEmail = 'student@preppilot.ai';
+
+    let user = db.findOne('users', u => (u.email || '').toLowerCase() === searchEmail);
 
     // If user is not present in local SQLite instance, look up from PostgreSQL Neon
     if (!user && isPostgresConfigured()) {
-      user = await queryPostgresUserByEmail(cleanEmail);
+      user = await queryPostgresUserByEmail(searchEmail);
       if (user) {
         db.insert('users', user);
       }
