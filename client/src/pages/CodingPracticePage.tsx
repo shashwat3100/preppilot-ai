@@ -242,7 +242,14 @@ const CodingPracticePage: React.FC = () => {
       if (onlyBookmarked) params.bookmarked = 'true';
 
       const res = await api.getCodingProblems(params);
-      setProblems(res.problems || []);
+      const loadedProblems = res.problems || [];
+      setProblems(loadedProblems);
+      if (selectedProblem) {
+        const match = loadedProblems.find((p: any) => p.id === selectedProblem.id);
+        if (match && Array.isArray(match.sampleTestCases) && match.sampleTestCases.length > 0) {
+          setSampleTestCases(prev => (prev.length === 0 ? match.sampleTestCases : prev));
+        }
+      }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
         setFetchError('Failed to load coding problems. Please check server status.');
@@ -250,7 +257,7 @@ const CodingPracticePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, difficultyFilter, companyFilter, onlyBookmarked]);
+  }, [debouncedSearch, difficultyFilter, companyFilter, onlyBookmarked, selectedProblem]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -356,15 +363,24 @@ const CodingPracticePage: React.FC = () => {
     setTestResults([]);
     setExecutionTimeMs(undefined);
 
+    // Immediately load sample test cases from problem object
+    if (problem.sampleTestCases && problem.sampleTestCases.length > 0) {
+      setSampleTestCases(problem.sampleTestCases);
+    }
+
     loadCodeForProblemAndLanguage(problem, language);
 
     try {
       const res = await api.getCodingProblem(problem.id);
-      if (res.problem) {
-        setSelectedProblem({ ...problem, ...res.problem, isBookmarked: res.isBookmarked });
+      if (res && res.problem) {
+        setSelectedProblem(prev => ({ ...(prev || problem), ...res.problem, isBookmarked: res.isBookmarked }));
       }
-      setSampleTestCases(res.sampleTestCases || []);
-      setSubmissions(res.userSubmissions || []);
+      if (res && Array.isArray(res.sampleTestCases) && res.sampleTestCases.length > 0) {
+        setSampleTestCases(res.sampleTestCases);
+      }
+      if (res && Array.isArray(res.userSubmissions)) {
+        setSubmissions(res.userSubmissions);
+      }
     } catch (err) {
       console.error('Error fetching problem details:', err);
     }

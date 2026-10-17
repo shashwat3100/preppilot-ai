@@ -159,11 +159,39 @@ export const getPostgresAccessStats = async (limit = 50) => {
   }
 };
 
+/**
+ * Queries a user by ID from PostgreSQL.
+ */
+export const queryPostgresUser = async (userId) => {
+  const activePool = getPgPool();
+  if (!activePool || !userId) return null;
+
+  try {
+    const res = await activePool.query('SELECT * FROM users WHERE id = $1', [userId]);
+    if (res.rows.length === 0) return null;
+    const row = res.rows[0];
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      role: row.role,
+      branch_id: row.branch_id,
+      status: row.status || 'ACTIVE',
+      is_blocked: row.is_blocked || false,
+      total_xp: row.total_xp || 50
+    };
+  } catch (err) {
+    console.warn('[PostgreSQL queryPostgresUser Warning]:', err.message);
+    return null;
+  }
+};
+
 export default {
   isPostgresConfigured,
   getPgPool,
   closePgPool,
   ensurePostgresAccessTable,
   insertPostgresAccessLog,
-  getPostgresAccessStats
+  getPostgresAccessStats,
+  queryPostgresUser
 };

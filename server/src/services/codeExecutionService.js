@@ -152,8 +152,9 @@ function cleanupRunDir(runDir) {
 // --------------------------------------------------------------------
 // Judge0 Sandboxed Execution (External Trusted Provider)
 // --------------------------------------------------------------------
-async function runWithJudge0(code, language, input = '') {
-  const apiUrl = process.env.JUDGE0_API_URL.replace(/\/$/, '');
+async function runWithJudge0(code, language, input = '', overrideUrl = null) {
+  const effectiveUrl = overrideUrl || process.env.JUDGE0_API_URL || 'https://ce.judge0.com';
+  const apiUrl = effectiveUrl.replace(/\/$/, '');
   const apiKey = process.env.JUDGE0_API_KEY || '';
   const langId = JUDGE0_LANGUAGE_IDS[language];
 
@@ -447,8 +448,9 @@ export async function runCode(code, language, input = '') {
   // In production, untrusted execution is BLOCKED unless a trusted external sandbox provider is configured.
   // Never silently fall back to host execution in production.
   const isProduction = process.env.NODE_ENV === 'production';
+  const effectiveJudge0Url = process.env.JUDGE0_API_URL || (process.env.VERCEL ? 'https://ce.judge0.com' : null);
   if (isProduction) {
-    if (!process.env.JUDGE0_API_URL) {
+    if (!effectiveJudge0Url) {
       return {
         success: false,
         output: '',
@@ -460,7 +462,7 @@ export async function runCode(code, language, input = '') {
       };
     }
     try {
-      return await runWithJudge0(code, language, input);
+      return await runWithJudge0(code, language, input, effectiveJudge0Url);
     } catch (err) {
       console.error('[CodeExecution] Judge0 dispatch failed in production:', err.message);
       return {
@@ -543,14 +545,16 @@ export async function runTestCases(code, language, testCases) {
   for (const tc of testCases) {
     const result = await runCode(code, language, tc.input);
     const cleanActual = (result.output || '').replace(/\r\n/g, '\n').trim();
-    const cleanExpected = (tc.expectedOutput || '').replace(/\r\n/g, '\n').trim();
+    const expectedVal = tc.expectedOutput ?? tc.expected_output ?? '';
+    const cleanExpected = expectedVal.replace(/\r\n/g, '\n').trim();
+    const isHiddenCase = Boolean(tc.isHidden ?? tc.is_hidden);
     const passed = result.success && cleanActual === cleanExpected;
     totalExecutionTimeMs += (result.executionTimeMs || 0);
 
     results.push({
-      input: tc.isHidden ? '[Hidden Test Case]' : tc.input,
-      expectedOutput: tc.isHidden ? '[Hidden Server Output]' : tc.expectedOutput,
-      actualOutput: tc.isHidden && !passed ? '[Hidden mismatch]' : result.output,
+      input: isHiddenCase ? '[Hidden Test Case]' : tc.input,
+      expectedOutput: isHiddenCase ? '[Hidden Server Output]' : expectedVal,
+      actualOutput: isHiddenCase && !passed ? '[Hidden mismatch]' : result.output,
       passed,
       error: result.error,
       timedOut: result.timedOut,
@@ -558,7 +562,7 @@ export async function runTestCases(code, language, testCases) {
       isInfrastructureError: Boolean(result.isInfrastructureError),
       executionTimeMs: result.executionTimeMs || 0,
       memoryKb: result.memoryKb || null,
-      isHidden: tc.isHidden
+      isHidden: isHiddenCase
     });
 
     // Short-circuit on first failure to conserve execution quota

@@ -1,14 +1,14 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database/db.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import { runCode, runTestCases, getSupportedLanguages, EXECUTION_LIMITS } from '../services/codeExecutionService.js';
 import { codeExecutionLimiter, assessmentSubmissionLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
 // Supported languages
-router.get('/languages', authenticate, (req, res) => {
+router.get('/languages', (req, res) => {
   res.json({ languages: getSupportedLanguages() });
 });
 
@@ -83,7 +83,8 @@ router.get('/problems', authenticate, (req, res) => {
     );
   }
 
-  const userBookmarks = db.find('codingBookmarks', b => b.user_id === req.user.id);
+  const userId = req.user?.id;
+  const userBookmarks = userId ? db.find('codingBookmarks', b => b.user_id === userId) : [];
   const bookmarkSet = new Set(userBookmarks.map(b => b.problem_id));
 
   if (bookmarked === 'true') {
@@ -91,7 +92,9 @@ router.get('/problems', authenticate, (req, res) => {
   }
 
   const problemsWithStats = problems.map(p => {
-    const userSubmissions = db.find('codingSubmissions', s => s.problem_id === p.id && s.user_id === req.user.id);
+    const userSubmissions = userId
+      ? db.find('codingSubmissions', s => s.problem_id === p.id && s.user_id === userId)
+      : [];
     const solved = userSubmissions.some(s => s.status === 'ACCEPTED');
     const attempts = userSubmissions.length;
 
@@ -101,12 +104,29 @@ router.get('/problems', authenticate, (req, res) => {
       ? Math.round((totalAccepted / allProblemSubmissions.length) * 100)
       : null;
 
+    // Attach non-hidden sample test cases directly to problem object for immediate client rendering
+    const sampleTestCases = db.find('codingTestCases', tc =>
+      tc.problem_id === p.id &&
+      tc.isHidden !== true &&
+      tc.is_hidden !== true &&
+      tc.isHidden !== 'true' &&
+      tc.is_hidden !== 'true' &&
+      tc.is_hidden !== 1
+    ).map(tc => ({
+      id: tc.id,
+      input: tc.input,
+      expectedOutput: tc.expectedOutput || tc.expected_output,
+      explanation: tc.explanation,
+      isHidden: false
+    }));
+
     return {
       ...p,
       solved,
       attempts,
       isBookmarked: bookmarkSet.has(p.id),
       testCaseCount: db.find('codingTestCases', tc => tc.problem_id === p.id).length,
+      sampleTestCases,
       totalSubmissions: allProblemSubmissions.length,
       acceptanceRate
     };
@@ -116,19 +136,41 @@ router.get('/problems', authenticate, (req, res) => {
 });
 
 // Single problem details (SECURE: hidden test cases are strictly filtered out)
-router.get('/problems/:id', authenticate, (req, res) => {
+router.get('/problems/:id', optionalAuthenticate, (req, res) => {
   const problem = db.get('codingProblems', req.params.id);
   if (!problem) return res.status(404).json({ error: 'Problem not found' });
 
   // STRICT SECURITY: Only non-hidden sample test cases are returned to the client
-  const sampleTestCases = db.find('codingTestCases', tc => tc.problem_id === problem.id && !tc.isHidden);
-  const userSubmissions = db.find('codingSubmissions', s => s.problem_id === problem.id && s.user_id === req.user.id);
-  const isBookmarked = db.find('codingBookmarks', b => b.user_id === req.user.id && b.problem_id === problem.id).length > 0;
+  const sampleTestCases = db.find('codingTestCases', tc =>
+    tc.problem_id === problem.id &&
+    tc.isHidden !== true &&
+    tc.is_hidden !== true &&
+    tc.isHidden !== 'true' &&
+    tc.is_hidden !== 'true' &&
+    tc.is_hidden !== 1
+  ).map(tc => ({
+    id: tc.id,
+    input: tc.input,
+    expectedOutput: tc.expectedOutput || tc.expected_output,
+    explanation: tc.explanation,
+    isHidden: false
+  }));
+
+  const userId = req.user?.id;
+  const userSubmissions = userId
+    ? db.find('codingSubmissions', s => s.problem_id === problem.id && s.user_id === userId)
+    : [];
+  const isBookmarked = userId
+    ? db.find('codingBookmarks', b => b.user_id === userId && b.problem_id === problem.id).length > 0
+    : false;
 
   userSubmissions.sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
 
   res.json({
-    problem,
+    problem: {
+      ...problem,
+      sampleTestCases
+    },
     sampleTestCases,
     userSubmissions,
     isBookmarked

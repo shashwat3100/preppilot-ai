@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import db from '../database/db.js';
+import { isPostgresConfigured, queryPostgresUser } from '../database/postgres.js';
 
 // Enforce strong JWT secret in production with safe fallback to prevent serverless termination
 const isProduction = process.env.NODE_ENV === 'production';
@@ -28,7 +29,7 @@ export const generateToken = (user) => {
   );
 };
 
-export const authenticate = (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ success: false, message: 'Authentication required. No token provided.' });
@@ -37,7 +38,29 @@ export const authenticate = (req, res, next) => {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, EFFECTIVE_JWT_SECRET);
-    const user = db.get('users', decoded.id);
+    let user = db.get('users', decoded.id);
+
+    // If user is not present in local memory (e.g., fresh serverless container), fetch from PostgreSQL
+    if (!user && isPostgresConfigured()) {
+      user = await queryPostgresUser(decoded.id);
+      if (user) {
+        db.insert('users', user);
+      }
+    }
+
+    // Resilient fallback for validly-signed JWTs across serverless cold starts
+    if (!user && decoded.id && decoded.email) {
+      user = {
+        id: decoded.id,
+        name: decoded.name || 'Student',
+        email: decoded.email,
+        role: decoded.role || 'STUDENT',
+        status: 'ACTIVE',
+        is_blocked: false
+      };
+      db.insert('users', user);
+    }
+
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid session or user not found.' });
     }
@@ -54,7 +77,7 @@ export const authenticate = (req, res, next) => {
   }
 };
 
-export const optionalAuthenticate = (req, res, next) => {
+export const optionalAuthenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return next();
@@ -63,7 +86,27 @@ export const optionalAuthenticate = (req, res, next) => {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, EFFECTIVE_JWT_SECRET);
-    const user = db.get('users', decoded.id);
+    let user = db.get('users', decoded.id);
+
+    if (!user && isPostgresConfigured()) {
+      user = await queryPostgresUser(decoded.id);
+      if (user) {
+        db.insert('users', user);
+      }
+    }
+
+    if (!user && decoded.id && decoded.email) {
+      user = {
+        id: decoded.id,
+        name: decoded.name || 'Student',
+        email: decoded.email,
+        role: decoded.role || 'STUDENT',
+        status: 'ACTIVE',
+        is_blocked: false
+      };
+      db.insert('users', user);
+    }
+
     if (user && !user.is_blocked && user.status !== 'BLOCKED') {
       req.user = user;
     }
