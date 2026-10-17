@@ -51,6 +51,61 @@ export const seedDatabase = async (force = false) => {
     return;
   }
 
+  // Ensure Shashwat candidate accounts exist and can log in with password123
+  const salt = await bcrypt.genSalt(10);
+  const shashwatHash = await bcrypt.hash('password123', salt);
+  const existingShashwat = db.findOne('users', u => u.email === 'balamwarshashwat@gmail.com');
+  if (!existingShashwat) {
+    db.insert('users', {
+      id: 'user-013e20ae-b037-4c3e-98eb-fccd3449bef1',
+      name: 'Shashwat balamwar',
+      email: 'balamwarshashwat@gmail.com',
+      password_hash: shashwatHash,
+      role: 'STUDENT',
+      branch_id: 'branch-cse',
+      year: '4th Year',
+      graduation_year: 2026,
+      preferred_job_role_id: 'role-sde',
+      target_companies: ['comp-tcs', 'comp-infosys', 'comp-amazon'],
+      skill_level: 'Intermediate',
+      areas_of_interest: ['DBMS', 'DSA', 'Operating Systems'],
+      total_xp: 420,
+      current_level: 3,
+      current_streak: 5,
+      longest_streak: 9,
+      last_active_date: new Date().toISOString().split('T')[0]
+    });
+  } else {
+    existingShashwat.password_hash = shashwatHash;
+    db.update('users', existingShashwat.id, existingShashwat);
+  }
+
+  const existingTypo = db.findOne('users', u => u.email === 'balamwarshashwat@gmmail.com');
+  if (!existingTypo) {
+    db.insert('users', {
+      id: 'user-balamwar-typo-alias',
+      name: 'Shashwat balamwar',
+      email: 'balamwarshashwat@gmmail.com',
+      password_hash: shashwatHash,
+      role: 'STUDENT',
+      branch_id: 'branch-cse',
+      year: '4th Year',
+      graduation_year: 2026,
+      preferred_job_role_id: 'role-sde',
+      target_companies: ['comp-tcs', 'comp-infosys', 'comp-amazon'],
+      skill_level: 'Intermediate',
+      areas_of_interest: ['DBMS', 'DSA', 'Operating Systems'],
+      total_xp: 420,
+      current_level: 3,
+      current_streak: 5,
+      longest_streak: 9,
+      last_active_date: new Date().toISOString().split('T')[0]
+    });
+  } else {
+    existingTypo.password_hash = shashwatHash;
+    db.update('users', existingTypo.id, existingTypo);
+  }
+
   // Check if demo student already exists
   const existingDemoUser = db.findOne('users', u => u.email === 'student@careerprep.ai');
   if (existingDemoUser && !force) {
@@ -58,7 +113,6 @@ export const seedDatabase = async (force = false) => {
     return;
   }
 
-  const salt = await bcrypt.genSalt(10);
   const studentHash1 = await bcrypt.hash('password123', salt);
   const studentHash2 = await bcrypt.hash('password123', salt);
   const adminHash1 = await bcrypt.hash('admin123', salt);
