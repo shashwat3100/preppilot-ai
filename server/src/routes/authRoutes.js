@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import db from '../database/db.js';
 import { generateToken, authenticate } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
+import { isPostgresConfigured, queryPostgresUserByEmail, savePostgresUser } from '../database/postgres.js';
 
 const router = express.Router();
 
@@ -63,7 +64,13 @@ router.post('/register', authLimiter, async (req, res) => {
       return res.status(400).json({ success: false, message: passwordValidation.message });
     }
 
-    const existingUser = db.findOne('users', u => u.email.toLowerCase() === cleanEmail);
+    let existingUser = db.findOne('users', u => (u.email || '').toLowerCase() === cleanEmail);
+    if (!existingUser && isPostgresConfigured()) {
+      existingUser = await queryPostgresUserByEmail(cleanEmail);
+      if (existingUser) {
+        db.insert('users', existingUser);
+      }
+    }
     if (existingUser) {
       return res.status(400).json({ success: false, message: 'An account with this email address already exists.' });
     }
@@ -109,6 +116,15 @@ router.post('/register', authLimiter, async (req, res) => {
       streak_freeze_count: 2
     });
 
+    // Durably persist registered user to Neon PostgreSQL
+    if (isPostgresConfigured()) {
+      try {
+        await savePostgresUser(newUser);
+      } catch (pgErr) {
+        console.warn('[PostgreSQL Sync on Register Warning]:', pgErr.message);
+      }
+    }
+
     const token = generateToken(newUser);
     const { password_hash, ...safeUser } = newUser;
 
@@ -133,12 +149,35 @@ router.post('/login', authLimiter, async (req, res) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const user = db.findOne('users', u => u.email.toLowerCase() === cleanEmail);
+    let user = db.findOne('users', u => (u.email || '').toLowerCase() === cleanEmail);
+
+    // If user is not present in local SQLite instance, look up from PostgreSQL Neon
+    if (!user && isPostgresConfigured()) {
+      user = await queryPostgresUserByEmail(cleanEmail);
+      if (user) {
+        db.insert('users', user);
+      }
+    }
+
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password credentials.' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password_hash);
+    let isMatch = await bcrypt.compare(password, user.password_hash);
+
+    // If local cached hash failed, check PostgreSQL in case password was updated in another container
+    if (!isMatch && isPostgresConfigured()) {
+      const freshUser = await queryPostgresUserByEmail(cleanEmail);
+      if (freshUser && freshUser.password_hash !== user.password_hash) {
+        const freshMatch = await bcrypt.compare(password, freshUser.password_hash);
+        if (freshMatch) {
+          user = freshUser;
+          isMatch = true;
+          db.update('users', user.id, user);
+        }
+      }
+    }
+
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password credentials.' });
     }
@@ -258,7 +297,13 @@ router.post('/register-dean', authLimiter, async (req, res) => {
       });
     }
 
-    const existingUser = db.findOne('users', u => u.email.toLowerCase() === cleanEmail);
+    let existingUser = db.findOne('users', u => (u.email || '').toLowerCase() === cleanEmail);
+    if (!existingUser && isPostgresConfigured()) {
+      existingUser = await queryPostgresUserByEmail(cleanEmail);
+      if (existingUser) {
+        db.insert('users', existingUser);
+      }
+    }
     if (existingUser) {
       if (existingUser.role === 'DEAN' || existingUser.role === 'ADMIN') {
         return res.status(400).json({
@@ -284,6 +329,10 @@ router.post('/register-dean', authLimiter, async (req, res) => {
         is_blocked: false,
         status: 'ACTIVE'
       });
+
+      if (isPostgresConfigured() && updatedUser) {
+        await savePostgresUser(updatedUser);
+      }
 
       if (storedInvitation) {
         db.update('adminInvitations', storedInvitation.id, {
@@ -335,6 +384,9 @@ router.post('/register-dean', authLimiter, async (req, res) => {
     };
 
     db.insert('users', newDean);
+    if (isPostgresConfigured()) {
+      await savePostgresUser(newDean);
+    }
 
     if (storedInvitation) {
       db.update('adminInvitations', storedInvitation.id, {
@@ -404,7 +456,13 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const user = db.findOne('users', u => u.email.toLowerCase() === cleanEmail);
+    let user = db.findOne('users', u => (u.email || '').toLowerCase() === cleanEmail);
+    if (!user && isPostgresConfigured()) {
+      user = await queryPostgresUserByEmail(cleanEmail);
+      if (user) {
+        db.insert('users', user);
+      }
+    }
 
     if (user && (user.is_blocked || user.status === 'BLOCKED')) {
       return res.status(403).json({
@@ -471,7 +529,13 @@ router.post('/reset-password', authLimiter, async (req, res) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const user = db.findOne('users', u => u.email.toLowerCase() === cleanEmail);
+    let user = db.findOne('users', u => (u.email || '').toLowerCase() === cleanEmail);
+    if (!user && isPostgresConfigured()) {
+      user = await queryPostgresUserByEmail(cleanEmail);
+      if (user) {
+        db.insert('users', user);
+      }
+    }
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'Account not found.' });
@@ -532,10 +596,14 @@ router.post('/reset-password', authLimiter, async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(new_password, salt);
 
-    db.update('users', record.userId, {
+    const updatedUser = db.update('users', record.userId, {
       password_hash: passwordHash,
       updated_at: new Date().toISOString()
     });
+
+    if (isPostgresConfigured() && updatedUser) {
+      await savePostgresUser(updatedUser);
+    }
 
     return res.json({
       success: true,

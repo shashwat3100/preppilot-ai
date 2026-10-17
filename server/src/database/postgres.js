@@ -160,6 +160,40 @@ export const getPostgresAccessStats = async (limit = 50) => {
 };
 
 /**
+ * Helper to normalize a PostgreSQL user row into standard application format.
+ */
+const mapPostgresUserRow = (row) => {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    password_hash: row.password_hash,
+    role: row.role || 'STUDENT',
+    branch_id: row.branch_id || 'branch-cse',
+    year: row.year || '4th Year',
+    graduation_year: row.graduation_year || 2026,
+    preferred_job_role_id: row.preferred_job_role_id || 'role-sde',
+    target_companies: typeof row.target_companies === 'string'
+      ? JSON.parse(row.target_companies)
+      : (row.target_companies || []),
+    skill_level: row.skill_level || 'Intermediate',
+    areas_of_interest: typeof row.areas_of_interest === 'string'
+      ? JSON.parse(row.areas_of_interest)
+      : (row.areas_of_interest || []),
+    status: row.status || 'ACTIVE',
+    is_blocked: Boolean(row.is_blocked),
+    total_xp: row.total_xp !== null && row.total_xp !== undefined ? Number(row.total_xp) : 0,
+    current_level: row.current_level || 1,
+    current_streak: row.current_streak !== null && row.current_streak !== undefined ? Number(row.current_streak) : 0,
+    longest_streak: row.longest_streak !== null && row.longest_streak !== undefined ? Number(row.longest_streak) : 0,
+    last_active_date: row.last_active_date instanceof Date ? row.last_active_date.toISOString().split('T')[0] : (row.last_active_date || null),
+    created_at: row.created_at instanceof Date ? row.created_at.toISOString() : (row.created_at ? String(row.created_at) : new Date().toISOString()),
+    updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : (row.updated_at ? String(row.updated_at) : new Date().toISOString())
+  };
+};
+
+/**
  * Queries a user by ID from PostgreSQL.
  */
 export const queryPostgresUser = async (userId) => {
@@ -169,20 +203,96 @@ export const queryPostgresUser = async (userId) => {
   try {
     const res = await activePool.query('SELECT * FROM users WHERE id = $1', [userId]);
     if (res.rows.length === 0) return null;
-    const row = res.rows[0];
-    return {
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      role: row.role,
-      branch_id: row.branch_id,
-      status: row.status || 'ACTIVE',
-      is_blocked: row.is_blocked || false,
-      total_xp: row.total_xp || 50
-    };
+    return mapPostgresUserRow(res.rows[0]);
   } catch (err) {
     console.warn('[PostgreSQL queryPostgresUser Warning]:', err.message);
     return null;
+  }
+};
+
+/**
+ * Queries a user by Email from PostgreSQL (case-insensitive).
+ */
+export const queryPostgresUserByEmail = async (email) => {
+  const activePool = getPgPool();
+  if (!activePool || !email) return null;
+
+  try {
+    const cleanEmail = email.trim().toLowerCase();
+    const res = await activePool.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [cleanEmail]);
+    if (res.rows.length === 0) return null;
+    return mapPostgresUserRow(res.rows[0]);
+  } catch (err) {
+    console.warn('[PostgreSQL queryPostgresUserByEmail Warning]:', err.message);
+    return null;
+  }
+};
+
+/**
+ * Persists (inserts or updates) a user record in PostgreSQL.
+ * Ensures user registrations and profile/password updates are permanent across serverless lifecycles.
+ */
+export const savePostgresUser = async (user) => {
+  const activePool = getPgPool();
+  if (!activePool || !user || !user.id || !user.email) return false;
+
+  try {
+    const query = `
+      INSERT INTO users (
+        id, name, email, password_hash, role, branch_id, year, graduation_year,
+        preferred_job_role_id, target_companies, skill_level, areas_of_interest,
+        total_xp, current_level, current_streak, longest_streak, is_blocked, status, updated_at
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8,
+        $9, $10, $11, $12,
+        $13, $14, $15, $16, $17, $18, NOW()
+      )
+      ON CONFLICT (email) DO UPDATE SET
+        name = EXCLUDED.name,
+        password_hash = COALESCE(EXCLUDED.password_hash, users.password_hash),
+        role = EXCLUDED.role,
+        branch_id = EXCLUDED.branch_id,
+        year = EXCLUDED.year,
+        graduation_year = EXCLUDED.graduation_year,
+        preferred_job_role_id = EXCLUDED.preferred_job_role_id,
+        target_companies = EXCLUDED.target_companies,
+        skill_level = EXCLUDED.skill_level,
+        areas_of_interest = EXCLUDED.areas_of_interest,
+        total_xp = EXCLUDED.total_xp,
+        current_level = EXCLUDED.current_level,
+        current_streak = EXCLUDED.current_streak,
+        longest_streak = EXCLUDED.longest_streak,
+        is_blocked = EXCLUDED.is_blocked,
+        status = EXCLUDED.status,
+        updated_at = NOW()
+    `;
+
+    const values = [
+      user.id,
+      user.name || 'Candidate',
+      user.email.trim().toLowerCase(),
+      user.password_hash,
+      user.role || 'STUDENT',
+      user.branch_id || 'branch-cse',
+      user.year || '4th Year',
+      user.graduation_year ? parseInt(user.graduation_year) : 2026,
+      user.preferred_job_role_id || 'role-sde',
+      JSON.stringify(Array.isArray(user.target_companies) ? user.target_companies : []),
+      user.skill_level || 'Intermediate',
+      JSON.stringify(Array.isArray(user.areas_of_interest) ? user.areas_of_interest : []),
+      user.total_xp !== null && user.total_xp !== undefined ? Number(user.total_xp) : 0,
+      user.current_level || 1,
+      user.current_streak !== null && user.current_streak !== undefined ? Number(user.current_streak) : 0,
+      user.longest_streak !== null && user.longest_streak !== undefined ? Number(user.longest_streak) : 0,
+      Boolean(user.is_blocked),
+      user.status || 'ACTIVE'
+    ];
+
+    await activePool.query(query, values);
+    return true;
+  } catch (err) {
+    console.warn('[PostgreSQL savePostgresUser Warning]:', err.message);
+    return false;
   }
 };
 
@@ -193,5 +303,7 @@ export default {
   ensurePostgresAccessTable,
   insertPostgresAccessLog,
   getPostgresAccessStats,
-  queryPostgresUser
+  queryPostgresUser,
+  queryPostgresUserByEmail,
+  savePostgresUser
 };

@@ -410,6 +410,8 @@ const insertRow = (table, item) => {
   const itemWithId = { ...item, id };
   const jsonStr = JSON.stringify(itemWithId);
 
+  const createdAtStr = item.created_at instanceof Date ? item.created_at.toISOString() : (item.created_at ? String(item.created_at) : now);
+
   if (table === 'users') {
     sqlite.prepare(`
       INSERT OR REPLACE INTO users (id, email, name, role, data, created_at, updated_at)
@@ -420,7 +422,7 @@ const insertRow = (table, item) => {
       item.name || null,
       item.role || 'STUDENT',
       jsonStr,
-      item.created_at || now,
+      createdAtStr,
       now
     );
   } else if (table === 'questions') {
