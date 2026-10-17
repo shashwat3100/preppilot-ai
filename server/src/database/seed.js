@@ -69,14 +69,19 @@ export const seedDatabase = async (force = false) => {
       target_companies: ['comp-tcs', 'comp-infosys', 'comp-amazon'],
       skill_level: 'Intermediate',
       areas_of_interest: ['DBMS', 'DSA', 'Operating Systems'],
-      total_xp: 420,
-      current_level: 3,
-      current_streak: 5,
-      longest_streak: 9,
-      last_active_date: new Date().toISOString().split('T')[0]
+      total_xp: 0,
+      current_level: 1,
+      current_streak: 0,
+      longest_streak: 0,
+      last_active_date: null
     });
   } else {
     existingShashwat.password_hash = shashwatHash;
+    existingShashwat.total_xp = 0;
+    existingShashwat.current_streak = 0;
+    existingShashwat.longest_streak = 0;
+    existingShashwat.current_level = 1;
+    existingShashwat.last_active_date = null;
     db.update('users', existingShashwat.id, existingShashwat);
   }
 
@@ -95,14 +100,19 @@ export const seedDatabase = async (force = false) => {
       target_companies: ['comp-tcs', 'comp-infosys', 'comp-amazon'],
       skill_level: 'Intermediate',
       areas_of_interest: ['DBMS', 'DSA', 'Operating Systems'],
-      total_xp: 420,
-      current_level: 3,
-      current_streak: 5,
-      longest_streak: 9,
-      last_active_date: new Date().toISOString().split('T')[0]
+      total_xp: 0,
+      current_level: 1,
+      current_streak: 0,
+      longest_streak: 0,
+      last_active_date: null
     });
   } else {
     existingTypo.password_hash = shashwatHash;
+    existingTypo.total_xp = 0;
+    existingTypo.current_streak = 0;
+    existingTypo.longest_streak = 0;
+    existingTypo.current_level = 1;
+    existingTypo.last_active_date = null;
     db.update('users', existingTypo.id, existingTypo);
   }
 

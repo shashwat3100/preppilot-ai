@@ -178,7 +178,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
               {user?.name ? user.name.charAt(0).toUpperCase() : <User size={14} />}
             </div>
-            <span className="text-xs font-semibold text-[var(--text-primary)] hidden md:inline max-w-[100px] truncate">
+            <span className="text-xs font-semibold text-[var(--text-primary)] hidden md:inline max-w-[180px] truncate">
               {user?.name?.split(' ')[0] || 'Student'}
             </span>
             <ChevronDown size={13} className="text-[var(--text-muted)] hidden md:inline" />

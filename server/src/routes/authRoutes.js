@@ -86,11 +86,11 @@ router.post('/register', authLimiter, async (req, res) => {
       target_companies: Array.isArray(target_companies) ? target_companies : [target_companies],
       skill_level: skill_level || 'Intermediate',
       areas_of_interest: Array.isArray(areas_of_interest) ? areas_of_interest : [areas_of_interest],
-      total_xp: 50, // Welcome bonus XP!
+      total_xp: 0,
       current_level: 1,
-      current_streak: 1,
-      longest_streak: 1,
-      last_active_date: new Date().toISOString().split('T')[0],
+      current_streak: 0,
+      longest_streak: 0,
+      last_active_date: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_blocked: false,
@@ -99,23 +99,14 @@ router.post('/register', authLimiter, async (req, res) => {
 
     db.insert('users', newUser);
 
-    // Initialize streak record
+    // Initialize clean streak record
     db.insert('streaks', {
       id: `streak-${userId}`,
       user_id: userId,
-      current_streak: 1,
-      longest_streak: 1,
-      last_activity_date: new Date().toISOString().split('T')[0],
+      current_streak: 0,
+      longest_streak: 0,
+      last_activity_date: null,
       streak_freeze_count: 2
-    });
-
-    // Record welcome XP
-    db.insert('xpHistory', {
-      id: `xph-${crypto.randomUUID()}`,
-      user_id: userId,
-      amount: 50,
-      action_type: 'WELCOME_BONUS',
-      created_at: new Date().toISOString()
     });
 
     const token = generateToken(newUser);
