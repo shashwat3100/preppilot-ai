@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { VoiceProvider } from './context/VoiceContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -312,6 +313,7 @@ export const App: React.FC = () => {
       <AuthProvider>
         <VoiceProvider>
           <MainApp />
+          <SpeedInsights />
         </VoiceProvider>
       </AuthProvider>
     </ThemeProvider>
