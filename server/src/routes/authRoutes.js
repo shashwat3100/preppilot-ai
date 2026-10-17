@@ -130,7 +130,7 @@ router.post('/register', authLimiter, async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Registration successful! Welcome to CareerPrep AI.',
+      message: 'Registration successful! Welcome to PrepPilot AI.',
       token,
       user: safeUser
     });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CareerPrepLogo } from '../components/Logo';
+import { PrepPilotLogo } from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import type { Branch, Company, JobRole } from '../types';
@@ -116,7 +116,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onGoToLog
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <div className="flex justify-center">
-            <CareerPrepLogo size="md" />
+            <PrepPilotLogo size="md" />
           </div>
           <h2 className="text-2xl font-bold tracking-tight text-white">
             Create Your B.Tech Placement Profile

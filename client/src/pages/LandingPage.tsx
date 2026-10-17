@@ -1,4 +1,4 @@
-import { PrepPilotLogo, CareerPrepLogo } from '../components/Logo';
+import { PrepPilotLogo } from '../components/Logo';
 import { useVoice } from '../context/VoiceContext';
 import {
   Sparkles,
@@ -279,7 +279,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-800 bg-slate-950 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <CareerPrepLogo size="sm" />
+          <PrepPilotLogo size="sm" />
           <div className="text-xs text-slate-500 text-center sm:text-right">
             <p>B.Tech Major Project • Placement Interview & Quiz Recommendation Engine</p>
             <p className="mt-1">Powered by PrepPilot Voice AI & RAG Knowledge Retrieval</p>

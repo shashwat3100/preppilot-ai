@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CareerPrepLogo } from './Logo';
+import { PrepPilotLogo } from './Logo';
 import { useAuth } from '../context/AuthContext';
 import { useVoice } from '../context/VoiceContext';
 import {
@@ -73,7 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
               onClick={() => handleNavClick(isAdmin ? 'admin' : 'dashboard')}
               className="text-left focus:outline-none flex-shrink-0 transition-transform active:scale-95"
             >
-              <CareerPrepLogo size="sm" />
+              <PrepPilotLogo size="sm" />
             </button>
 
             {/* Desktop Navigation Links (Responsive layout) */}

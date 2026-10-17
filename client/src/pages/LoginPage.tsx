@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CareerPrepLogo } from '../components/Logo';
+import { PrepPilotLogo } from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import {
@@ -26,7 +26,7 @@ interface LoginPageProps {
 export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister }) => {
   const { login, registerDean } = useAuth();
   const [loginMode, setLoginMode] = useState<'student' | 'admin' | 'dean'>('student');
-  const [email, setEmail] = useState('student@careerprep.ai');
+  const [email, setEmail] = useState('student@preppilot.ai');
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,10 +60,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
     setError('');
     setSuccessMsg('');
     if (mode === 'student') {
-      setEmail('student@careerprep.ai');
+      setEmail('student@preppilot.ai');
       setPassword('password123');
     } else if (mode === 'admin') {
-      setEmail('admin@careerprep.ai');
+      setEmail('admin@preppilot.ai');
       setPassword('admin123');
     } else {
       setEmail('dean@college.edu');
@@ -92,7 +92,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
     setError('');
     setSuccessMsg('');
     setLoading(true);
-    const res = await login({ email: 'admin@careerprep.ai', password: 'admin123' });
+    const res = await login({ email: 'admin@preppilot.ai', password: 'admin123' });
     setLoading(false);
     if (res.success) {
       onSuccess('ADMIN');
@@ -202,10 +202,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3 z-10">
         <div className="flex justify-center">
-          <CareerPrepLogo size="md" />
+          <PrepPilotLogo size="md" />
         </div>
         <h2 className="text-2xl font-extrabold tracking-tight text-white">
-          {loginMode === 'admin' ? 'Placement Cell Administration' : 'Sign In to Your CareerPrep Dashboard'}
+          {loginMode === 'admin' ? 'Placement Cell Administration' : 'Sign In to Your PrepPilot Dashboard'}
         </h2>
         <p className="text-xs text-slate-400">
           {loginMode === 'admin'
@@ -327,12 +327,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
             <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/20 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <span className="text-[11px] font-bold text-indigo-300 block">Candidate Demo Account:</span>
-                <span className="text-[10px] text-slate-400 block truncate">student@careerprep.ai</span>
+                <span className="text-[10px] text-slate-400 block truncate">student@preppilot.ai</span>
               </div>
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('student@careerprep.ai');
+                  setEmail('student@preppilot.ai');
                   setPassword('password123');
                 }}
                 className="px-2.5 py-1.5 rounded-lg bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 text-xs font-bold border border-indigo-500/30 flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
@@ -371,7 +371,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={loginMode === 'admin' ? 'admin@careerprep.ai' : loginMode === 'dean' ? 'dean@college.edu' : 'student@careerprep.ai'}
+                  placeholder={loginMode === 'admin' ? 'admin@preppilot.ai' : loginMode === 'dean' ? 'dean@college.edu' : 'student@preppilot.ai'}
                   className="block w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl text-xs text-slate-200 placeholder-slate-500 outline-none transition-colors"
                 />
               </div>
@@ -650,7 +650,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                     required
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="student@careerprep.ai or admin@careerprep.ai"
+                    placeholder="student@preppilot.ai or admin@preppilot.ai"
                     className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none focus:border-cyan-500"
                   />
                 </div>

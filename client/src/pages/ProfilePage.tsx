@@ -28,7 +28,7 @@ export const ProfilePage: React.FC = () => {
   const { theme, resolvedTheme, setTheme } = useTheme();
 
   const achievementsList = [
-    { title: 'First Flight', desc: 'Complete your first practice quiz on CareerPrep AI.', icon: Rocket, unlocked: true },
+    { title: 'First Flight', desc: 'Complete your first practice quiz on PrepPilot AI.', icon: Rocket, unlocked: true },
     { title: 'Consistent Flyer', desc: 'Maintain an uninterrupted 3-day study streak.', icon: Flame, unlocked: true },
     { title: 'Week Warrior', desc: 'Keep a 7-day placement preparation streak alive.', icon: Award, unlocked: (user?.current_streak || 0) >= 7 },
     { title: 'Normalization Ninja', desc: 'Score above 80% accuracy in Database Normalization.', icon: CheckCircle2, unlocked: true },

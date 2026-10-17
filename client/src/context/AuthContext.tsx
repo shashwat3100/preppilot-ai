@@ -17,6 +17,27 @@ interface AuthContextType {
 }
 
 const DEMO_FALLBACK_USERS: Record<string, { pass: string; user: User }> = {
+  'student@preppilot.ai': {
+    pass: 'password123',
+    user: {
+      id: 'user-student-demo',
+      name: 'Aditya Sharma',
+      email: 'student@preppilot.ai',
+      role: 'STUDENT',
+      branch_id: 'branch-it',
+      branch_name: 'Information Technology (IT)',
+      year: '4th Year',
+      graduation_year: 2026,
+      preferred_job_role_id: 'role-sde',
+      target_companies: ['comp-tcs', 'comp-infosys', 'comp-amazon'],
+      skill_level: 'Intermediate',
+      areas_of_interest: ['DBMS', 'DSA', 'Operating Systems', 'System Design'],
+      total_xp: 420,
+      current_level: 3,
+      current_streak: 5,
+      longest_streak: 9
+    }
+  },
   'student@careerprep.ai': {
     pass: 'password123',
     user: {
@@ -57,6 +78,27 @@ const DEMO_FALLBACK_USERS: Record<string, { pass: string; user: User }> = {
       current_level: 3,
       current_streak: 5,
       longest_streak: 9
+    }
+  },
+  'admin@preppilot.ai': {
+    pass: 'admin123',
+    user: {
+      id: 'user-admin-demo',
+      name: 'Administrator',
+      email: 'admin@preppilot.ai',
+      role: 'ADMIN',
+      branch_id: 'branch-cse',
+      branch_name: 'Computer Science Engineering (CSE)',
+      year: 'Faculty / Admin',
+      graduation_year: 2020,
+      preferred_job_role_id: 'role-sde',
+      target_companies: ['comp-tcs', 'comp-infosys', 'comp-wipro', 'comp-accenture'],
+      skill_level: 'Advanced',
+      areas_of_interest: ['Platform Governance', 'Assessment Evaluation', 'Curriculum Mapping'],
+      total_xp: 0,
+      current_level: 1,
+      current_streak: 0,
+      longest_streak: 0
     }
   },
   'admin@careerprep.ai': {
