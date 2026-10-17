@@ -287,7 +287,13 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       synthRef.current.resume();
     }
 
-    const utterance = new SpeechSynthesisUtterance(cleanSpeech.slice(0, 320));
+    let speechToRead = cleanSpeech;
+    if (speechToRead.length > 500) {
+      const sentenceEnd = speechToRead.lastIndexOf('.', 500);
+      speechToRead = sentenceEnd > 150 ? speechToRead.slice(0, sentenceEnd + 1) : speechToRead.slice(0, 500);
+    }
+
+    const utterance = new SpeechSynthesisUtterance(speechToRead);
     activeUtteranceRef.current = utterance;
     utterance.rate = 1.05;
     utterance.pitch = 1.0;
@@ -321,6 +327,32 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const getOfflineFallbackResponse = (query: string): { reply: string; speech: string } => {
     const q = query.toLowerCase();
+
+    if ((q.includes('company') || q.includes('companies')) && (q.includes('list') || q.includes('platform') || q.includes('all') || q.includes('each') || q.includes('every') || q.includes('which') || q.includes('what') || q.includes('available'))) {
+      return {
+        reply: "### Recruitment Companies on PrepPilot AI\nPrepPilot AI features dedicated recruitment blueprints for 10 premier recruiters:\n- **Tier-1 Product**: Google (36–55 LPA), Amazon (32–45 LPA), Microsoft (34–48 LPA)\n- **Consulting**: Deloitte (7.6–12.5 LPA), Accenture (4.5–11 LPA), Capgemini (4–7.5 LPA)\n- **IT Services**: TCS (3.6–11.5 LPA), Infosys (3.6–9.5 LPA), Wipro (3.5–8.5 LPA), Cognizant (4–9 LPA)",
+        speech: "PrepPilot AI features 10 recruitment company blueprints including Google, Amazon, Microsoft, TCS, Infosys, Wipro, Accenture, Capgemini, Cognizant, and Deloitte with packages up to 55 LPA."
+      };
+    }
+    if (q.includes('branch') || q.includes('branches')) {
+      return {
+        reply: "### Supported Engineering Branches\nPrepPilot AI supports 9 engineering branches:\n- **Computing**: Computer Science (CSE), Information Technology (IT), AI & Data Science (AIDS), AI & Machine Learning (AIML)\n- **Circuits**: Electronics & Telecommunication (ECE), Electrical Engineering (EE)\n- **Core Engineering**: Mechanical (ME), Civil (CE), Chemical (CHE)",
+        speech: "PrepPilot AI supports 9 engineering branches including Computer Science, IT, Electronics and Telecommunication, Electrical, Mechanical, Civil, Chemical, and AI Data Science."
+      };
+    }
+    if (q.includes('coding') || q.includes('arena')) {
+      return {
+        reply: "### PrepPilot Coding Arena\nThe Coding Arena features 18 curated algorithmic problems across arrays, strings, two pointers, trees, and dynamic programming, with browser execution and automated test cases in C++, Java, Python, and JavaScript.",
+        speech: "The Coding Arena includes 18 curated algorithmic problems across arrays, trees, and dynamic programming with automated test case evaluation."
+      };
+    }
+    if (q.includes('preppilot') || (q.includes('platform') && (q.includes('what') || q.includes('about')))) {
+      return {
+        reply: "### PrepPilot AI\nPrepPilot AI is your B.Tech placement copilot featuring 10 company blueprints, an 18-problem coding arena, 98+ question syllabus bank, and AI voice mentorship.",
+        speech: "PrepPilot AI is your B.Tech placement copilot featuring company hiring blueprints, an interactive coding arena, syllabus-grounded question banks, and AI voice mentorship."
+      };
+    }
+
     if (
       q.includes('convoy') ||
       q.includes('what effect') ||

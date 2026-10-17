@@ -120,8 +120,47 @@ async function runRagQATests() {
   assert(qGoogle.speechText.includes('To target Google'), 'SpeechText explains targeting Google');
   console.log('  ✓ Query "how can I target Google" returns structured hiring blueprint & 4-step action plan');
 
+  // Test 18: All companies query from user screenshot ("listed on your platform and tell me about each and every company which are listed on your platform")
+  const qAllComps = await RagService.answerStudentQuery('listed on your platform and tell me about each and every company which are listed on your platform');
+  assert(qAllComps.answer.includes('Recruitment Companies Listed on PrepPilot AI'), 'Answers with all companies directory');
+  assert(qAllComps.answer.includes('Google'), 'Includes Google');
+  assert(qAllComps.answer.includes('Amazon'), 'Includes Amazon');
+  assert(qAllComps.answer.includes('TCS'), 'Includes TCS');
+  assert(qAllComps.answer.includes('Infosys'), 'Includes Infosys');
+  assert(!qAllComps.answer.includes('First Normal Form (1NF)'), 'Does NOT dump database normalization 1NF!');
+  assert(qAllComps.speechText.includes('PrepPilot AI features 10 recruitment company blueprints'), 'SpeechText summarizes companies cleanly');
+  console.log('  ✓ Query "listed on your platform and tell me about each and every company..." returns all 10 companies directory');
+
+  // Test 19: Direct company overview ("tell me about Amazon")
+  const qAboutAmazon = await RagService.answerStudentQuery('tell me about Amazon');
+  assert(qAboutAmazon.answer.includes('How to Target and Crack Amazon'), 'Returns Amazon blueprint');
+  assert(qAboutAmazon.answer.includes('Leadership Principles'), 'Includes Amazon specifics');
+  assert(qAboutAmazon.speechText.includes('To target Amazon'), 'SpeechText directly addresses Amazon');
+  console.log('  ✓ Query "tell me about Amazon" triggers company blueprint directly');
+
+  // Test 20: Supported engineering branches query ("what branches are supported")
+  const qBranches = await RagService.answerStudentQuery('what branches are supported on this platform');
+  assert(qBranches.answer.includes('Supported Engineering Branches on PrepPilot AI'), 'Returns branches');
+  assert(qBranches.answer.includes('Computer Science Engineering (CSE)'), 'Includes CSE');
+  assert(qBranches.answer.includes('Mechanical Engineering (ME)'), 'Includes ME');
+  assert(qBranches.speechText.includes('9 engineering branches'), 'SpeechText mentions 9 branches');
+  console.log('  ✓ Query "what branches are supported..." returns 9 engineering disciplines');
+
+  // Test 21: Coding arena query ("tell me about the coding arena")
+  const qCoding = await RagService.answerStudentQuery('tell me about the coding arena and what problems can I practice');
+  assert(qCoding.answer.includes('PrepPilot Interactive Coding Arena'), 'Returns coding arena overview');
+  assert(qCoding.answer.includes('18 Algorithmic Challenges'), 'Mentions 18 challenges');
+  assert(qCoding.speechText.includes('18 curated algorithmic problems'), 'SpeechText explains coding problems');
+  console.log('  ✓ Query "tell me about the coding arena..." returns coding platform features');
+
+  // Test 22: Platform overview ("what can PrepPilot do")
+  const qOverview = await RagService.answerStudentQuery('what can PrepPilot do');
+  assert(qOverview.answer.includes('PrepPilot AI: B.Tech Placement & Curriculum Copilot'), 'Returns platform overview');
+  assert(qOverview.speechText.includes('B.Tech placement copilot'), 'SpeechText summarizes PrepPilot');
+  console.log('  ✓ Query "what can PrepPilot do" returns comprehensive platform features');
+
   console.log('\n==================================================================');
-  console.log('ALL 17 RAG TARGETED QA TESTS PASSED CLEANLY');
+  console.log('ALL 22 RAG TARGETED QA TESTS PASSED CLEANLY');
   console.log('==================================================================\n');
 }
 

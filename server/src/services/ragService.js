@@ -72,9 +72,14 @@ export class RagService {
       return false;
     }
 
-    // Allow greetings and orientation questions
-    const greetings = ['hi', 'hello', 'hey', 'start', 'begin', 'help', 'what can we do', 'who are you', 'how can you help', 'good morning', 'good afternoon', 'good evening', 'can i access', 'without login'];
-    if (greetings.some(g => q.startsWith(g) || q.includes(g))) {
+    // Allow greetings and orientation questions using word boundaries for short words
+    const greetingRegex = /\b(hi|hello|hey|good\s+morning|good\s+afternoon|good\s+evening)\b/i;
+    const orientationPhrases = [
+      'start', 'begin', 'help', 'what can we do', 'who are you', 'how can you help',
+      'can i access', 'without login', 'about preppilot', 'about the platform',
+      'where to start', 'help me prepare', 'what should i do', 'tell me about preppilot'
+    ];
+    if (greetingRegex.test(q) || orientationPhrases.some(g => q.includes(g))) {
       return true;
     }
 
@@ -84,13 +89,19 @@ export class RagService {
       'network', 'tcp', 'ip', 'osi', 'http', 'dns', 'router', 'subnet',
       'oop', 'java', 'c++', 'python', 'polymorphism', 'inheritance', 'interface', 'class',
       'tcs', 'infosys', 'wipro', 'accenture', 'capgemini', 'cognizant', 'amazon', 'google', 'microsoft', 'deloitte',
-      'interview', 'placement', 'quiz', 'btech', 'engineering', 'branch', 'ece', 'electrical',
+      'interview', 'placement', 'quiz', 'btech', 'engineering', 'branch', 'branches', 'ece', 'electrical',
       'mechanical', 'civil', 'chemical', 'microprocessor', '8085', 'circuit', 'transformer',
       'thermodynamics', 'fluid', 'formula', 'complexity', 'normalize', 'normalization', 'acid', 'normal form', '3nf', '2nf', '1nf', 'bcnf',
-      'pointer', 'stack', 'queue', 'recursion', 'sorting', 'binary search', 'viva', 'question',
+      'pointer', 'stack', 'queue', 'recursion', 'sorting', 'binary search', 'viva', 'question', 'questions',
+      'linked list', 'list', 'node', 'heap', 'hashmap', 'hash table', 'priority queue', 'string', 'strings',
+      'dfs', 'bfs', 'greedy', 'backtracking', 'sliding window', 'two pointer', 'matrix', 'bitwise',
       'effect', 'convoy', 'belady', 'anomaly', 'scheduling', 'round robin', 'quantum', 'starvation', 'aging',
       'mutex', 'semaphore', 'banker', 'coffman', 'thrashing', 'tlb', 'page fault', 'trie', 'dsu', 'hashing',
-      'roadmap', 'prepare', 'target', 'crack', 'study', 'two sum', 'hint', 'oops', 'object', 'memory', 'heap'
+      'roadmap', 'prepare', 'target', 'crack', 'study', 'two sum', 'hint', 'oops', 'object', 'memory', 'heap',
+      'company', 'companies', 'platform', 'listed', 'arena', 'coding', 'code', 'ctc', 'salary', 'package',
+      'hiring', 'recruitment', 'round', 'rounds', 'eligibility', 'criteria', 'curriculum', 'syllabus',
+      'preppilot', 'portal', 'assessment', 'practice', 'test', 'challenge', 'challenges', 'problem', 'problems',
+      'aids', 'aiml', 'cse', 'it', 'entc', 'ee', 'me', 'ce', 'che', 'partner', 'tier', 'dean', 'student'
     ];
 
     return allowedKeywords.some(kw => q.includes(kw));
@@ -115,11 +126,16 @@ export class RagService {
         ? [...querySet].filter(token => tokens.has(token)).length / querySet.size
         : 0;
 
+      const cosine = calculateCosineSimilarity(queryTokens, docTokens);
+      const titleCov = coverage(titleSet);
+      const keyCov = coverage(keywordSet);
+      const docCov = coverage(docSet);
+
       let similarity = Math.max(
-        calculateCosineSimilarity(queryTokens, docTokens),
-        coverage(docSet) * 0.14,
-        coverage(titleSet) * 0.2,
-        coverage(keywordSet) * 0.22
+        cosine,
+        titleCov * 0.35,
+        keyCov * 0.30,
+        (titleCov > 0 || keyCov > 0 || cosine > 0.1 ? docCov * 0.15 : 0)
       );
 
       if (studentProfile && similarity >= 0.035) {
@@ -437,8 +453,197 @@ Here is a structured, day-by-day technical preparation plan organized across **E
       };
     }
 
-    // Intent 4: Company Targeting & Recruitment Blueprint ("how can I target Google", "target Amazon", "crack Microsoft", "prepare for TCS")
+    // Intent 4: Platform All Companies Directory ("listed on your platform and tell me about each and every company", "all companies", "what companies are listed")
     const allCompanies = db.getAll('companies') || [];
+    const isAllCompaniesQuery =
+      (
+        (qLower.includes('company') || qLower.includes('companies')) &&
+        (
+          qLower.includes('listed') ||
+          qLower.includes('platform') ||
+          qLower.includes('all') ||
+          qLower.includes('each') ||
+          qLower.includes('every') ||
+          qLower.includes('which') ||
+          qLower.includes('what') ||
+          qLower.includes('available') ||
+          qLower.includes('show') ||
+          qLower.includes('tell me') ||
+          qLower.includes('partner') ||
+          qLower.includes('who are') ||
+          qLower.includes('directory') ||
+          qLower.includes('catalog')
+        )
+      ) ||
+      qLower.includes('companies on') ||
+      qLower.includes('companies listed') ||
+      qLower.includes('recruitment partners') ||
+      qLower.includes('list of companies') ||
+      qLower === 'companies';
+
+    if (isAllCompaniesQuery) {
+      const companiesMarkdown = `### Recruitment Companies Listed on PrepPilot AI (10 Partners)
+
+PrepPilot AI features dedicated recruitment blueprints, hiring pipelines, and technical assessment patterns for **10 premier campus recruiters** categorized by compensation tiers and engineering focus:
+
+#### 1. Tier-1 Product Engineering (High CTC: 28–55 LPA):
+- **Google (36–55 LPA | Avg: 42 LPA):** Google Online Challenge (OA) → Technical DSA Rounds (Graphs, Segment Trees, Trie, Advanced DP) → Googliness & Leadership. Focus on asymptotic time/space complexity and think-aloud problem solving.
+- **Amazon (32–45 LPA | Avg: 36.5 LPA):** Online Assessment (Coding + Work Simulation) → 3–4 Rounds Technical DSA (Trees, Two Pointers, Dynamic Programming, System Design) → 16 Leadership Principles & STAR behavioral interview.
+- **Microsoft (34–48 LPA | Avg: 38 LPA):** Codility Online Assessment → 3 Technical Rounds (Data Structures, Algorithms, Memory Management, Relational Schema Design) → Engineering Manager Fitment.
+
+#### 2. Consulting & Enterprise Product (7.6–12.5 LPA):
+- **Deloitte (7.6–12.5 LPA | Avg: 9 LPA):** Versant Communication Assessment → Advanced Technical MCQ + Coding → Technical & Case Study Viva → Partner Round. Focus on enterprise cloud, Java/Python, and DBMS.
+
+#### 3. Consulting & Technology Services (4.0–12.0 LPA):
+- **Accenture (4.5–11.0 LPA | Avg: 6.2 LPA):** Cognitive & Technical Assessment → Hands-on Coding (2 Questions) → Communication Assessment → Virtual Interview. Hiring streams include Associate Software Engineer (ASE) and Advanced ASE.
+- **Capgemini (4.0–7.5 LPA | Avg: 5.2 LPA):** Pseudocode Assessment → English Communication → Game-based Aptitude → Technical Viva (OOP, SQL, Data Structures).
+
+#### 4. Global IT & Enterprise Services (3.5–11.5 LPA):
+- **TCS (3.6–11.5 LPA | Avg: 5.8 LPA):** TCS National Qualifier Test (NQT) Cognitive + Advanced Coding → Technical & Managerial Interview. Three hiring tiers: **Ninja** (3.6 LPA), **Digital** (7.5 LPA), and **Prime** (9–11.5 LPA).
+- **Infosys (3.6–9.5 LPA | Avg: 5.5 LPA):** Pseudocode & Mathematical Ability → Hands-on Coding (InfyTQ / HackWithInfy) → Technical Interview. Tiers: **Systems Engineer** (3.6 LPA), **Digital Specialist Engineer** (6.5 LPA), and **Specialist Programmer** (9.5 LPA).
+- **Wipro (3.5–8.5 LPA | Avg: 4.8 LPA):** Elite National Talent Hunt (Aptitude + Written Communication + 2 Coding Problems) → Technical Interview. Tiers: **Elite** (3.5 LPA), **Turbo** (6.5 LPA), and **Velocity** (8.5 LPA).
+- **Cognizant (4.0–9.0 LPA | Avg: 5.6 LPA):** GenC, GenC Elevate, and GenC Next coding tracks evaluating C/Java algorithms, SQL queries, and full-stack fundamentals.
+
+> **Next Step:** You can ask about any individual company (e.g. *"How can I target Amazon?"* or *"Tell me about TCS hiring rounds"*) or launch a company-specific placement assessment!`;
+
+      return {
+        answer: companiesMarkdown,
+        speechText: "PrepPilot AI features 10 recruitment company blueprints including Google, Amazon, Microsoft, TCS, Infosys, Wipro, Accenture, Capgemini, Cognizant, and Deloitte. Packages range from 3.6 LPA for IT services up to 55 LPA for product engineering.",
+        retrievedDocuments: [],
+        sources: ['PrepPilot Company Placement Blueprints'],
+        model: validModel,
+        isLiveApi: false
+      };
+    }
+
+    // Intent 5: Engineering Branches & Supported Curriculum
+    const isBranchesQuery =
+      (
+        (qLower.includes('branch') || qLower.includes('branches') || qLower.includes('discipline') || qLower.includes('disciplines') || qLower.includes('engineering branch')) &&
+        (
+          qLower.includes('what') ||
+          qLower.includes('which') ||
+          qLower.includes('support') ||
+          qLower.includes('available') ||
+          qLower.includes('list') ||
+          qLower.includes('all') ||
+          qLower.includes('tell me') ||
+          qLower.includes('platform') ||
+          qLower.includes('show') ||
+          qLower.includes('who can')
+        )
+      ) ||
+      qLower.includes('supported branches') ||
+      qLower.includes('all branches') ||
+      qLower.includes('which branches');
+
+    if (isBranchesQuery) {
+      const allBranches = db.getAll('branches') || [];
+      const branchesMarkdown = `### Supported Engineering Branches on PrepPilot AI (9 Disciplines)
+
+PrepPilot AI provides customized curriculum alignment, viva preparation, and technical assessment questions for **9 B.Tech & Engineering branches**:
+
+#### 1. Software & Computing:
+- **Computer Science Engineering (CSE):** Core computing, Data Structures, Algorithms, Operating Systems, DBMS, and Systems Architecture.
+- **Information Technology (IT):** Enterprise software, Computer Networks, Database Administration, Web Systems, and Cloud Infrastructure.
+- **AI & Data Science (AIDS):** Machine Learning, Deep Learning, Statistical Analytics, and Big Data Engineering.
+- **AI & Machine Learning (AIML):** Neural Networks, Computer Vision, Natural Language Processing, and Applied AI Models.
+
+#### 2. Electronics & Electrical:
+- **Electronics & Telecommunication (ENTC/ECE):** Digital & Analog Circuits, VLSI Design, 8085/8086 Microprocessors, Embedded C, and Signal Processing.
+- **Electrical Engineering (EE):** Power Systems, Control Systems, Electrical Machines, Transformers, and Power Electronics.
+
+#### 3. Core Engineering & Infrastructure:
+- **Mechanical Engineering (ME):** Laws of Thermodynamics, Heat Transfer, Fluid Mechanics, Strength of Materials, and Mechanical Design.
+- **Civil Engineering (CE):** Structural Engineering, Concrete Technology, Geotechnical Analysis, and Transportation Systems.
+- **Chemical Engineering (CHE):** Chemical Reaction Engineering, Mass Transfer Operations, and Process Optimization.
+
+> **Placement Insight:** Non-CS students (ECE, EE, ME, CE) can practice both core engineering viva concepts and IT placement coding tracks (TCS Ninja/Digital, Infosys, Wipro).`;
+
+      return {
+        answer: branchesMarkdown,
+        speechText: "PrepPilot AI supports 9 engineering branches including Computer Science, IT, Electronics and Telecommunication, Electrical, Mechanical, Civil, Chemical, and AI Data Science, complete with core subject viva guides and placement assessments.",
+        retrievedDocuments: [],
+        sources: ['PrepPilot Engineering Curriculum Guide'],
+        model: validModel,
+        isLiveApi: false
+      };
+    }
+
+    // Intent 6: Coding Arena & Algorithmic Practice
+    const isCodingQuery =
+      (
+        (qLower.includes('coding') || qLower.includes('arena') || qLower.includes('programming') || qLower.includes('code')) &&
+        (qLower.includes('problem') || qLower.includes('challenge') || qLower.includes('question') || qLower.includes('practice') || qLower.includes('what') || qLower.includes('how many') || qLower.includes('available') || qLower.includes('can i') || qLower.includes('tell me') || qLower.includes('list'))
+      ) ||
+      qLower.includes('coding arena') ||
+      qLower.includes('coding problems') ||
+      qLower.includes('algorithmic challenges');
+
+    if (isCodingQuery) {
+      const allProblems = db.getAll('codingProblems') || [];
+      const codingMarkdown = `### PrepPilot Interactive Coding Arena (18 Algorithmic Challenges)
+
+The **Coding Arena** is a sandboxed technical coding environment designed to simulate real-world technical assessment rounds:
+
+#### 1. Problem Categories & Difficulty Breakdown:
+- **Total Problems:** 18 curated challenges mirroring high-frequency campus hiring questions.
+- **Difficulty Tiers:** 13 Easy problems (Foundations, Arrays, Strings) and 5 Medium problems (Trees, Dynamic Programming, Two Pointers).
+- **Core Patterns Covered:** Two Pointers (Two Sum, Valid Palindrome), Stack Monotonicity (Valid Parentheses), Divide & Conquer (Binary Search), Dynamic Programming (Kadane’s Algorithm, Maximum Subarray), and Tree Traversals.
+
+#### 2. Multi-Language Sandboxed Execution:
+- Write and run solutions in **C++**, **Java**, **Python**, or **JavaScript**.
+- Real-time compiler output with standard output capture.
+- Automated grading against **public example test cases** and **hidden edge-case test suites** (verifying time limits, integer overflow, and empty collections).
+
+> **Ready to Code?** Navigate to the **Coding Arena** from the top menu, pick a challenge, and click *Run Code* or *Submit Solution*!`;
+
+      return {
+        answer: codingMarkdown,
+        speechText: "The Coding Arena includes 18 curated algorithmic problems across arrays, trees, and dynamic programming, featuring browser execution with automated test cases in C++, Java, Python, and JavaScript.",
+        retrievedDocuments: [],
+        sources: ['PrepPilot Coding Arena Documentation'],
+        model: validModel,
+        isLiveApi: false
+      };
+    }
+
+    // Intent 7: Platform Overview & What Can You Do
+    const isPlatformOverviewQuery =
+      (
+        (qLower.includes('what can') || qLower.includes('what is') || qLower.includes('how can you') || qLower.includes('features') || qLower.includes('about') || qLower.includes('tell me about')) &&
+        (qLower.includes('preppilot') || qLower.includes('platform') || qLower.includes('website') || qLower.includes('app') || qLower.includes('system') || qLower.includes('tool'))
+      ) ||
+      qLower === 'what is preppilot' ||
+      qLower === 'tell me about preppilot' ||
+      qLower === 'about preppilot';
+
+    if (isPlatformOverviewQuery) {
+      const overviewMarkdown = `### PrepPilot AI: B.Tech Placement & Curriculum Copilot
+
+PrepPilot AI is a comprehensive engineering mentorship platform engineered to guide university students from foundational academics to top-tier technical placement offers:
+
+#### Core Platform Capabilities:
+1. **AI Voice & Chat Placement Mentor:** Ask conceptual technical questions across DBMS, Operating Systems, Computer Networks, and DSA, or practice oral technical interview simulations.
+2. **Curated Question Bank (98+ Questions):** High-yield multiple choice questions with line-by-line explanations covering 13 technical and branch-specific subjects.
+3. **Interactive Coding Arena (18 Problems):** Write, execute, and submit code in Python, C++, Java, and JavaScript with automated test case evaluation.
+4. **10 Company Recruitment Blueprints:** In-depth hiring pipelines, package ranges, and test patterns for TCS, Infosys, Wipro, Accenture, Capgemini, Cognizant, Deloitte, Amazon, Microsoft, and Google.
+5. **9 Engineering Branches:** Dedicated viva revision guides for CSE, IT, ECE, EE, ME, CE, Chemical, AIDS, and AIML.
+6. **Student Placement Readiness Radar:** Dynamic radar chart tracking your mastery across technical topics, difficulty levels, and speed benchmarks.
+
+> **Get Started:** Choose a subject to study, start practicing coding in the Arena, or speak into the microphone to ask any technical question!`;
+
+      return {
+        answer: overviewMarkdown,
+        speechText: "PrepPilot AI is your B.Tech placement copilot featuring company hiring blueprints, an interactive coding arena, syllabus-grounded question banks, and AI voice mentorship.",
+        retrievedDocuments: [],
+        sources: ['PrepPilot Platform Guide'],
+        model: validModel,
+        isLiveApi: false
+      };
+    }
+
+    // Intent 8: Company Targeting & Recruitment Blueprint ("how can I target Google", "target Amazon", "crack Microsoft", "prepare for TCS")
     const matchedCompany = allCompanies.find(c => {
       const cName = c.name.toLowerCase();
       return qLower.includes(cName) || (c.id && qLower.includes(c.id.replace('comp-', '')));
@@ -456,7 +661,27 @@ Here is a structured, day-by-day technical preparation plan organized across **E
       qLower.includes('how to clear') ||
       qLower.includes('how can i');
 
-    if (matchedCompany && isTargetingQuery) {
+    const isSingleCompanyQuery = matchedCompany && (
+      isTargetingQuery ||
+      qLower.includes('about') ||
+      qLower.includes('ctc') ||
+      qLower.includes('package') ||
+      qLower.includes('salary') ||
+      qLower.includes('round') ||
+      qLower.includes('rounds') ||
+      qLower.includes('process') ||
+      qLower.includes('eligibility') ||
+      qLower.includes('criteria') ||
+      qLower.includes('pattern') ||
+      qLower.includes('cutoff') ||
+      qLower.includes('role') ||
+      qLower.includes('tell me') ||
+      qLower.includes('what is') ||
+      qLower.includes('how to') ||
+      qLower.trim() === matchedCompany.name.toLowerCase()
+    );
+
+    if (isSingleCompanyQuery) {
       const rounds = matchedCompany.hiring_rounds || [
         'Online Assessment (Coding & Aptitude)',
         'Technical Interview 1 (DSA)',
@@ -1490,7 +1715,7 @@ The Java Virtual Machine (JVM) divides runtime data memory into distinct logical
 
       speechFriendly = "In the Java memory model, Stack memory stores local primitive variables and method call frames per thread, while Heap memory stores all instantiated objects managed by garbage collection.";
 
-    } else if (topDoc && topDocRelevance > 0.04) {
+    } else if (topDoc && topDocRelevance >= 0.14) {
       // B. Dynamic Extractive Grounded Answering from Database RAG Document
       // Extract the most relevant section/paragraph that answers the student's question
       const rawContent = topDoc.content || '';
@@ -1519,10 +1744,12 @@ The Java Virtual Machine (JVM) divides runtime data memory into distinct logical
         }
       }
 
-      const company = topDoc.company_id ? db.get('companies', topDoc.company_id)?.name : null;
-      const subject = topDoc.subject_id ? db.get('subjects', topDoc.subject_id)?.name : null;
+      // Only dump extractive paragraph if there is genuine token match in the section
+      if (maxSectionScore > 0.04) {
+        const company = topDoc.company_id ? db.get('companies', topDoc.company_id)?.name : null;
+        const subject = topDoc.subject_id ? db.get('subjects', topDoc.subject_id)?.name : null;
 
-      responseMarkdown = `### ${q.charAt(0).toUpperCase() + q.slice(1)}
+        responseMarkdown = `### ${q.charAt(0).toUpperCase() + q.slice(1)}
 
 ${bestSection}
 
@@ -1532,21 +1759,34 @@ ${bestSection}
 
 > **Key Placement Interview Consideration:** In campus technical interviews, state the formal academic definition clearly, explain runtime and system trade-offs, and trace an illustrative example with standard edge cases.`;
 
-      // Extract 2 clean sentences for natural spoken audio
-      const cleanParaLines = bestSection
-        .replace(/^[0-9]+[.)]\s*/gm, '')
-        .replace(/^[-*]\s*/gm, '')
-        .replace(/[:]/g, '.')
-        .split(/[.\n]+/)
-        .map(s => s.trim())
-        .filter(s => s.length > 15);
+        // Extract 2 clean sentences for natural spoken audio
+        const cleanParaLines = bestSection
+          .replace(/^[0-9]+[.)]\s*/gm, '')
+          .replace(/^[-*]\s*/gm, '')
+          .replace(/[:]/g, '.')
+          .split(/[.\n]+/)
+          .map(s => s.trim())
+          .filter(s => s.length > 15);
 
-      speechFriendly = cleanParaLines.slice(0, 2).join('. ');
-      if (speechFriendly && !speechFriendly.endsWith('.')) {
-        speechFriendly += '.';
-      }
-      if (!speechFriendly || speechFriendly.length < 20) {
-        speechFriendly = `${topDoc.title}. Focus on the core definition, runtime trade-offs, and time complexity.`;
+        speechFriendly = cleanParaLines.slice(0, 2).join('. ');
+        if (speechFriendly && !speechFriendly.endsWith('.')) {
+          speechFriendly += '.';
+        }
+        if (!speechFriendly || speechFriendly.length < 20) {
+          speechFriendly = `${topDoc.title}. Focus on the core definition, runtime trade-offs, and time complexity.`;
+        }
+      } else {
+        responseMarkdown = `### Placement Preparation Analysis: ${q.charAt(0).toUpperCase() + q.slice(1)}
+
+When approaching technical interview inquiries regarding this topic, candidates are evaluated on three structured dimensions:
+
+1. **Theoretical Definition & Core Principles:** State the formal definition clearly, avoiding colloquial terms or filler statements.
+2. **System Mechanics & Trade-offs:** Explain the runtime behavior, architectural constraints, and the associated time and space complexities.
+3. **Enterprise Implementation:** Describe how this concept is deployed in production systems or standard algorithmic libraries.
+
+> **Key Placement Interview Consideration:** Structure your answer by first stating the definition, then walking through an illustrative example, and finally addressing edge cases and performance trade-offs.`;
+
+        speechFriendly = `Regarding ${q}, structure your technical interview response with a formal definition, practical trade-offs, and clear complexity analysis.`;
       }
 
     } else {
