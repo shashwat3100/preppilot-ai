@@ -1,4 +1,5 @@
 import db, { initDb, saveDb } from './db.js';
+import { STARTER_TEMPLATES } from './codingStarterTemplates.js';
 
 export const codingProblemsList = [
   {
@@ -1495,6 +1496,13 @@ export const codingAssessmentsList = [
     created_at: new Date().toISOString()
   }
 ];
+
+// Ensure all problems use standard student starter templates (with TODOs instead of complete solutions)
+for (const prob of codingProblemsList) {
+  if (STARTER_TEMPLATES[prob.id]) {
+    prob.starterCode = STARTER_TEMPLATES[prob.id];
+  }
+}
 
 export async function seedCoding() {
   await initDb();

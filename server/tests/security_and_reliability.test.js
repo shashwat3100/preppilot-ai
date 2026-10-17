@@ -340,6 +340,26 @@ async function runSuite() {
     const problems = db.getAll('codingProblems');
     const targetProblem = problems[0] || { id: 'problem-two-sum', difficulty: 'Easy' };
 
+    const acceptedCSolution = `#include <stdio.h>
+int main() {
+    int nums[10005], n = 0, target;
+    while (scanf("%d", &nums[n]) == 1) {
+        n++;
+        char c = getchar();
+        if (c == '\\n' || c == EOF) break;
+    }
+    if (scanf("%d", &target) != 1) return 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (nums[i] + nums[j] == target) {
+                printf("%d %d\\n", i, j);
+                return 0;
+            }
+        }
+    }
+    return 0;
+}`;
+
     // Fire 5 concurrent accepted submissions for the exact same problem
     const cSolutions = Array(5).fill(null).map(() =>
       request('/api/coding/submit', {
@@ -347,7 +367,7 @@ async function runSuite() {
         headers: { Authorization: `Bearer ${concurToken}` },
         body: {
           problemId: targetProblem.id,
-          code: targetProblem.starterCode?.c || targetProblem.starterCode?.python || 'int main() { return 0; }',
+          code: acceptedCSolution,
           language: 'c'
         }
       })
