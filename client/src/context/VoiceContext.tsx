@@ -116,6 +116,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const silenceTimeoutRef = useRef<any>(null);
   const transcriptRef = useRef<string>('');
   const isProcessingRef = useRef<boolean>(false);
@@ -206,6 +207,9 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if ('speechSynthesis' in window) {
         synthRef.current = window.speechSynthesis;
+        window.speechSynthesis.onvoiceschanged = () => {
+          try { window.speechSynthesis.getVoices(); } catch {}
+        };
       }
     }
   }, []);
@@ -234,7 +238,12 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         recognitionRef.current.start();
       } catch (e) {
-        console.warn('Recognition already started');
+        try {
+          recognitionRef.current.stop();
+          setTimeout(() => {
+            try { recognitionRef.current.start(); } catch {}
+          }, 150);
+        } catch {}
       }
     }
   };
@@ -279,6 +288,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     const utterance = new SpeechSynthesisUtterance(cleanSpeech.slice(0, 320));
+    activeUtteranceRef.current = utterance;
     utterance.rate = 1.05;
     utterance.pitch = 1.0;
 
@@ -289,8 +299,14 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      activeUtteranceRef.current = null;
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      activeUtteranceRef.current = null;
+    };
 
     synthRef.current.speak(utterance);
   };
@@ -299,6 +315,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (synthRef.current) {
       synthRef.current.cancel();
       setIsSpeaking(false);
+      activeUtteranceRef.current = null;
     }
   };
 

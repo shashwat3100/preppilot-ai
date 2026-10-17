@@ -170,14 +170,17 @@ const MainApp: React.FC = () => {
       );
     }
     return (
-      <LandingPage
-        onStartPreparing={() => handleSelectTab('register')}
-        onExploreFeatures={() => {
-          const el = document.getElementById('features');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }}
-        onLogin={() => handleSelectTab('login')}
-      />
+      <>
+        <LandingPage
+          onStartPreparing={() => handleSelectTab('register')}
+          onExploreFeatures={() => {
+            const el = document.getElementById('features');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          onLogin={() => handleSelectTab('login')}
+        />
+        <PrepPilotVoiceModal />
+      </>
     );
   }
 

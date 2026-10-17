@@ -54,6 +54,23 @@ export const authenticate = (req, res, next) => {
   }
 };
 
+export const optionalAuthenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, EFFECTIVE_JWT_SECRET);
+    const user = db.get('users', decoded.id);
+    if (user && !user.is_blocked && user.status !== 'BLOCKED') {
+      req.user = user;
+    }
+  } catch {}
+  next();
+};
+
 export const requireAdmin = (req, res, next) => {
   if (!req.user || req.user.role !== 'ADMIN') {
     return res.status(403).json({ success: false, message: 'Access denied. Administrator privilege required.' });

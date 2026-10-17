@@ -4,8 +4,9 @@ import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { initDb } from './database/db.js';
+import db, { initDb } from './database/db.js';
 import { seedDatabase } from './database/seed.js';
+import { isPostgresConfigured } from './database/postgres.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -91,9 +92,20 @@ app.use(async (req, res, next) => {
 
 // Health check
 app.get('/api/health', (req, res) => {
+  const isPg = isPostgresConfigured();
+  const qCount = (db.getAll('questions') || []).length;
+  const kCount = (db.getAll('knowledgeDocuments') || []).length;
+
   res.json({
     status: 'ONLINE',
     service: 'PrepPilot AI Backend & Coding Arena Engine',
+    database: {
+      connected: true,
+      postgres_cloud_active: isPg,
+      questions_loaded: qCount,
+      knowledge_documents_loaded: kCount
+    },
+    node_version: process.version,
     timestamp: new Date().toISOString()
   });
 });

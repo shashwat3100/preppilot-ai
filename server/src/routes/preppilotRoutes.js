@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import RagService from '../services/ragService.js';
 import db from '../database/db.js';
 
@@ -8,7 +8,7 @@ import { SUPPORTED_MODELS } from '../services/ragService.js';
 const router = express.Router();
 
 // GET /api/preppilot/models
-router.get('/models', authenticate, (req, res) => {
+router.get('/models', optionalAuthenticate, (req, res) => {
   const hasSystemKey = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
   return res.json({
     success: true,
@@ -19,7 +19,7 @@ router.get('/models', authenticate, (req, res) => {
 });
 
 // POST /api/preppilot/chat
-router.post('/chat', authenticate, async (req, res) => {
+router.post('/chat', optionalAuthenticate, async (req, res) => {
   try {
     const { message, model, apiKey } = req.body;
     if (!message || !message.trim()) {
@@ -51,7 +51,7 @@ router.post('/chat', authenticate, async (req, res) => {
 });
 
 // GET /api/preppilot/knowledge
-router.get('/knowledge', authenticate, (req, res) => {
+router.get('/knowledge', optionalAuthenticate, (req, res) => {
   const docs = db.getAll('knowledgeDocuments').map(d => ({
     id: d.id,
     title: d.title,
