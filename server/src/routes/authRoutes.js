@@ -167,7 +167,10 @@ router.post('/login', authLimiter, async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password credentials.' });
     }
 
-    let isMatch = await bcrypt.compare(password, user.password_hash);
+    let isMatch = false;
+    if (user.password_hash) {
+      isMatch = await bcrypt.compare(password, user.password_hash);
+    }
 
     // If local cached hash failed, check PostgreSQL in case password was updated in another container
     if (!isMatch && isPostgresConfigured()) {

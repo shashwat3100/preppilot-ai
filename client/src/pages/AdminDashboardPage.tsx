@@ -766,8 +766,20 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         <td className="py-3 px-4 text-center font-bold text-amber-400">
                           {st.total_xp || 0}
                         </td>
-                        <td className="py-3 px-4 text-center font-bold text-[var(--text-primary)]">
-                          {st.accuracy_rate !== undefined ? `${st.accuracy_rate}%` : 'N/A'}
+                        <td className="py-3 px-4 text-center font-bold">
+                          {(st.accuracy_rate !== undefined && st.accuracy_rate !== null) ? (
+                            <span className={st.accuracy_rate >= 75 ? 'text-emerald-400' : st.accuracy_rate >= 50 ? 'text-amber-400' : 'text-rose-400'}>
+                              {st.accuracy_rate}%
+                            </span>
+                          ) : (st.accuracy !== undefined && st.accuracy !== null && (st.total_attempted || 0) > 0) ? (
+                            <span className={st.accuracy >= 75 ? 'text-emerald-400' : st.accuracy >= 50 ? 'text-amber-400' : 'text-rose-400'}>
+                              {st.accuracy}%
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-medium text-[var(--text-muted)] bg-[var(--surface-elevated)] px-2 py-0.5 rounded-md border border-[var(--surface-border)]">
+                              {(st.total_attempted === 0 || st.total_attempted === undefined) ? 'No Tests' : 'N/A'}
+                            </span>
+                          )}
                         </td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${

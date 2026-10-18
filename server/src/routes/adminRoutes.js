@@ -152,38 +152,44 @@ router.get('/students', (req, res) => {
 
     const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
 
-    let students = users.filter(u => u.role === 'STUDENT').map(u => {
-      const { password_hash, ...safe } = u;
-      const branch = branches.find(b => b.id === u.branch_id);
-      const role = jobRoles.find(r => r.id === u.preferred_job_role_id);
+    // Filter out automated ephemeral test probe accounts unless explicitly searching
+    const isTestProbe = u => /^(concurrent_|blocked_|expire_|student_esc_)/.test(u.email);
 
-      // Student attempts & accuracy
-      const studentAttempts = attempts.filter(a => a.user_id === u.id);
-      const totalAttempted = studentAttempts.length;
-      const correctAttempts = studentAttempts.filter(a => a.is_correct).length;
-      const accuracy = totalAttempted > 0 ? Math.round((correctAttempts / totalAttempted) * 100) : 0;
+    let students = users
+      .filter(u => u.role === 'STUDENT' && (!isTestProbe(u) || (search && search.trim())))
+      .map(u => {
+        const { password_hash, ...safe } = u;
+        const branch = branches.find(b => b.id === u.branch_id);
+        const role = jobRoles.find(r => r.id === u.preferred_job_role_id);
 
-      // Registration timestamp fallback
-      const createdAt = u.created_at || new Date(Date.now() - 3 * 86400000).toISOString();
-      const isNewJoinee = new Date(createdAt).getTime() >= sevenDaysAgo;
-      const isBlocked = Boolean(u.is_blocked || u.status === 'BLOCKED');
+        // Student attempts & accuracy
+        const studentAttempts = attempts.filter(a => a.user_id === u.id);
+        const totalAttempted = studentAttempts.length;
+        const correctAttempts = studentAttempts.filter(a => a.is_correct).length;
+        const accuracy = totalAttempted > 0 ? Math.round((correctAttempts / totalAttempted) * 100) : null;
 
-      return {
-        ...safe,
-        branch_name: branch?.name || 'B.Tech Core',
-        branch_code: branch?.code || 'B.Tech',
-        job_role_title: role?.title || 'Software Development Engineer',
-        total_attempted: totalAttempted,
-        total_correct: correctAttempts,
-        accuracy: accuracy,
-        is_blocked: isBlocked,
-        status: isBlocked ? 'BLOCKED' : 'ACTIVE',
-        created_at: createdAt,
-        is_new_joinee: isNewJoinee,
-        joined_relative: getRelativeDateString(createdAt),
-        last_active_relative: getRelativeDateString(u.last_active_date)
-      };
-    });
+        // Registration timestamp fallback
+        const createdAt = u.created_at || new Date(Date.now() - 3 * 86400000).toISOString();
+        const isNewJoinee = new Date(createdAt).getTime() >= sevenDaysAgo;
+        const isBlocked = Boolean(u.is_blocked || u.status === 'BLOCKED');
+
+        return {
+          ...safe,
+          branch_name: branch?.name || 'B.Tech Core',
+          branch_code: branch?.code || 'B.Tech',
+          job_role_title: role?.title || 'Software Development Engineer',
+          total_attempted: totalAttempted,
+          total_correct: correctAttempts,
+          accuracy: accuracy !== null ? accuracy : 0,
+          accuracy_rate: accuracy,
+          is_blocked: isBlocked,
+          status: isBlocked ? 'BLOCKED' : 'ACTIVE',
+          created_at: createdAt,
+          is_new_joinee: isNewJoinee,
+          joined_relative: getRelativeDateString(createdAt),
+          last_active_relative: getRelativeDateString(u.last_active_date)
+        };
+      });
 
     // Apply Filter
     if (filter === 'new') {
@@ -211,15 +217,15 @@ router.get('/students', (req, res) => {
     } else if (sort === 'xp') {
       students.sort((a, b) => (b.total_xp || 0) - (a.total_xp || 0));
     } else if (sort === 'accuracy') {
-      students.sort((a, b) => b.accuracy - a.accuracy);
+      students.sort((a, b) => (b.accuracy_rate ?? -1) - (a.accuracy_rate ?? -1));
     } else if (sort === 'name') {
       students.sort((a, b) => a.name.localeCompare(b.name));
     } else {
-      // Default: New joinees first, then by XP
+      // Default: Sort by activity (XP & attempts) so active students are prominent
       students.sort((a, b) => {
-        if (a.is_new_joinee && !b.is_new_joinee) return -1;
-        if (!a.is_new_joinee && b.is_new_joinee) return 1;
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        const xpDiff = (b.total_xp || 0) - (a.total_xp || 0);
+        if (xpDiff !== 0) return xpDiff;
+        return (b.total_attempted || 0) - (a.total_attempted || 0);
       });
     }
 
