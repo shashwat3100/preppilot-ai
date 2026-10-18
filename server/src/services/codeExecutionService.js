@@ -14,6 +14,10 @@ try {
   if (!fs.existsSync(TEMP_DIR)) {
     fs.mkdirSync(TEMP_DIR, { recursive: true });
   }
+  const tempPkg = path.join(TEMP_DIR, 'package.json');
+  if (!fs.existsSync(tempPkg)) {
+    fs.writeFileSync(tempPkg, JSON.stringify({ type: 'commonjs' }, null, 2), 'utf-8');
+  }
 } catch (e) {
   // Silent fallback in read-only serverless environments
 }
