@@ -4,6 +4,7 @@ import db, { initDb } from '../src/database/db.js';
 import { runCode } from '../src/services/codeExecutionService.js';
 import { passwordResets } from '../src/routes/authRoutes.js';
 import crypto from 'crypto';
+import { cleanTestProbes } from '../scripts/clean_test_probes.js';
 
 process.env.TEST_MODE = 'true';
 
@@ -425,6 +426,12 @@ int main() {
     console.log(`📊 TEST SUITE SUMMARY: ${passedCount} PASSED, ${failedCount} FAILED (TOTAL: ${results.length})`);
     console.log('==================================================================\n');
 
+    try {
+      await cleanTestProbes();
+    } catch (cleanErr) {
+      console.warn('Probe cleanup warning:', cleanErr.message);
+    }
+
     if (testServer) {
       testServer.close();
     }
@@ -436,6 +443,9 @@ int main() {
     }
   } catch (err) {
     console.error('Test Suite Exception:', err);
+    try {
+      await cleanTestProbes();
+    } catch {}
     if (testServer) {
       testServer.close();
     }

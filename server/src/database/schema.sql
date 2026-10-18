@@ -337,7 +337,7 @@ CREATE TABLE IF NOT EXISTS access_logs (
     status_code INT NOT NULL,
     response_time_ms INT DEFAULT 0,
     user_agent TEXT,
-    user_id VARCHAR(50) REFERENCES users(id) ON DELETE SET NULL,
+    user_id VARCHAR(50),
     referrer TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

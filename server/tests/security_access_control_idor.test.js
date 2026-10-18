@@ -4,6 +4,7 @@ import { startServer } from '../src/index.js';
 import db, { initDb } from '../src/database/db.js';
 import QuizEngine from '../src/services/quizEngine.js';
 import { v4 as uuidv4 } from 'uuid';
+import { cleanTestProbes } from '../scripts/clean_test_probes.js';
 
 process.env.TEST_MODE = 'true';
 
@@ -316,6 +317,12 @@ async function runSecurityAccessControlAudit() {
   assert.ok(aliceSubmissionsList.body.submissions?.some(s => s.id === aliceSubmissionId), 'Alice must see her submission');
   assert.strictEqual(bobSubmissionsList.body.submissions?.length, 0, 'Bob must see 0 submissions; Alice code submissions must not be visible to Bob');
 
+  try {
+    await cleanTestProbes();
+  } catch (cleanErr) {
+    console.warn('Probe cleanup warning:', cleanErr.message);
+  }
+
   testServer.close();
 
   console.log('\n==================================================================');
@@ -323,8 +330,11 @@ async function runSecurityAccessControlAudit() {
   console.log('==================================================================\n');
 }
 
-runSecurityAccessControlAudit().catch(err => {
+runSecurityAccessControlAudit().catch(async (err) => {
   console.error('Fatal security test failure:', err);
+  try {
+    await cleanTestProbes();
+  } catch {}
   if (testServer) testServer.close();
   process.exit(1);
 });

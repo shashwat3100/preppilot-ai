@@ -175,11 +175,11 @@ const mapPostgresUserRow = (row) => {
     graduation_year: row.graduation_year || 2026,
     preferred_job_role_id: row.preferred_job_role_id || 'role-sde',
     target_companies: typeof row.target_companies === 'string'
-      ? JSON.parse(row.target_companies)
+      ? (() => { try { return JSON.parse(row.target_companies); } catch { return []; } })()
       : (row.target_companies || []),
     skill_level: row.skill_level || 'Intermediate',
     areas_of_interest: typeof row.areas_of_interest === 'string'
-      ? JSON.parse(row.areas_of_interest)
+      ? (() => { try { return JSON.parse(row.areas_of_interest); } catch { return []; } })()
       : (row.areas_of_interest || []),
     status: row.status || 'ACTIVE',
     is_blocked: Boolean(row.is_blocked),

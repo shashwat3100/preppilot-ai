@@ -6,6 +6,7 @@ import QuizEngine from '../src/services/quizEngine.js';
 import { runCode, runTestCases, getSupportedLanguages } from '../src/services/codeExecutionService.js';
 import RagService from '../src/services/ragService.js';
 import bcrypt from 'bcryptjs';
+import { cleanTestProbes } from '../scripts/clean_test_probes.js';
 
 process.env.TEST_MODE = 'true';
 
@@ -774,6 +775,12 @@ x = 10 / 0
   const pass10_10 = !mockInterviewRes.answer.includes(student1Email) && !mockInterviewRes.answer.includes(student2Email);
   recordResult(10, 10, 'AI-generated feedback strictly isolates student private information', pass10_10, `No private data leakage in AI output`);
 
+  try {
+    await cleanTestProbes();
+  } catch (cleanErr) {
+    console.warn('Probe cleanup warning:', cleanErr.message);
+  }
+
   testServer.close();
 
   const totalPassed = auditLog.filter(a => a.passed).length;
@@ -786,8 +793,11 @@ x = 10 / 0
   return { totalPassed, totalFailed, auditLog };
 }
 
-runComprehensive100QAAudit().catch(err => {
+runComprehensive100QAAudit().catch(async (err) => {
   console.error('Fatal audit failure:', err);
+  try {
+    await cleanTestProbes();
+  } catch {}
   if (testServer) testServer.close();
   process.exit(1);
 });
