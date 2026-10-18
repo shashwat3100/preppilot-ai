@@ -8,6 +8,196 @@ const router = express.Router();
 router.use(authenticate, requireDeanOrAdmin);
 
 // =========================================================================
+// DEPARTMENT ANALYTICS CALCULATION HELPER
+// =========================================================================
+export function calculateDepartmentMetrics() {
+  const users = db.getAll('users');
+  const students = users.filter(u => u.role === 'STUDENT');
+  const sessions = db.getAll('quizSessions') || [];
+  const completedSessions = sessions.filter(s => s.status === 'COMPLETED');
+  const codingSubmissions = db.getAll('codingSubmissions') || [];
+  const branches = db.getAll('branches') || [];
+  const subjects = db.getAll('subjects') || [];
+  const topics = db.getAll('topics') || [];
+  const performance = db.getAll('studentPerformance') || [];
+
+  const now = Date.now();
+
+  const departmentMetrics = branches.map(branch => {
+    // Find students belonging to this branch
+    const deptStudents = students.filter(s =>
+      s.branch_id === branch.id ||
+      (s.branch && (s.branch === branch.id || (branch.code && s.branch.toLowerCase().includes(branch.code.toLowerCase()))))
+    );
+
+    const studentIds = new Set(deptStudents.map(s => s.id));
+    const deptSessions = completedSessions.filter(s => studentIds.has(s.user_id));
+    const deptCoding = codingSubmissions.filter(c => studentIds.has(c.user_id));
+    const deptAccepted = deptCoding.filter(c => c.status === 'ACCEPTED');
+
+    // Unique coding problems solved count across all students in department
+    const uniqueProblemsSolved = new Set(deptAccepted.map(c => `${c.user_id}_${c.problem_id}`)).size;
+
+    // Active in last 7 days
+    const activeStudents = deptStudents.filter(s => {
+      if (s.is_blocked || s.status === 'BLOCKED') return false;
+      if (!s.last_active_date) return false;
+      const days = (now - new Date(s.last_active_date).getTime()) / (1000 * 3600 * 24);
+      return days <= 7;
+    });
+
+    // Participation Rate: students with at least 1 completed session or coding attempt
+    const studentsWithAttempts = new Set([
+      ...deptSessions.map(s => s.user_id),
+      ...deptCoding.map(c => c.user_id)
+    ]);
+    const participationRate = deptStudents.length > 0
+      ? Math.round((studentsWithAttempts.size / deptStudents.length) * 100)
+      : 0;
+
+    // Average Assessment Score
+    const scores = deptSessions
+      .map(s => {
+        let sc = s.score;
+        if (sc === undefined || sc === null) {
+          if (s.correct_count !== undefined && s.total_questions) {
+            sc = Math.round((s.correct_count / s.total_questions) * 100);
+          }
+        }
+        return sc;
+      })
+      .filter(sc => sc !== undefined && sc !== null && !isNaN(sc));
+
+    const avgScore = scores.length > 0
+      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+      : 0;
+
+    // Coding acceptance rate
+    const codingAcceptanceRate = deptCoding.length > 0
+      ? Math.round((deptAccepted.length / deptCoding.length) * 100)
+      : 0;
+
+    // Total and Average XP
+    const totalXp = deptStudents.reduce((sum, s) => sum + (s.total_xp || 0), 0);
+    const avgXp = deptStudents.length > 0 ? Math.round(totalXp / deptStudents.length) : 0;
+
+    // Subject Mastery & Strengths for this branch
+    const deptPerformance = performance.filter(p => studentIds.has(p.user_id));
+    const subjectAccMap = {};
+    const topicAccMap = {};
+
+    for (const p of deptPerformance) {
+      if (p.subject_id) {
+        if (!subjectAccMap[p.subject_id]) subjectAccMap[p.subject_id] = { sum: 0, count: 0 };
+        subjectAccMap[p.subject_id].sum += parseFloat(p.accuracy_rate) || 0;
+        subjectAccMap[p.subject_id].count += 1;
+      }
+      if (p.topic_id) {
+        if (!topicAccMap[p.topic_id]) topicAccMap[p.topic_id] = { sum: 0, count: 0 };
+        topicAccMap[p.topic_id].sum += parseFloat(p.accuracy_rate) || 0;
+        topicAccMap[p.topic_id].count += 1;
+      }
+    }
+
+    let topSubject = 'Core Engineering Fundamentals';
+    let bestSubjectAcc = -1;
+    for (const [subId, data] of Object.entries(subjectAccMap)) {
+      const avg = data.count > 0 ? data.sum / data.count : 0;
+      if (avg > bestSubjectAcc) {
+        bestSubjectAcc = avg;
+        const subObj = subjects.find(s => s.id === subId);
+        if (subObj) topSubject = subObj.name;
+      }
+    }
+
+    if (bestSubjectAcc === -1) {
+      const branchSubjects = subjects.filter(s => s.branch_id === branch.id);
+      if (branchSubjects.length > 0) {
+        topSubject = branchSubjects[0].name;
+      } else {
+        topSubject = branch.name ? branch.name.split('(')[0].trim() : 'Core CS';
+      }
+    }
+
+    // Weakest Topic (learning gap)
+    let weakestTopic = 'Operating Systems';
+    let lowestTopicAcc = 999;
+    for (const [topId, data] of Object.entries(topicAccMap)) {
+      const avg = data.count > 0 ? data.sum / data.count : 0;
+      if (avg < lowestTopicAcc) {
+        lowestTopicAcc = avg;
+        const topObj = topics.find(t => t.id === topId);
+        if (topObj) weakestTopic = topObj.name;
+      }
+    }
+
+    // Performance tier
+    let tier = 'Needs Focus';
+    if (deptStudents.length === 0) {
+      tier = 'Pending Intake';
+    } else if (avgScore >= 80 && codingAcceptanceRate >= 65) {
+      tier = 'High Performer';
+    } else if (avgScore >= 60) {
+      tier = 'Proficient';
+    }
+
+    return {
+      id: branch.id,
+      name: branch.name,
+      code: branch.code,
+      description: branch.description,
+      student_count: deptStudents.length,
+      active_students: activeStudents.length,
+      participation_rate: participationRate,
+      average_score: avgScore,
+      completed_assessments: deptSessions.length,
+      total_coding_submissions: deptCoding.length,
+      accepted_coding_submissions: deptAccepted.length,
+      coding_acceptance_rate: codingAcceptanceRate,
+      problems_solved_count: uniqueProblemsSolved,
+      total_xp: totalXp,
+      average_xp: avgXp,
+      top_subject: topSubject,
+      learning_gap_topic: weakestTopic,
+      performance_tier: tier
+    };
+  });
+
+  const totalDeptStudents = departmentMetrics.reduce((sum, d) => sum + d.student_count, 0);
+  const activeDepts = departmentMetrics.filter(d => d.student_count > 0);
+  const highestScoringDept = [...activeDepts].sort((a, b) => b.average_score - a.average_score)[0] || null;
+  const highestCodingDept = [...activeDepts].sort((a, b) => b.coding_acceptance_rate - a.coding_acceptance_rate)[0] || null;
+  const topXpDept = [...activeDepts].sort((a, b) => b.average_xp - a.average_xp)[0] || null;
+
+  return {
+    summary: {
+      total_departments: branches.length,
+      active_departments: activeDepts.length,
+      total_enrolled_students: totalDeptStudents,
+      highest_scoring_department: highestScoringDept ? {
+        id: highestScoringDept.id,
+        name: highestScoringDept.name,
+        code: highestScoringDept.code,
+        score: highestScoringDept.average_score
+      } : null,
+      highest_coding_department: highestCodingDept ? {
+        id: highestCodingDept.id,
+        name: highestCodingDept.name,
+        code: highestCodingDept.code,
+        rate: highestCodingDept.coding_acceptance_rate
+      } : null,
+      top_xp_department: topXpDept ? {
+        id: topXpDept.id,
+        name: topXpDept.name,
+        code: topXpDept.code,
+        avg_xp: topXpDept.average_xp
+      } : null
+    },
+    departments: departmentMetrics
+  };
+}
+
+// =========================================================================
 // 1. ACADEMIC OVERVIEW
 // =========================================================================
 router.get('/overview', (req, res) => {
@@ -122,6 +312,8 @@ router.get('/overview', (req, res) => {
       .sort((a, b) => b.weakness_score - a.weakness_score)
       .slice(0, 6);
 
+    const deptOverview = calculateDepartmentMetrics();
+
     return res.json({
       success: true,
       metrics: {
@@ -137,11 +329,28 @@ router.get('/overview', (req, res) => {
         coding_acceptance_rate: codingAcceptanceRate
       },
       subject_mastery: subjectMastery,
-      learning_gaps: learningGaps
+      learning_gaps: learningGaps,
+      department_benchmarks: deptOverview
     });
   } catch (err) {
     console.error('[Dean Overview Error]:', err);
     return res.status(500).json({ success: false, message: 'Server error retrieving academic overview.' });
+  }
+});
+
+// =========================================================================
+// 1B. DEPARTMENT LEVEL PERFORMANCE & BENCHMARKING
+// =========================================================================
+router.get('/departments', (req, res) => {
+  try {
+    const data = calculateDepartmentMetrics();
+    return res.json({
+      success: true,
+      ...data
+    });
+  } catch (err) {
+    console.error('[Dean Departments Error]:', err);
+    return res.status(500).json({ success: false, message: 'Server error retrieving department performance analytics.' });
   }
 });
 
@@ -449,7 +658,16 @@ router.get('/reports/export', (req, res) => {
     let csvContent = '';
     const nowIso = new Date().toISOString().split('T')[0];
 
-    if (report_type === 'assessments') {
+    if (report_type === 'departments' || report_type === 'department-performance') {
+      csvContent = 'Department ID,Department Name,Code,Enrolled Students,Active Students (7d),Participation Rate (%),Average Score (%),Assessments Completed,Coding Solved Count,Coding Acceptance Rate (%),Average XP,Top Subject Strength,Primary Learning Gap,Performance Tier\n';
+      const deptData = calculateDepartmentMetrics();
+      for (const d of deptData.departments) {
+        const nameSafe = `"${(d.name || '').replace(/"/g, '""')}"`;
+        const topSubSafe = `"${(d.top_subject || '').replace(/"/g, '""')}"`;
+        const gapSafe = `"${(d.learning_gap_topic || '').replace(/"/g, '""')}"`;
+        csvContent += `${d.id},${nameSafe},${d.code},${d.student_count},${d.active_students},${d.participation_rate},${d.average_score},${d.completed_assessments},${d.problems_solved_count},${d.coding_acceptance_rate},${d.average_xp},${topSubSafe},${gapSafe},${d.performance_tier}\n`;
+      }
+    } else if (report_type === 'assessments') {
       csvContent = 'Assessment ID,Title,Status,Student ID,Student Name,Score,Correct Answers,Total Questions,Date\n';
       const completed = sessions.filter(s => s.status === 'COMPLETED');
       for (const s of completed) {

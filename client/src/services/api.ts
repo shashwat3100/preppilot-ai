@@ -563,6 +563,13 @@ export const api = {
     return safeJson(res);
   },
 
+  getDeanDepartments: async () => {
+    const res = await fetch(`${API_BASE}/dean/departments`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
   exportDeanReportUrl: (reportType: string = 'student-performance') => {
     return `${API_BASE}/dean/reports/export?report_type=${reportType}`;
   },

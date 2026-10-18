@@ -146,6 +146,9 @@ async function runSuite() {
     const stDeanReports = await request('/api/dean/reports/export', { headers: studentAuthHeader });
     assert(stDeanReports.status === 403, 'Student blocked from GET /api/dean/reports/export with HTTP 403');
 
+    const stDeanDepartments = await request('/api/dean/departments', { headers: studentAuthHeader });
+    assert(stDeanDepartments.status === 403, 'Student blocked from GET /api/dean/departments with HTTP 403');
+
     // 3. Dean Privileges & Academic Analytics
     console.log('\n--- 3. Dean Dashboard Endpoints & Academic Analytics ---');
     const deanAuthHeader = { Authorization: `Bearer ${deanToken}` };
@@ -157,11 +160,19 @@ async function runSuite() {
     assert(typeof deanOverview.body.metrics?.cohort_average_score === 'number', 'Dean overview returns cohort_average_score number');
     assert(Array.isArray(deanOverview.body.subject_mastery), 'Dean overview returns subject_mastery array');
     assert(Array.isArray(deanOverview.body.learning_gaps), 'Dean overview returns learning_gaps array');
+    assert(deanOverview.body.department_benchmarks && Array.isArray(deanOverview.body.department_benchmarks.departments), 'Dean overview includes department_benchmarks array');
 
     const deanPerformance = await request('/api/dean/performance?page=1&limit=10', { headers: deanAuthHeader });
     assert(deanPerformance.status === 200, 'Dean can access GET /api/dean/performance');
     assert(Array.isArray(deanPerformance.body.students), 'Dean performance returns students array');
     assert(typeof deanPerformance.body.pagination?.total_items === 'number', 'Dean performance returns pagination info');
+
+    const deanDepartments = await request('/api/dean/departments', { headers: deanAuthHeader });
+    assert(deanDepartments.status === 200, 'Dean can access GET /api/dean/departments');
+    assert(deanDepartments.body.success === true, 'Dean departments returns success: true');
+    assert(Array.isArray(deanDepartments.body.departments), 'Dean departments returns departments array');
+    assert(deanDepartments.body.departments.length >= 8, 'Dean departments covers all engineering branches (>= 8)');
+    assert(typeof deanDepartments.body.summary?.total_departments === 'number', 'Dean departments returns benchmarking summary');
 
     const deanAssessments = await request('/api/dean/assessments', { headers: deanAuthHeader });
     assert(deanAssessments.status === 200, 'Dean can access GET /api/dean/assessments');
@@ -175,6 +186,11 @@ async function runSuite() {
     assert(deanExport.status === 200, 'Dean can export academic reports via GET /api/dean/reports/export');
     assert(deanExport.headers['content-type']?.includes('text/csv'), 'Report export headers specify text/csv');
     assert(typeof deanExport.body.raw === 'string' && deanExport.body.raw.includes('Student ID,Full Name,Email,Branch'), 'CSV output contains standard academic header row');
+
+    const deptExport = await request('/api/dean/reports/export?report_type=departments', { headers: deanAuthHeader });
+    assert(deptExport.status === 200, 'Dean can export department performance CSV via GET /api/dean/reports/export?report_type=departments');
+    assert(deptExport.headers['content-type']?.includes('text/csv'), 'Department report export headers specify text/csv');
+    assert(typeof deptExport.body.raw === 'string' && deptExport.body.raw.includes('Department ID,Department Name,Code'), 'Department CSV output contains department header columns');
 
     // 4. Dean Restrictions (RBAC Boundary: Dean CANNOT manage platform or CRUD questions)
     console.log('\n--- 4. Dean Restrictions Enforcement (HTTP 403 on Admin Operations) ---');

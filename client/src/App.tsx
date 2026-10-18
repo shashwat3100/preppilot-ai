@@ -42,6 +42,7 @@ const VALID_TABS = new Set([
   'admin-users',
   'dean',
   'dean-overview',
+  'dean-departments',
   'dean-performance',
   'dean-assessments',
   'dean-subjects',

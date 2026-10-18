@@ -66,6 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         title: 'Academic Oversight',
         items: [
           { id: 'dean-overview', label: 'Academic Overview', icon: BarChart2 },
+          { id: 'dean-departments', label: 'Department Analytics', icon: Building2 },
           { id: 'dean-performance', label: 'Student Performance', icon: GraduationCap },
           { id: 'dean-assessments', label: 'Assessments', icon: Award },
           { id: 'dean-subjects', label: 'Subject Analytics', icon: BookOpen },

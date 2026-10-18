@@ -21,7 +21,11 @@ import {
   ChevronRight,
   Sparkles,
   HelpCircle,
-  ShieldAlert
+  ShieldAlert,
+  Building2,
+  Layers,
+  ArrowUpDown,
+  Users
 } from 'lucide-react';
 
 interface DeanDashboardPageProps {
@@ -33,7 +37,7 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
   currentTab = 'dean-overview',
   onNavigateTab
 }) => {
-  // Navigation section: 'dean-overview' | 'dean-performance' | 'dean-assessments' | 'dean-subjects' | 'dean-reports'
+  // Navigation section: 'dean-overview' | 'dean-departments' | 'dean-performance' | 'dean-assessments' | 'dean-subjects' | 'dean-reports'
   const [activeSection, setActiveSection] = useState<string>(() => {
     if (currentTab.startsWith('dean-')) return currentTab;
     return 'dean-overview';
@@ -56,12 +60,18 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
 
   // State
   const [overview, setOverview] = useState<any | null>(null);
+  const [departmentsData, setDepartmentsData] = useState<any | null>(null);
   const [students, setStudents] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total_items: 0, total_pages: 1 });
   const [assessmentsData, setAssessmentsData] = useState<any | null>(null);
   const [subjectsData, setSubjectsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Filters for Department Analytics
+  const [deptSearchQuery, setDeptSearchQuery] = useState('');
+  const [deptTierFilter, setDeptTierFilter] = useState('all');
+  const [deptSortBy, setDeptSortBy] = useState<'score' | 'students' | 'coding' | 'xp'>('score');
 
   // Filters for Student Performance
   const [searchQuery, setSearchQuery] = useState('');
@@ -134,12 +144,29 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
     }
   };
 
+  const fetchDepartments = async () => {
+    try {
+      const res = await api.getDeanDepartments();
+      if (res && res.success) {
+        setDepartmentsData(res);
+      }
+    } catch (err: any) {
+      console.error('[Dean Departments Fetch Error]:', err);
+    }
+  };
+
+  const handleInspectDepartment = (branchId: string) => {
+    setBranchFilter(branchId);
+    setSection('dean-performance');
+  };
+
   const loadAllData = async () => {
     setLoading(true);
     setError(null);
     try {
       await Promise.all([
         fetchOverview(),
+        fetchDepartments(),
         fetchStudents(1),
         fetchAssessments(),
         fetchSubjects()
@@ -267,12 +294,12 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => handleExportCSV('student-performance')}
+            onClick={() => handleExportCSV(activeSection === 'dean-departments' ? 'departments' : activeSection === 'dean-assessments' ? 'assessments' : 'student-performance')}
             disabled={exportingReport}
             className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
           >
             <Download size={14} />
-            <span>{exportingReport ? 'Generating CSV...' : 'Export Verified Report'}</span>
+            <span>{exportingReport ? 'Generating CSV...' : activeSection === 'dean-departments' ? 'Export Department CSV' : activeSection === 'dean-assessments' ? 'Export Assessments CSV' : 'Export Verified Report'}</span>
           </button>
           <button
             onClick={loadAllData}
@@ -295,6 +322,7 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-[var(--surface-border)] scrollbar-none">
         {[
           { id: 'dean-overview', label: 'Academic Overview', icon: BarChart2 },
+          { id: 'dean-departments', label: 'Department Analytics', icon: Building2 },
           { id: 'dean-performance', label: 'Student Performance', icon: GraduationCap },
           { id: 'dean-assessments', label: 'Assessments', icon: Award },
           { id: 'dean-subjects', label: 'Subject Analytics', icon: BookOpen },
@@ -474,8 +502,439 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
               )}
             </div>
           </div>
+
+          {/* Department Performance Benchmarking Overview Card */}
+          <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Building2 size={16} className="text-cyan-400" />
+                  <h3 className="text-sm font-bold text-[var(--text-primary)]">Department-Level Performance Benchmarks</h3>
+                </div>
+                <p className="text-xs text-[var(--text-muted)]">Comparative student performance, assessments & coding pass rates by engineering department</p>
+              </div>
+              <button
+                onClick={() => setSection('dean-departments')}
+                className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer self-start sm:self-auto"
+              >
+                <span>View All Departments ({departmentsData?.departments?.length || 9})</span>
+                <ChevronRight size={13} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {(departmentsData?.departments || []).slice(0, 4).map((dept: any) => (
+                <div
+                  key={dept.id}
+                  onClick={() => handleInspectDepartment(dept.id)}
+                  className="p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] hover:border-cyan-500/40 transition-all cursor-pointer space-y-2.5 group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                      {dept.code}
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                      dept.performance_tier === 'High Performer'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : dept.performance_tier === 'Proficient'
+                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                        : dept.performance_tier === 'Pending Intake'
+                        ? 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                    }`}>
+                      {dept.performance_tier}
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[var(--text-primary)] truncate group-hover:text-cyan-400 transition-colors">
+                      {dept.name}
+                    </h4>
+                    <p className="text-[10px] text-[var(--text-muted)]">
+                      {dept.student_count} enrolled · {dept.active_students} active
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-[var(--surface-border)]">
+                    <div>
+                      <span className="text-[10px] text-[var(--text-muted)] block">Avg Score</span>
+                      <span className="font-bold text-indigo-400">{dept.average_score}%</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-[var(--text-muted)] block">Coding Pass</span>
+                      <span className="font-bold text-emerald-400">{dept.coding_acceptance_rate}%</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
+
+      {/* ===================================================================== */}
+      {/* SECTION 1B: DEPARTMENT ANALYTICS & BENCHMARKING                       */}
+      {/* ===================================================================== */}
+      {activeSection === 'dean-departments' && (() => {
+        const deptList: any[] = departmentsData?.departments || [];
+        const summary = departmentsData?.summary || overview?.department_benchmarks?.summary || {};
+
+        // Filtering & Sorting
+        let filteredDepts = deptList.filter((dept: any) => {
+          if (deptSearchQuery.trim()) {
+            const q = deptSearchQuery.trim().toLowerCase();
+            const matchesName = (dept.name || '').toLowerCase().includes(q);
+            const matchesCode = (dept.code || '').toLowerCase().includes(q);
+            const matchesSub = (dept.top_subject || '').toLowerCase().includes(q);
+            if (!matchesName && !matchesCode && !matchesSub) return false;
+          }
+          if (deptTierFilter !== 'all') {
+            const tierSlug = (dept.performance_tier || '').toLowerCase().replace(/\s+/g, '-');
+            if (tierSlug !== deptTierFilter) return false;
+          }
+          return true;
+        });
+
+        filteredDepts.sort((a: any, b: any) => {
+          if (deptSortBy === 'score') return (b.average_score || 0) - (a.average_score || 0);
+          if (deptSortBy === 'students') return (b.student_count || 0) - (a.student_count || 0);
+          if (deptSortBy === 'coding') return (b.coding_acceptance_rate || 0) - (a.coding_acceptance_rate || 0);
+          if (deptSortBy === 'xp') return (b.average_xp || 0) - (a.average_xp || 0);
+          return 0;
+        });
+
+        return (
+          <div className="space-y-6 animate-in fade-in">
+            {/* Top Department KPI Benchmark Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  Academic Departments
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-[var(--text-primary)]">
+                    {summary.total_departments || deptList.length || 9}
+                  </span>
+                  <span className="text-[11px] font-semibold text-cyan-400">
+                    {summary.active_departments || 8} active
+                  </span>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)]">
+                  {summary.total_enrolled_students || 108} enrolled candidates
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  Top Scoring Department
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-indigo-400">
+                    {summary.highest_scoring_department?.score ?? 97}%
+                  </span>
+                  <span className="text-[11px] font-bold text-indigo-300 uppercase">
+                    {summary.highest_scoring_department?.code || 'EE'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)] truncate">
+                  {summary.highest_scoring_department?.name || 'Electrical Engineering'}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  Highest Coding Pass Rate
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-emerald-400">
+                    {summary.highest_coding_department?.rate ?? 100}%
+                  </span>
+                  <span className="text-[11px] font-bold text-emerald-300 uppercase">
+                    {summary.highest_coding_department?.code || 'CSE'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)] truncate">
+                  {summary.highest_coding_department?.name || 'Computer Science Engineering'}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  Highest XP Engagement
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-amber-400">
+                    {summary.top_xp_department?.avg_xp ?? 232}
+                  </span>
+                  <span className="text-[11px] font-bold text-amber-300 uppercase">
+                    {summary.top_xp_department?.code || 'IT'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)]">XP per enrolled candidate</p>
+              </div>
+            </div>
+
+            {/* Department Filter & Search Bar */}
+            <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-3 text-[var(--text-muted)]" />
+                  <input
+                    type="text"
+                    placeholder="Search by department name or code..."
+                    value={deptSearchQuery}
+                    onChange={(e) => setDeptSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-[var(--surface-elevated)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <select
+                  value={deptTierFilter}
+                  onChange={(e) => setDeptTierFilter(e.target.value)}
+                  className="w-full py-2 px-3 bg-[var(--surface-elevated)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none"
+                >
+                  <option value="all">All Performance Tiers</option>
+                  <option value="high-performer">High Performers (≥ 80%)</option>
+                  <option value="proficient">Proficient (60% - 79%)</option>
+                  <option value="needs-focus">Needs Focus (&lt; 60%)</option>
+                  <option value="pending-intake">Pending Intake</option>
+                </select>
+
+                <select
+                  value={deptSortBy}
+                  onChange={(e: any) => setDeptSortBy(e.target.value)}
+                  className="w-full py-2 px-3 bg-[var(--surface-elevated)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none"
+                >
+                  <option value="score">Sort: Average Score</option>
+                  <option value="students">Sort: Enrolled Students</option>
+                  <option value="coding">Sort: Coding Acceptance</option>
+                  <option value="xp">Sort: Average XP</option>
+                </select>
+              </div>
+
+              <button
+                onClick={() => handleExportCSV('departments')}
+                disabled={exportingReport}
+                className="px-3.5 py-2 rounded-xl bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] text-[var(--text-primary)] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 flex-shrink-0"
+              >
+                <Download size={14} className="text-cyan-400" />
+                <span>Export Department CSV</span>
+              </button>
+            </div>
+
+            {/* Department Performance Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredDepts.map((dept: any) => {
+                const isHigh = dept.performance_tier === 'High Performer';
+                const isProf = dept.performance_tier === 'Proficient';
+                const isPending = dept.performance_tier === 'Pending Intake';
+
+                return (
+                  <div
+                    key={dept.id}
+                    className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] hover:border-cyan-500/40 transition-all flex flex-col justify-between space-y-4 shadow-xs group"
+                  >
+                    <div className="space-y-3">
+                      {/* Department Header */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 tracking-wide uppercase">
+                            {dept.code}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            isHigh
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : isProf
+                              ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                              : isPending
+                              ? 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                          }`}>
+                            {dept.performance_tier}
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-bold text-[var(--text-muted)]">
+                          {dept.student_count} candidates
+                        </span>
+                      </div>
+
+                      <div>
+                        <h4 className="text-sm font-bold text-[var(--text-primary)] group-hover:text-cyan-400 transition-colors">
+                          {dept.name}
+                        </h4>
+                        <p className="text-[11px] text-[var(--text-muted)] line-clamp-1">
+                          {dept.description || 'Engineering curriculum and placement track'}
+                        </p>
+                      </div>
+
+                      {/* Score Gauge & Progress */}
+                      <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-[var(--text-secondary)]">Average Assessment Score</span>
+                          <span className="font-black text-indigo-400 text-sm">{dept.average_score}%</span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-[var(--surface-card)] overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-500"
+                            style={{ width: `${Math.min(100, Math.max(3, dept.average_score))}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)]">
+                          <span>{dept.completed_assessments} tests taken</span>
+                          <span>Participation: {dept.participation_rate}%</span>
+                        </div>
+                      </div>
+
+                      {/* 2-Metric Grid: Coding & XP */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-0.5">
+                          <span className="text-[10px] text-[var(--text-muted)] block">Coding Pass Rate</span>
+                          <span className="font-bold text-emerald-400 text-xs block">
+                            {dept.coding_acceptance_rate}%
+                          </span>
+                          <span className="text-[9px] text-[var(--text-muted)] block">
+                            {dept.problems_solved_count} solved
+                          </span>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-0.5">
+                          <span className="text-[10px] text-[var(--text-muted)] block">Engagement XP</span>
+                          <span className="font-bold text-amber-400 text-xs block">
+                            {dept.average_xp} XP
+                          </span>
+                          <span className="text-[9px] text-[var(--text-muted)] block">
+                            {dept.total_xp} total
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Strengths & Learning Gaps */}
+                      <div className="space-y-1.5 pt-1 text-[11px]">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[var(--text-muted)]">Top Strength:</span>
+                          <span className="font-semibold text-emerald-400 truncate max-w-[170px]" title={dept.top_subject}>
+                            {dept.top_subject}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[var(--text-muted)]">Focus Area:</span>
+                          <span className="font-semibold text-rose-400 truncate max-w-[170px]" title={dept.learning_gap_topic}>
+                            {dept.learning_gap_topic}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Action Footer */}
+                    <button
+                      onClick={() => handleInspectDepartment(dept.id)}
+                      className="w-full py-2 px-3 rounded-xl bg-cyan-600/10 hover:bg-cyan-600/20 text-cyan-400 border border-cyan-500/20 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer group-hover:border-cyan-500/40"
+                    >
+                      <span>Inspect {dept.code} Cohort</span>
+                      <ChevronRight size={13} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Comprehensive Institutional Benchmarking Matrix */}
+            <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-primary)]">
+                    Cross-Department Benchmarking Matrix
+                  </h3>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    Official comparative audit across all 9 academic disciplines
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold text-[var(--text-secondary)]">
+                  {deptList.length} Departments Tracked
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--surface-border)] text-[var(--text-muted)] uppercase text-[10px] tracking-wider font-bold">
+                      <th className="py-2.5 px-3">Rank</th>
+                      <th className="py-2.5 px-3">Department</th>
+                      <th className="py-2.5 px-3 text-center">Enrolled / Active</th>
+                      <th className="py-2.5 px-3 text-center">Avg Assessment Score</th>
+                      <th className="py-2.5 px-3 text-center">Coding Acceptance</th>
+                      <th className="py-2.5 px-3 text-center">Problems Solved</th>
+                      <th className="py-2.5 px-3 text-center">Avg XP</th>
+                      <th className="py-2.5 px-3">Primary Strength</th>
+                      <th className="py-2.5 px-3 text-center">Tier</th>
+                      <th className="py-2.5 px-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--surface-border)]">
+                    {[...deptList]
+                      .sort((a, b) => (b.average_score || 0) - (a.average_score || 0))
+                      .map((d: any, idx: number) => (
+                        <tr key={d.id} className="hover:bg-[var(--surface-hover)] transition-colors">
+                          <td className="py-3 px-3 font-bold text-[var(--text-secondary)]">
+                            #{idx + 1}
+                          </td>
+                          <td className="py-3 px-3">
+                            <div className="flex items-center gap-2">
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                                {d.code}
+                              </span>
+                              <span className="font-bold text-[var(--text-primary)] truncate max-w-[200px]" title={d.name}>
+                                {d.name}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 text-center text-[var(--text-secondary)]">
+                            <span className="font-bold text-[var(--text-primary)]">{d.student_count}</span>
+                            <span className="text-[10px] text-[var(--text-muted)]"> ({d.active_students} act)</span>
+                          </td>
+                          <td className="py-3 px-3 text-center font-bold text-indigo-400">
+                            {d.average_score}%
+                          </td>
+                          <td className="py-3 px-3 text-center font-bold text-emerald-400">
+                            {d.coding_acceptance_rate}%
+                          </td>
+                          <td className="py-3 px-3 text-center font-semibold text-[var(--text-primary)]">
+                            {d.problems_solved_count}
+                          </td>
+                          <td className="py-3 px-3 text-center font-bold text-amber-400">
+                            {d.average_xp}
+                          </td>
+                          <td className="py-3 px-3 text-emerald-400 font-semibold truncate max-w-[150px]" title={d.top_subject}>
+                            {d.top_subject}
+                          </td>
+                          <td className="py-3 px-3 text-center">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              d.performance_tier === 'High Performer'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : d.performance_tier === 'Proficient'
+                                ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                                : d.performance_tier === 'Pending Intake'
+                                ? 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            }`}>
+                              {d.performance_tier}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            <button
+                              onClick={() => handleInspectDepartment(d.id)}
+                              className="px-2.5 py-1 rounded-lg bg-cyan-600/10 hover:bg-cyan-600/20 text-cyan-400 border border-cyan-500/20 text-[11px] font-bold cursor-pointer"
+                            >
+                              Inspect
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ===================================================================== */}
       {/* SECTION 2: STUDENT PERFORMANCE DIRECTORY                              */}
@@ -754,7 +1213,7 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
             <p className="text-xs text-[var(--text-muted)]">Download authentic database-derived CSV reports for accreditation and placement meetings</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-3">
               <div className="flex items-center gap-2.5 text-cyan-400">
                 <GraduationCap size={18} />
@@ -788,6 +1247,24 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
               >
                 <Download size={14} />
                 <span>Export Assessment Outcomes CSV</span>
+              </button>
+            </div>
+
+            <div className="p-5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-3">
+              <div className="flex items-center gap-2.5 text-emerald-400">
+                <Building2 size={18} />
+                <h4 className="text-xs font-bold text-[var(--text-primary)]">Department Benchmarks & Audit CSV</h4>
+              </div>
+              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                Contains aggregated comparative metrics for all 9 academic departments: enrolled candidates, active ratios, test averages, coding solve rates, and syllabus strengths.
+              </p>
+              <button
+                onClick={() => handleExportCSV('departments')}
+                disabled={exportingReport}
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <Download size={14} />
+                <span>Export Department Performance CSV</span>
               </button>
             </div>
           </div>

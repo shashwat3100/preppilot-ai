@@ -80,13 +80,14 @@ async function runTests() {
     assert(healthRes.body.service.includes('PrepPilot AI'), 'Service identifier contains PrepPilot AI');
 
     // Authenticate a student user
-    const studentUser = db.findOne('users', u => u.email === 'student@careerprep.ai') ||
+    const studentUser = db.findOne('users', u => u.email === 'student@preppilot.ai') ||
+      db.findOne('users', u => u.email === 'student@careerprep.ai') ||
       db.findOne('users', u => (u.role || '').toLowerCase() === 'student');
     const loginRes = await request('/api/auth/login', {
       method: 'POST',
       body: {
         email: studentUser.email,
-        password: 'password123'
+        password: studentUser.email === 'student@preppilot.ai' || studentUser.email === 'student@careerprep.ai' ? 'password123' : 'Student@123'
       }
     });
     assert(loginRes.status === 200, 'Student authenticates successfully via /api/auth/login');
