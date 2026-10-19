@@ -1,6 +1,7 @@
 import express from 'express';
 import db from '../database/db.js';
 import { authenticate, requireDeanOrAdmin } from '../middleware/auth.js';
+import { savePostgresUser } from '../database/postgres.js';
 
 const router = express.Router();
 
@@ -352,10 +353,16 @@ router.get('/overview', (req, res) => {
 
     const deptOverview = calculateDepartmentMetrics();
 
+    const placedStudents = students.filter(s => s.placement_status === 'PLACED');
+    const placementRate = totalStudents > 0 ? Math.round((placedStudents.length / totalStudents) * 100) : 0;
+
     return res.json({
       success: true,
       metrics: {
         total_students: totalStudents,
+        total_placed: placedStudents.length,
+        placed_students_count: placedStudents.length,
+        placement_rate: placementRate,
         active_students: activeStudents.length,
         participation_rate: participationRate,
         completion_rate: completionRate,
@@ -397,7 +404,7 @@ router.get('/departments', (req, res) => {
 // =========================================================================
 router.get('/performance', (req, res) => {
   try {
-    const { search = '', branch = 'all', performance_tier = 'all', page = 1, limit = 15 } = req.query;
+    const { search = '', branch = 'all', performance_tier = 'all', placement_status = 'all', page = 1, limit = 15 } = req.query;
 
     const users = db.getAll('users');
     const students = users.filter(u => u.role === 'STUDENT');
@@ -437,6 +444,8 @@ router.get('/performance', (req, res) => {
         tier = 'Proficient';
       }
 
+      const isPlaced = s.placement_status === 'PLACED';
+
       return {
         id: s.id,
         name: s.name,
@@ -451,6 +460,11 @@ router.get('/performance', (req, res) => {
         average_score: avgScore,
         coding_solved: codingSolved,
         performance_tier: tier,
+        placement_status: isPlaced ? 'PLACED' : 'NOT_PLACED',
+        is_placed: isPlaced,
+        placed_company: s.placed_company || null,
+        placement_package: s.placement_package || null,
+        placed_date: s.placed_date || null,
         last_active: s.last_active_date || 'N/A'
       };
     });
@@ -461,7 +475,8 @@ router.get('/performance', (req, res) => {
       list = list.filter(s =>
         s.name.toLowerCase().includes(q) ||
         s.email.toLowerCase().includes(q) ||
-        s.branch_name.toLowerCase().includes(q)
+        s.branch_name.toLowerCase().includes(q) ||
+        (s.placed_company && s.placed_company.toLowerCase().includes(q))
       );
     }
 
@@ -473,6 +488,15 @@ router.get('/performance', (req, res) => {
     // Apply Performance Tier Filter
     if (performance_tier !== 'all') {
       list = list.filter(s => s.performance_tier.toLowerCase().replace(/\s+/g, '-') === performance_tier.toLowerCase().replace(/\s+/g, '-'));
+    }
+
+    // Apply Placement Status Filter
+    if (placement_status !== 'all') {
+      if (placement_status === 'placed') {
+        list = list.filter(s => s.placement_status === 'PLACED');
+      } else if (placement_status === 'not_placed' || placement_status === 'unplaced') {
+        list = list.filter(s => s.placement_status !== 'PLACED');
+      }
     }
 
     const totalCount = list.length;
@@ -495,6 +519,76 @@ router.get('/performance', (req, res) => {
     console.error('[Dean Performance Error]:', err);
     return res.status(500).json({ success: false, message: 'Server error retrieving student academic performance.' });
   }
+});
+
+// =========================================================================
+// 2B. ASSIGN / UPDATE STUDENT PLACEMENT STATUS (DEAN / TPO)
+// =========================================================================
+router.patch('/students/:id/placement', async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const student = db.get('users', studentId);
+
+    if (!student || student.role !== 'STUDENT') {
+      return res.status(404).json({ success: false, message: 'Student academic record not found.' });
+    }
+
+    const { placement_status, is_placed, placed_company, placement_package, placed_date } = req.body;
+
+    let newStatus = 'NOT_PLACED';
+    if (placement_status) {
+      newStatus = String(placement_status).toUpperCase();
+    } else if (is_placed !== undefined) {
+      newStatus = is_placed ? 'PLACED' : 'NOT_PLACED';
+    } else {
+      newStatus = student.placement_status === 'PLACED' ? 'NOT_PLACED' : 'PLACED';
+    }
+
+    const isPlaced = newStatus === 'PLACED';
+    const finalPlacedCompany = isPlaced ? (placed_company !== undefined ? placed_company : (student.placed_company || 'Campus Placement Partner')) : null;
+    const finalPackage = isPlaced ? (placement_package !== undefined ? placement_package : (student.placement_package || null)) : null;
+    const finalPlacedDate = isPlaced ? (placed_date || student.placed_date || new Date().toISOString().split('T')[0]) : null;
+
+    const updated = db.update('users', studentId, {
+      placement_status: newStatus,
+      placed_company: finalPlacedCompany,
+      placement_package: finalPackage,
+      placed_date: finalPlacedDate,
+      updated_at: new Date().toISOString()
+    });
+
+    try {
+      await savePostgresUser(updated);
+    } catch (pgErr) {
+      console.warn('[PostgreSQL Placement Sync Warning]:', pgErr.message);
+    }
+
+    const actionText = isPlaced
+      ? `marked as Placed${finalPlacedCompany ? ` at ${finalPlacedCompany}` : ''}`
+      : 'marked as Not Placed';
+
+    return res.json({
+      success: true,
+      message: `Candidate ${student.name} has been successfully ${actionText}.`,
+      student: {
+        id: updated.id,
+        name: updated.name,
+        email: updated.email,
+        placement_status: updated.placement_status,
+        is_placed: updated.placement_status === 'PLACED',
+        placed_company: updated.placed_company,
+        placement_package: updated.placement_package,
+        placed_date: updated.placed_date
+      }
+    });
+  } catch (err) {
+    console.error('[Dean Student Placement Error]:', err);
+    return res.status(500).json({ success: false, message: 'Server error updating student placement status.' });
+  }
+});
+
+router.put('/students/:id/placement', (req, res) => {
+  return router.handle(req, res);
 });
 
 // =========================================================================

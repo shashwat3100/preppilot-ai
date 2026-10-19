@@ -315,6 +315,24 @@ export const api = {
     return res.json();
   },
 
+  updateStudentPlacement: async (
+    studentId: string,
+    placementData: {
+      placement_status?: 'PLACED' | 'NOT_PLACED';
+      is_placed?: boolean;
+      placed_company?: string;
+      placement_package?: string;
+      placed_date?: string;
+    }
+  ) => {
+    const res = await fetch(`${API_BASE}/admin/students/${studentId}/placement`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(placementData)
+    });
+    return res.json();
+  },
+
   deleteStudent: async (studentId: string) => {
     const res = await fetch(`${API_BASE}/admin/students/${studentId}`, {
       method: 'DELETE',
@@ -527,17 +545,36 @@ export const api = {
     return safeJson(res);
   },
 
-  getDeanPerformance: async (params: { search?: string; branch?: string; performance_tier?: string; page?: number; limit?: number } = {}) => {
+  getDeanPerformance: async (params: { search?: string; branch?: string; performance_tier?: string; placement_status?: string; page?: number; limit?: number } = {}) => {
     const query = new URLSearchParams();
     if (params.search) query.append('search', params.search);
     if (params.branch) query.append('branch', params.branch);
     if (params.performance_tier) query.append('performance_tier', params.performance_tier);
+    if (params.placement_status) query.append('placement_status', params.placement_status);
     if (params.page) query.append('page', params.page.toString());
     if (params.limit) query.append('limit', params.limit.toString());
     const queryString = query.toString() ? `?${query.toString()}` : '';
 
     const res = await fetch(`${API_BASE}/dean/performance${queryString}`, {
       headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  updateDeanStudentPlacement: async (
+    studentId: string,
+    placementData: {
+      placement_status?: 'PLACED' | 'NOT_PLACED';
+      is_placed?: boolean;
+      placed_company?: string;
+      placement_package?: string;
+      placed_date?: string;
+    }
+  ) => {
+    const res = await fetch(`${API_BASE}/dean/students/${studentId}/placement`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(placementData)
     });
     return safeJson(res);
   },

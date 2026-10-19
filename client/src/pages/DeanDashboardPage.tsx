@@ -25,7 +25,10 @@ import {
   Building2,
   Layers,
   ArrowUpDown,
-  Users
+  Users,
+  Briefcase,
+  Check,
+  Edit2
 } from 'lucide-react';
 
 interface DeanDashboardPageProps {
@@ -77,6 +80,17 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [tierFilter, setTierFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
+  const [placementFilter, setPlacementFilter] = useState<'all' | 'placed' | 'not_placed'>('all');
+
+  // Placement Assignment Modal State
+  const [showPlacementModal, setShowPlacementModal] = useState(false);
+  const [placementStudent, setPlacementStudent] = useState<any | null>(null);
+  const [placementStatus, setPlacementStatus] = useState<'PLACED' | 'NOT_PLACED'>('PLACED');
+  const [placedCompany, setPlacedCompany] = useState('');
+  const [placementPackage, setPlacementPackage] = useState('');
+  const [placedDate, setPlacedDate] = useState('');
+  const [savingPlacement, setSavingPlacement] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Selected Student Dossier Modal
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
@@ -108,6 +122,7 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
         search: searchQuery,
         performance_tier: tierFilter,
         branch: branchFilter,
+        placement_status: placementFilter === 'all' ? undefined : placementFilter,
         page,
         limit: 10
       });
@@ -119,6 +134,71 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
       }
     } catch (err: any) {
       console.error('[Dean Students Fetch Error]:', err);
+    }
+  };
+
+  const handleOpenPlacementModal = (st: any) => {
+    setPlacementStudent(st);
+    setPlacementStatus(st.placement_status === 'PLACED' ? 'PLACED' : 'NOT_PLACED');
+    setPlacedCompany(st.placed_company || (st.target_companies && st.target_companies[0]) || 'Tata Consultancy Services (TCS)');
+    setPlacementPackage(st.placement_package || '7.5 LPA');
+    setPlacedDate(st.placed_date || new Date().toISOString().split('T')[0]);
+    setShowPlacementModal(true);
+  };
+
+  const handleSavePlacement = async () => {
+    if (!placementStudent) return;
+    setSavingPlacement(true);
+    try {
+      const res = await api.updateDeanStudentPlacement(placementStudent.id, {
+        placement_status: placementStatus,
+        is_placed: placementStatus === 'PLACED',
+        placed_company: placementStatus === 'PLACED' ? placedCompany.trim() : '',
+        placement_package: placementStatus === 'PLACED' ? placementPackage.trim() : '',
+        placed_date: placementStatus === 'PLACED' ? placedDate : ''
+      });
+
+      if (res && res.success) {
+        setActionFeedback({ message: res.message || `Updated placement status for ${placementStudent.name}.`, type: 'success' });
+        setTimeout(() => setActionFeedback(null), 4000);
+
+        setStudents(prev => prev.map(s => {
+          if (s.id === placementStudent.id) {
+            return {
+              ...s,
+              placement_status: placementStatus,
+              is_placed: placementStatus === 'PLACED',
+              placed_company: placementStatus === 'PLACED' ? placedCompany.trim() : null,
+              placement_package: placementStatus === 'PLACED' ? placementPackage.trim() : null,
+              placed_date: placementStatus === 'PLACED' ? placedDate : null
+            };
+          }
+          return s;
+        }));
+
+        if (studentDossier && studentDossier.student && studentDossier.student.id === placementStudent.id) {
+          setStudentDossier((prev: any) => ({
+            ...prev,
+            student: {
+              ...prev.student,
+              placement_status: placementStatus,
+              is_placed: placementStatus === 'PLACED',
+              placed_company: placementStatus === 'PLACED' ? placedCompany.trim() : null,
+              placement_package: placementStatus === 'PLACED' ? placementPackage.trim() : null,
+              placed_date: placementStatus === 'PLACED' ? placedDate : null
+            }
+          }));
+        }
+
+        setShowPlacementModal(false);
+        fetchOverview().catch(() => {});
+      } else {
+        alert(res?.message || 'Failed to update placement status.');
+      }
+    } catch (err: any) {
+      alert('Error updating placement status: ' + err.message);
+    } finally {
+      setSavingPlacement(false);
     }
   };
 
@@ -187,7 +267,7 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
     if (!loading) {
       fetchStudents(1);
     }
-  }, [searchQuery, tierFilter, branchFilter]);
+  }, [searchQuery, tierFilter, branchFilter, placementFilter]);
 
   // Open Student Dossier
   const handleOpenDossier = async (studentId: string) => {
@@ -311,6 +391,21 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
         </div>
       </div>
 
+      {actionFeedback && (
+        <div className={`p-3.5 rounded-xl border text-xs flex items-center gap-2 animate-in fade-in ${
+          actionFeedback.type === 'error'
+            ? 'bg-rose-950/60 border-rose-500/40 text-rose-300'
+            : 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
+        }`}>
+          {actionFeedback.type === 'error' ? (
+            <AlertCircle size={16} className="text-rose-400 flex-shrink-0" />
+          ) : (
+            <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
+          )}
+          <span>{actionFeedback.message}</span>
+        </div>
+      )}
+
       {exportSuccess && (
         <div className="p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
@@ -353,7 +448,7 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
       {activeSection === 'dean-overview' && (
         <div className="space-y-6">
           {/* Top KPI Cards Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
               <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
                 Total Cohort Students
@@ -412,6 +507,21 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
                 </span>
               </div>
               <p className="text-[10px] text-[var(--text-muted)]">Passed all unit test suites</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
+              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                Campus Placements
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black text-emerald-400">
+                  {metrics.total_placed ?? 0}
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-400">
+                  {metrics.placement_rate ?? 0}%
+                </span>
+              </div>
+              <p className="text-[10px] text-[var(--text-muted)]">Verified job offers secured</p>
             </div>
           </div>
 
@@ -949,7 +1059,7 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
           </div>
 
           {/* Search & Filter Controls */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
             <div className="relative">
               <Search size={14} className="absolute left-3 top-3 text-[var(--text-muted)]" />
               <input
@@ -982,6 +1092,16 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
               <option value="branch-it">Information Technology (IT)</option>
               <option value="branch-ece">Electronics & Communication (ECE)</option>
             </select>
+
+            <select
+              value={placementFilter}
+              onChange={(e) => setPlacementFilter(e.target.value as any)}
+              className="w-full py-2 px-3 bg-[var(--surface-elevated)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none font-semibold"
+            >
+              <option value="all">All Placement Statuses</option>
+              <option value="placed">Placed Students Only</option>
+              <option value="not_placed">Not Placed Students Only</option>
+            </select>
           </div>
 
           {/* Students Performance Table */}
@@ -1000,6 +1120,7 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
                     <th className="py-3 px-4 text-center">Avg Score</th>
                     <th className="py-3 px-4 text-center">Coding Solved</th>
                     <th className="py-3 px-4">Performance Tier</th>
+                    <th className="py-3 px-4">Placement Status</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -1039,13 +1160,45 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
                           {st.performance_tier}
                         </span>
                       </td>
+                      <td className="py-3 px-4">
+                        {st.placement_status === 'PLACED' ? (
+                          <div className="inline-flex flex-col">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 w-max">
+                              <Check size={10} />
+                              <span>Placed</span>
+                            </span>
+                            {st.placed_company && (
+                              <span className="text-[11px] font-semibold text-[var(--text-primary)] mt-0.5 truncate max-w-[130px]" title={st.placed_company}>
+                                {st.placed_company} {st.placement_package ? `(${st.placement_package})` : ''}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                            Not Placed
+                          </span>
+                        )}
+                      </td>
                       <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={() => handleOpenDossier(st.id)}
-                          className="px-2.5 py-1 rounded-lg bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] text-cyan-400 border border-[var(--surface-border)] text-xs font-bold cursor-pointer"
-                        >
-                          View Dossier
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenDossier(st.id)}
+                            className="px-2.5 py-1 rounded-lg bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] text-cyan-400 border border-[var(--surface-border)] text-xs font-bold cursor-pointer"
+                          >
+                            View Dossier
+                          </button>
+                          <button
+                            onClick={() => handleOpenPlacementModal(st)}
+                            className={`p-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-colors ${
+                              st.placement_status === 'PLACED'
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                : 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+                            }`}
+                            title={st.placement_status === 'PLACED' ? `Edit Placement (${st.placed_company || 'Placed'})` : 'Assign Placement Status'}
+                          >
+                            <Briefcase size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1312,6 +1465,65 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
               </div>
             ) : (
               <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+                {/* Placement Status Banner */}
+                <div className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 ${
+                  studentDossier?.student?.placement_status === 'PLACED'
+                    ? 'bg-emerald-950/20 border-emerald-500/30'
+                    : 'bg-[var(--surface-elevated)] border-[var(--surface-border)]'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      studentDossier?.student?.placement_status === 'PLACED'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'bg-slate-700/20 text-[var(--text-muted)]'
+                    }`}>
+                      <Briefcase size={16} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-[var(--text-primary)]">
+                          {studentDossier?.student?.placement_status === 'PLACED' ? 'Placement Status: Placed' : 'Placement Status: Not Placed'}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          studentDossier?.student?.placement_status === 'PLACED'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-slate-500/15 text-slate-400 border border-slate-500/20'
+                        }`}>
+                          {studentDossier?.student?.placement_status === 'PLACED' ? 'Offer Secured' : 'In Preparation'}
+                        </span>
+                      </div>
+                      {studentDossier?.student?.placement_status === 'PLACED' ? (
+                        <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                          Company: <span className="font-semibold text-[var(--text-primary)]">{studentDossier?.student?.placed_company || 'Undisclosed'}</span>
+                          {studentDossier?.student?.placement_package && (
+                            <span> • CTC: <span className="font-bold text-emerald-400">{studentDossier?.student?.placement_package}</span></span>
+                          )}
+                          {studentDossier?.student?.placed_date && (
+                            <span> • Date: <span className="text-[var(--text-muted)]">{studentDossier?.student?.placed_date}</span></span>
+                          )}
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+                          Candidate is actively undertaking prep tracks and skill assessments.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const curSt = studentDossier.student;
+                      setSelectedStudentId(null);
+                      setStudentDossier(null);
+                      handleOpenPlacementModal(curSt);
+                    }}
+                    className="px-2.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 cursor-pointer flex-shrink-0"
+                  >
+                    <Edit2 size={12} />
+                    <span>Change</span>
+                  </button>
+                </div>
+
                 {/* Dossier Quick Stats */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-center">
@@ -1398,6 +1610,144 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* MODAL: ASSIGN / UPDATE STUDENT PLACEMENT STATUS                       */}
+      {/* ===================================================================== */}
+      {showPlacementModal && placementStudent && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-1">
+                  <Briefcase size={11} />
+                  <span>Campus Placement Record</span>
+                </span>
+                <h3 className="text-base font-bold text-[var(--text-primary)] mt-0.5">
+                  Update Placement Status
+                </h3>
+                <p className="text-xs text-[var(--text-muted)]">
+                  {placementStudent.name} ({placementStudent.email})
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPlacementModal(false)}
+                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg hover:bg-[var(--surface-hover)] cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--text-secondary)] mb-1.5">
+                  Placement Status
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPlacementStatus('PLACED')}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                      placementStatus === 'PLACED'
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-sm'
+                        : 'bg-[var(--surface-elevated)] border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    <Check size={14} />
+                    <span>Placed</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPlacementStatus('NOT_PLACED')}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                      placementStatus === 'NOT_PLACED'
+                        ? 'bg-rose-500/20 border-rose-500 text-rose-400 shadow-sm'
+                        : 'bg-[var(--surface-elevated)] border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    <X size={14} />
+                    <span>Not Placed</span>
+                  </button>
+                </div>
+              </div>
+
+              {placementStatus === 'PLACED' && (
+                <div className="space-y-3 p-3.5 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--surface-border)]">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[var(--text-secondary)] mb-1">
+                      Recruiting Company / Employer
+                    </label>
+                    <input
+                      type="text"
+                      list="dean-placement-companies"
+                      value={placedCompany}
+                      onChange={(e) => setPlacedCompany(e.target.value)}
+                      placeholder="e.g. Google, Microsoft, TCS, Infosys, Wipro"
+                      className="w-full p-2.5 bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none focus:border-emerald-500"
+                    />
+                    <datalist id="dean-placement-companies">
+                      <option value="Google" />
+                      <option value="Amazon" />
+                      <option value="Microsoft" />
+                      <option value="Tata Consultancy Services (TCS)" />
+                      <option value="Infosys" />
+                      <option value="Wipro" />
+                      <option value="Accenture" />
+                      <option value="Cognizant" />
+                      <option value="Capgemini" />
+                    </datalist>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[var(--text-secondary)] mb-1">
+                        Package / CTC
+                      </label>
+                      <input
+                        type="text"
+                        value={placementPackage}
+                        onChange={(e) => setPlacementPackage(e.target.value)}
+                        placeholder="e.g. 12 LPA or 8.5 LPA"
+                        className="w-full p-2.5 bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[var(--text-secondary)] mb-1">
+                        Offer / Placement Date
+                      </label>
+                      <input
+                        type="date"
+                        value={placedDate}
+                        onChange={(e) => setPlacedDate(e.target.value)}
+                        className="w-full p-2.5 bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPlacementModal(false)}
+                  className="px-4 py-2 rounded-xl bg-[var(--surface-elevated)] text-[var(--text-secondary)] text-xs font-semibold hover:bg-[var(--surface-hover)] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSavePlacement}
+                  disabled={savingPlacement || (placementStatus === 'PLACED' && !placedCompany.trim())}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <Briefcase size={13} />
+                  <span>{savingPlacement ? 'Updating...' : 'Save Placement Status'}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

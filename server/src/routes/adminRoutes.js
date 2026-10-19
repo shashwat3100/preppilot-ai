@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import db from '../database/db.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
-import { getPostgresAccessStats, isPostgresConfigured } from '../database/postgres.js';
+import { getPostgresAccessStats, isPostgresConfigured, savePostgresUser } from '../database/postgres.js';
 
 const router = express.Router();
 
@@ -103,12 +103,19 @@ router.get('/overview', (req, res) => {
       };
     }).sort((a, b) => b.student_count - a.student_count);
 
+    // Placed students calculation
+    const placedStudents = students.filter(s => s.placement_status === 'PLACED');
+    const placementRate = totalStudents > 0 ? Math.round((placedStudents.length / totalStudents) * 100) : 0;
+
     const overviewData = {
       total_students: totalStudents,
       new_joinees_count: newJoinees.length,
       active_students: activeStudents.length,
       active_students_7d: activeStudents.length,
       blocked_students: blockedStudents.length,
+      total_placed: placedStudents.length,
+      placed_students_count: placedStudents.length,
+      placement_rate: placementRate,
       total_questions: totalQuestions,
       total_sessions: sessions.length,
       completed_quizzes: completedSessions,
@@ -172,6 +179,7 @@ router.get('/students', (req, res) => {
         const createdAt = u.created_at || new Date(Date.now() - 3 * 86400000).toISOString();
         const isNewJoinee = new Date(createdAt).getTime() >= sevenDaysAgo;
         const isBlocked = Boolean(u.is_blocked || u.status === 'BLOCKED');
+        const placementStatus = u.placement_status === 'PLACED' ? 'PLACED' : 'NOT_PLACED';
 
         return {
           ...safe,
@@ -184,6 +192,11 @@ router.get('/students', (req, res) => {
           accuracy_rate: accuracy,
           is_blocked: isBlocked,
           status: isBlocked ? 'BLOCKED' : 'ACTIVE',
+          placement_status: placementStatus,
+          is_placed: placementStatus === 'PLACED',
+          placed_company: u.placed_company || null,
+          placement_package: u.placement_package || null,
+          placed_date: u.placed_date || null,
           created_at: createdAt,
           is_new_joinee: isNewJoinee,
           joined_relative: getRelativeDateString(createdAt),
@@ -198,6 +211,10 @@ router.get('/students', (req, res) => {
       students = students.filter(s => s.is_blocked);
     } else if (filter === 'active') {
       students = students.filter(s => !s.is_blocked);
+    } else if (filter === 'placed') {
+      students = students.filter(s => s.placement_status === 'PLACED');
+    } else if (filter === 'not_placed' || filter === 'unplaced') {
+      students = students.filter(s => s.placement_status !== 'PLACED');
     }
 
     // Apply Search
@@ -398,6 +415,11 @@ router.get('/students/:id/progress', (req, res) => {
           longest_streak: streak?.longest_streak || student.longest_streak || 1,
           is_blocked: Boolean(student.is_blocked || student.status === 'BLOCKED'),
           status: (student.is_blocked || student.status === 'BLOCKED') ? 'BLOCKED' : 'ACTIVE',
+          placement_status: student.placement_status === 'PLACED' ? 'PLACED' : 'NOT_PLACED',
+          is_placed: student.placement_status === 'PLACED',
+          placed_company: student.placed_company || null,
+          placement_package: student.placement_package || null,
+          placed_date: student.placed_date || null,
           joined_relative: getRelativeDateString(student.created_at),
           last_active_relative: getRelativeDateString(student.last_active_date)
         },
@@ -427,7 +449,7 @@ router.get('/students/:id/progress', (req, res) => {
 // =========================================================================
 // 4. BLOCK / UNBLOCK STUDENT PROFILE
 // =========================================================================
-router.patch('/students/:id/status', (req, res) => {
+router.patch('/students/:id/status', async (req, res) => {
   try {
     const studentId = req.params.id;
     const student = db.get('users', studentId);
@@ -450,6 +472,13 @@ router.patch('/students/:id/status', (req, res) => {
       blocked_reason: newBlockedState ? (reason || 'Profile suspended by Placement Administrator') : null
     });
 
+    // Sync status change to PostgreSQL if configured
+    try {
+      await savePostgresUser(updated);
+    } catch (pgErr) {
+      console.warn('[PostgreSQL Status Sync Warning]:', pgErr.message);
+    }
+
     const actionText = newBlockedState ? 'blocked/suspended' : 'unblocked and restored to active';
     return res.json({
       success: true,
@@ -470,6 +499,79 @@ router.patch('/students/:id/status', (req, res) => {
 
 // Also support PUT for status updates
 router.put('/students/:id/status', (req, res) => {
+  return router.handle(req, res);
+});
+
+// =========================================================================
+// 4B. ASSIGN / UPDATE STUDENT PLACEMENT STATUS
+// =========================================================================
+router.patch('/students/:id/placement', async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const student = db.get('users', studentId);
+
+    if (!student || student.role !== 'STUDENT') {
+      return res.status(404).json({ success: false, message: 'Student account not found.' });
+    }
+
+    const { placement_status, is_placed, placed_company, placement_package, placed_date } = req.body;
+
+    // Determine new status
+    let newStatus = 'NOT_PLACED';
+    if (placement_status) {
+      newStatus = String(placement_status).toUpperCase();
+    } else if (is_placed !== undefined) {
+      newStatus = is_placed ? 'PLACED' : 'NOT_PLACED';
+    } else {
+      // Toggle if not explicitly specified
+      newStatus = student.placement_status === 'PLACED' ? 'NOT_PLACED' : 'PLACED';
+    }
+
+    const isPlaced = newStatus === 'PLACED';
+    const finalPlacedCompany = isPlaced ? (placed_company !== undefined ? placed_company : (student.placed_company || 'Campus Placement Partner')) : null;
+    const finalPackage = isPlaced ? (placement_package !== undefined ? placement_package : (student.placement_package || null)) : null;
+    const finalPlacedDate = isPlaced ? (placed_date || student.placed_date || new Date().toISOString().split('T')[0]) : null;
+
+    const updated = db.update('users', studentId, {
+      placement_status: newStatus,
+      placed_company: finalPlacedCompany,
+      placement_package: finalPackage,
+      placed_date: finalPlacedDate,
+      updated_at: new Date().toISOString()
+    });
+
+    // Sync to PostgreSQL if connected
+    try {
+      await savePostgresUser(updated);
+    } catch (pgErr) {
+      console.warn('[PostgreSQL Placement Sync Warning]:', pgErr.message);
+    }
+
+    const actionText = isPlaced
+      ? `marked as Placed${finalPlacedCompany ? ` at ${finalPlacedCompany}` : ''}`
+      : 'marked as Not Placed';
+
+    return res.json({
+      success: true,
+      message: `Candidate ${student.name} has been successfully ${actionText}.`,
+      student: {
+        id: updated.id,
+        name: updated.name,
+        email: updated.email,
+        placement_status: updated.placement_status,
+        is_placed: updated.placement_status === 'PLACED',
+        placed_company: updated.placed_company,
+        placement_package: updated.placement_package,
+        placed_date: updated.placed_date
+      }
+    });
+  } catch (err) {
+    console.error('[Admin Student Placement Error]:', err);
+    return res.status(500).json({ success: false, message: 'Server error updating student placement status.' });
+  }
+});
+
+router.put('/students/:id/placement', (req, res) => {
   return router.handle(req, res);
 });
 

@@ -183,6 +183,10 @@ const mapPostgresUserRow = (row) => {
       : (row.areas_of_interest || []),
     status: row.status || 'ACTIVE',
     is_blocked: Boolean(row.is_blocked),
+    placement_status: row.placement_status || 'NOT_PLACED',
+    placed_company: row.placed_company || null,
+    placement_package: row.placement_package || null,
+    placed_date: row.placed_date instanceof Date ? row.placed_date.toISOString().split('T')[0] : (row.placed_date || null),
     total_xp: row.total_xp !== null && row.total_xp !== undefined ? Number(row.total_xp) : 0,
     current_level: row.current_level || 1,
     current_streak: row.current_streak !== null && row.current_streak !== undefined ? Number(row.current_streak) : 0,
@@ -241,11 +245,13 @@ export const savePostgresUser = async (user) => {
       INSERT INTO users (
         id, name, email, password_hash, role, branch_id, year, graduation_year,
         preferred_job_role_id, target_companies, skill_level, areas_of_interest,
-        total_xp, current_level, current_streak, longest_streak, is_blocked, status, updated_at
+        total_xp, current_level, current_streak, longest_streak, is_blocked, status,
+        placement_status, placed_company, placement_package, placed_date, updated_at
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8,
         $9, $10, $11, $12,
-        $13, $14, $15, $16, $17, $18, NOW()
+        $13, $14, $15, $16, $17, $18,
+        $19, $20, $21, $22, NOW()
       )
       ON CONFLICT (email) DO UPDATE SET
         name = EXCLUDED.name,
@@ -264,6 +270,10 @@ export const savePostgresUser = async (user) => {
         longest_streak = EXCLUDED.longest_streak,
         is_blocked = EXCLUDED.is_blocked,
         status = EXCLUDED.status,
+        placement_status = EXCLUDED.placement_status,
+        placed_company = EXCLUDED.placed_company,
+        placement_package = EXCLUDED.placement_package,
+        placed_date = EXCLUDED.placed_date,
         updated_at = NOW()
     `;
 
@@ -285,7 +295,11 @@ export const savePostgresUser = async (user) => {
       user.current_streak !== null && user.current_streak !== undefined ? Number(user.current_streak) : 0,
       user.longest_streak !== null && user.longest_streak !== undefined ? Number(user.longest_streak) : 0,
       Boolean(user.is_blocked),
-      user.status || 'ACTIVE'
+      user.status || 'ACTIVE',
+      user.placement_status || 'NOT_PLACED',
+      user.placed_company || null,
+      user.placement_package || null,
+      user.placed_date || null
     ];
 
     await activePool.query(query, values);

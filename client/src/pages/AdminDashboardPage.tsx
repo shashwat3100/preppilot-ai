@@ -31,7 +31,8 @@ import {
   Check,
   Copy,
   Sliders,
-  Code2
+  Code2,
+  Briefcase
 } from 'lucide-react';
 
 interface AdminDashboardPageProps {
@@ -78,8 +79,17 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   // Student Filter & Search
   const [studentSearch, setStudentSearch] = useState('');
-  const [studentFilter, setStudentFilter] = useState<'all' | 'new' | 'active' | 'blocked'>('all');
+  const [studentFilter, setStudentFilter] = useState<'all' | 'new' | 'active' | 'blocked' | 'placed' | 'not_placed'>('all');
   const [studentSort, setStudentSort] = useState<'default' | 'newest' | 'xp' | 'accuracy' | 'name'>('default');
+
+  // Placement Assignment Modal State
+  const [showPlacementModal, setShowPlacementModal] = useState(false);
+  const [placementStudent, setPlacementStudent] = useState<any | null>(null);
+  const [placementStatus, setPlacementStatus] = useState<'PLACED' | 'NOT_PLACED'>('PLACED');
+  const [placedCompany, setPlacedCompany] = useState('');
+  const [placementPackage, setPlacementPackage] = useState('');
+  const [placedDate, setPlacedDate] = useState('');
+  const [savingPlacement, setSavingPlacement] = useState(false);
 
   // Student Dossier Modal
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
@@ -98,7 +108,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     title: '',
     message: '',
     confirmLabel: 'Confirm',
-    onConfirm: async () => {}
+    onConfirm: async () => { }
   });
 
   // Question Filter & Search
@@ -261,6 +271,77 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       console.error('Error fetching dossier:', err);
     } finally {
       setLoadingDossier(false);
+    }
+  };
+
+  const handleOpenPlacementModal = (st: any) => {
+    setPlacementStudent(st);
+    setPlacementStatus(st.placement_status === 'PLACED' ? 'PLACED' : 'NOT_PLACED');
+    setPlacedCompany(st.placed_company || (st.target_companies && st.target_companies[0]) || 'Tata Consultancy Services (TCS)');
+    setPlacementPackage(st.placement_package || '7.5 LPA');
+    setPlacedDate(st.placed_date || new Date().toISOString().split('T')[0]);
+    setShowPlacementModal(true);
+  };
+
+  const handleSavePlacement = async () => {
+    if (!placementStudent) return;
+    setSavingPlacement(true);
+    try {
+      const res = await api.updateStudentPlacement(placementStudent.id, {
+        placement_status: placementStatus,
+        is_placed: placementStatus === 'PLACED',
+        placed_company: placementStatus === 'PLACED' ? placedCompany.trim() : '',
+        placement_package: placementStatus === 'PLACED' ? placementPackage.trim() : '',
+        placed_date: placementStatus === 'PLACED' ? placedDate : ''
+      });
+
+      if (res && res.success) {
+        showFeedback(res.message || `Updated placement status for ${placementStudent.name}.`);
+        // Update local student in list optimistically
+        setStudents(prev => prev.map(s => {
+          if (s.id === placementStudent.id) {
+            return {
+              ...s,
+              placement_status: placementStatus,
+              is_placed: placementStatus === 'PLACED',
+              placed_company: placementStatus === 'PLACED' ? placedCompany.trim() : null,
+              placement_package: placementStatus === 'PLACED' ? placementPackage.trim() : null,
+              placed_date: placementStatus === 'PLACED' ? placedDate : null
+            };
+          }
+          return s;
+        }));
+
+        // Also update student in dossier if open
+        if (studentDossier && studentDossier.student && studentDossier.student.id === placementStudent.id) {
+          setStudentDossier((prev: any) => ({
+            ...prev,
+            student: {
+              ...prev.student,
+              placement_status: placementStatus,
+              is_placed: placementStatus === 'PLACED',
+              placed_company: placementStatus === 'PLACED' ? placedCompany.trim() : null,
+              placement_package: placementStatus === 'PLACED' ? placementPackage.trim() : null,
+              placed_date: placementStatus === 'PLACED' ? placedDate : null
+            }
+          }));
+        }
+
+        setShowPlacementModal(false);
+
+        // Refresh overview stats
+        api.getAdminOverview().then(oRes => {
+          if (oRes && oRes.success) {
+            setOverview(oRes.overview || oRes.stats || oRes.data || {});
+          }
+        });
+      } else {
+        showFeedback(res?.message || 'Failed to update placement status.', 'error');
+      }
+    } catch (err: any) {
+      showFeedback('Error updating placement status: ' + err.message, 'error');
+    } finally {
+      setSavingPlacement(false);
     }
   };
 
@@ -528,11 +609,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       </div>
 
       {actionFeedback && (
-        <div className={`p-3.5 rounded-xl border text-xs flex items-center gap-2 animate-in fade-in ${
-          actionFeedback.type === 'success'
+        <div className={`p-3.5 rounded-xl border text-xs flex items-center gap-2 animate-in fade-in ${actionFeedback.type === 'success'
             ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
             : 'bg-rose-950/60 border-rose-500/40 text-rose-300'
-        }`}>
+          }`}>
           {actionFeedback.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
           <span>{actionFeedback.message}</span>
         </div>
@@ -554,11 +634,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             <button
               key={tab.id}
               onClick={() => setSection(tab.id)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
-                isActive
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${isActive
                   ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-xs'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] border border-transparent'
-              }`}
+                }`}
             >
               <Icon size={14} />
               <span>{tab.label}</span>
@@ -578,10 +657,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
                 <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                  Total Registered Students
+                  Total Students
                 </span>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-black text-[var(--text-primary)]">
@@ -591,7 +670,23 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     {overview?.active_students_7d ?? overview?.active_students ?? 0} active
                   </span>
                 </div>
-                <p className="text-[10px] text-[var(--text-muted)]">{overview?.blocked_students ?? 0} suspended accounts</p>
+                <p className="text-[10px] text-[var(--text-muted)]">{overview?.blocked_students ?? 0} suspended</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-emerald-500/30 space-y-1 bg-gradient-to-br from-[var(--surface-card)] to-emerald-950/20">
+                <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center justify-between">
+                  <span>Placed Students</span>
+                  <Briefcase size={13} className="text-emerald-400" />
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-emerald-400">
+                    {overview?.total_placed ?? overview?.placed_students_count ?? students.filter(s => s.placement_status === 'PLACED').length}
+                  </span>
+                  <span className="text-[11px] font-semibold text-emerald-300">
+                    {overview?.placement_rate ?? Math.round((students.filter(s => s.placement_status === 'PLACED').length / Math.max(1, students.length)) * 100)}% placed
+                  </span>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)]">Verified recruitment offers</p>
               </div>
 
               <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
@@ -603,7 +698,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     {overview?.total_questions ?? questions.length}
                   </span>
                   <span className="text-[11px] font-semibold text-[var(--text-secondary)]">
-                    across {subjects.length} subjects
+                    {subjects.length} subjects
                   </span>
                 </div>
                 <p className="text-[10px] text-[var(--text-muted)]">Verified question assets</p>
@@ -618,10 +713,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     {overview?.total_sessions ?? 0}
                   </span>
                   <span className="text-[11px] font-semibold text-indigo-300">
-                    {overview?.assessment_completion_rate ?? overview?.quiz_completion_rate ?? 100}% completion
+                    {overview?.assessment_completion_rate ?? overview?.quiz_completion_rate ?? 100}%
                   </span>
                 </div>
-                <p className="text-[10px] text-[var(--text-muted)]">{overview?.total_attempts ?? 0} question attempts</p>
+                <p className="text-[10px] text-[var(--text-muted)]">{overview?.total_attempts ?? 0} attempts</p>
               </div>
 
               <div className="p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] space-y-1">
@@ -715,6 +810,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               className="w-full py-2 px-3 bg-[var(--surface-elevated)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none"
             >
               <option value="all">All Accounts (Active & Suspended)</option>
+              <option value="placed">🎯 Placed Students Only</option>
+              <option value="not_placed">⏳ Not Placed (Seeking)</option>
               <option value="new">New Joinees (Last 7 Days)</option>
               <option value="active">Active Recently</option>
               <option value="blocked">Suspended Only</option>
@@ -747,6 +844,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     <th className="py-3 px-4">Branch / Year</th>
                     <th className="py-3 px-4 text-center">XP</th>
                     <th className="py-3 px-4 text-center">Accuracy</th>
+                    <th className="py-3 px-4">Placement</th>
                     <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
@@ -754,6 +852,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 <tbody className="divide-y divide-[var(--surface-border)]">
                   {students.map((st) => {
                     const isBlocked = st.is_blocked || st.status === 'BLOCKED';
+                    const isPlaced = st.placement_status === 'PLACED';
                     return (
                       <tr key={st.id} className="hover:bg-[var(--surface-hover)] transition-colors">
                         <td className="py-3 px-4">
@@ -782,11 +881,29 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           )}
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            isBlocked
+                          {isPlaced ? (
+                            <div className="inline-flex flex-col">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 w-max">
+                                <Check size={10} />
+                                <span>Placed</span>
+                              </span>
+                              {st.placed_company && (
+                                <span className="text-[11px] font-semibold text-[var(--text-primary)] mt-0.5 truncate max-w-[130px]" title={st.placed_company}>
+                                  {st.placed_company} {st.placement_package ? `(${st.placement_package})` : ''}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                              Not Placed
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isBlocked
                               ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                               : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          }`}>
+                            }`}>
                             {isBlocked ? 'Suspended' : 'Active'}
                           </span>
                         </td>
@@ -800,12 +917,21 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                               Dossier
                             </button>
                             <button
+                              onClick={() => handleOpenPlacementModal(st)}
+                              className={`p-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-colors ${isPlaced
+                                  ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                  : 'bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+                                }`}
+                              title={isPlaced ? `Edit Placement (${st.placed_company || 'Placed'})` : 'Assign Placement Status'}
+                            >
+                              <Briefcase size={14} />
+                            </button>
+                            <button
                               onClick={() => handleToggleBlock(st)}
-                              className={`p-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-colors ${
-                                isBlocked
+                              className={`p-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-colors ${isBlocked
                                   ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
                                   : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30'
-                              }`}
+                                }`}
                               title={isBlocked ? 'Reinstate Account' : 'Suspend Account'}
                             >
                               <Ban size={14} />
@@ -905,13 +1031,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         <span className="px-2 py-0.5 rounded font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
                           {q.topic_name || 'General'}
                         </span>
-                        <span className={`px-2 py-0.5 rounded font-bold ${
-                          q.difficulty === 'Hard'
+                        <span className={`px-2 py-0.5 rounded font-bold ${q.difficulty === 'Hard'
                             ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                             : q.difficulty === 'Easy'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                        }`}>
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                          }`}>
                           {q.difficulty}
                         </span>
                         {q.company_name && q.company_name !== 'Universal' && (
@@ -951,11 +1076,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         return (
                           <div
                             key={opt.option_key}
-                            className={`p-2 rounded-lg border flex items-center gap-2 ${
-                              isCorrect
+                            className={`p-2 rounded-lg border flex items-center gap-2 ${isCorrect
                                 ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300 font-semibold'
                                 : 'bg-[var(--surface-card)] border-[var(--surface-border)] text-[var(--text-secondary)]'
-                            }`}
+                              }`}
                           >
                             <span className="font-bold w-4">{opt.option_key}.</span>
                             <span className="truncate">{opt.option_text}</span>
@@ -1165,11 +1289,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           {f.email}
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            f.role === 'ADMIN'
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${f.role === 'ADMIN'
                               ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                               : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                          }`}>
+                            }`}>
                             {f.role === 'ADMIN' ? 'Administrator' : 'Dean'}
                           </span>
                         </td>
@@ -1529,6 +1652,65 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               </div>
             ) : (
               <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+                {/* Placement Status Banner */}
+                <div className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 ${
+                  studentDossier?.student?.placement_status === 'PLACED'
+                    ? 'bg-emerald-950/20 border-emerald-500/30'
+                    : 'bg-[var(--surface-elevated)] border-[var(--surface-border)]'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      studentDossier?.student?.placement_status === 'PLACED'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'bg-slate-700/20 text-[var(--text-muted)]'
+                    }`}>
+                      <Briefcase size={16} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-[var(--text-primary)]">
+                          {studentDossier?.student?.placement_status === 'PLACED' ? 'Placement Status: Placed' : 'Placement Status: Not Placed'}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          studentDossier?.student?.placement_status === 'PLACED'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-slate-500/15 text-slate-400 border border-slate-500/20'
+                        }`}>
+                          {studentDossier?.student?.placement_status === 'PLACED' ? 'Offer Secured' : 'In Preparation'}
+                        </span>
+                      </div>
+                      {studentDossier?.student?.placement_status === 'PLACED' ? (
+                        <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                          Company: <span className="font-semibold text-[var(--text-primary)]">{studentDossier?.student?.placed_company || 'Undisclosed'}</span>
+                          {studentDossier?.student?.placement_package && (
+                            <span> • CTC: <span className="font-bold text-emerald-400">{studentDossier?.student?.placement_package}</span></span>
+                          )}
+                          {studentDossier?.student?.placed_date && (
+                            <span> • Date: <span className="text-[var(--text-muted)]">{studentDossier?.student?.placed_date}</span></span>
+                          )}
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+                          Candidate is actively undertaking prep tracks and skill assessments.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const curSt = studentDossier.student;
+                      setSelectedStudentId(null);
+                      setStudentDossier(null);
+                      handleOpenPlacementModal(curSt);
+                    }}
+                    className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 cursor-pointer flex-shrink-0"
+                  >
+                    <Edit2 size={12} />
+                    <span>Change</span>
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-3 gap-3">
                   <div className="p-3 rounded-xl bg-[var(--surface-elevated)] text-center">
                     <span className="text-[10px] text-[var(--text-muted)] block">XP</span>
@@ -1583,6 +1765,147 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* MODAL 4: ASSIGN / UPDATE STUDENT PLACEMENT STATUS                     */}
+      {/* ===================================================================== */}
+      {showPlacementModal && placementStudent && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-1">
+                  <Briefcase size={11} />
+                  <span>Campus Placement Record</span>
+                </span>
+                <h3 className="text-base font-bold text-[var(--text-primary)] mt-0.5">
+                  Update Placement Status
+                </h3>
+                <p className="text-xs text-[var(--text-muted)]">
+                  {placementStudent.name} ({placementStudent.email})
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPlacementModal(false)}
+                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg hover:bg-[var(--surface-hover)] cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--text-secondary)] mb-1.5">
+                  Placement Status
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPlacementStatus('PLACED')}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                      placementStatus === 'PLACED'
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-sm'
+                        : 'bg-[var(--surface-elevated)] border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    <Check size={14} />
+                    <span>Placed</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPlacementStatus('NOT_PLACED')}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                      placementStatus === 'NOT_PLACED'
+                        ? 'bg-rose-500/20 border-rose-500 text-rose-400 shadow-sm'
+                        : 'bg-[var(--surface-elevated)] border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    <X size={14} />
+                    <span>Not Placed</span>
+                  </button>
+                </div>
+              </div>
+
+              {placementStatus === 'PLACED' && (
+                <div className="space-y-3 p-3.5 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--surface-border)]">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[var(--text-secondary)] mb-1">
+                      Recruiting Company / Employer
+                    </label>
+                    <input
+                      type="text"
+                      list="admin-placement-companies"
+                      value={placedCompany}
+                      onChange={(e) => setPlacedCompany(e.target.value)}
+                      placeholder="e.g. Google, Microsoft, TCS, Infosys, Wipro"
+                      className="w-full p-2.5 bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none focus:border-emerald-500"
+                    />
+                    <datalist id="admin-placement-companies">
+                      {companies.map((c: any) => (
+                        <option key={c.id || c.name} value={c.name} />
+                      ))}
+                      <option value="Google" />
+                      <option value="Amazon" />
+                      <option value="Microsoft" />
+                      <option value="Tata Consultancy Services (TCS)" />
+                      <option value="Infosys" />
+                      <option value="Wipro" />
+                      <option value="Accenture" />
+                      <option value="Cognizant" />
+                      <option value="Capgemini" />
+                    </datalist>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[var(--text-secondary)] mb-1">
+                        Package / CTC
+                      </label>
+                      <input
+                        type="text"
+                        value={placementPackage}
+                        onChange={(e) => setPlacementPackage(e.target.value)}
+                        placeholder="e.g. 12 LPA or 8.5 LPA"
+                        className="w-full p-2.5 bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[var(--text-secondary)] mb-1">
+                        Offer / Placement Date
+                      </label>
+                      <input
+                        type="date"
+                        value={placedDate}
+                        onChange={(e) => setPlacedDate(e.target.value)}
+                        className="w-full p-2.5 bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl text-xs text-[var(--text-primary)] outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPlacementModal(false)}
+                  className="px-4 py-2 rounded-xl bg-[var(--surface-elevated)] text-[var(--text-secondary)] text-xs font-semibold hover:bg-[var(--surface-hover)] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSavePlacement}
+                  disabled={savingPlacement || (placementStatus === 'PLACED' && !placedCompany.trim())}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <Briefcase size={13} />
+                  <span>{savingPlacement ? 'Updating...' : 'Save Placement Status'}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

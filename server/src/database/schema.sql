@@ -56,6 +56,12 @@ CREATE TABLE IF NOT EXISTS users (
     current_streak INT DEFAULT 0,
     longest_streak INT DEFAULT 0,
     last_active_date DATE,
+    is_blocked BOOLEAN DEFAULT FALSE,
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    placement_status VARCHAR(30) DEFAULT 'NOT_PLACED',
+    placed_company VARCHAR(150),
+    placement_package VARCHAR(50),
+    placed_date DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
