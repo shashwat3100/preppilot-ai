@@ -317,6 +317,58 @@ export class QuizEngine {
   }
 
   /**
+   * Helper to generate a deeply pedagogical explanation for why the chosen option is wrong
+   * and why the correct option is right, handling negative constraint questions and option texts.
+   */
+  static explainMistakeDetails(q, chosenAnswer, chosenOpt, correctOpt, subject, topic) {
+    const chosenNorm = (chosenAnswer || '').trim().toUpperCase();
+    const correctNorm = (q.correct_answer || '').trim().toUpperCase();
+    const isCorr = Boolean(chosenNorm && chosenNorm === correctNorm);
+    const chosenText = chosenOpt ? chosenOpt.option_text : (chosenAnswer || 'No response');
+    const correctText = correctOpt ? correctOpt.option_text : q.correct_answer;
+    const baseExplanation = (q.explanation || '').trim();
+    const isNegativeQuestion = /\b(NOT|EXCEPT|FALSE|INCORRECT|CANNOT|CAN NOT|NEVER|LEAST)\b/i.test(q.question || '');
+
+    let whyCorrect = '';
+    let whyIncorrect = '';
+
+    if (isCorr) {
+      whyCorrect = `Correct! Option (${q.correct_answer}) "${correctText}" is the right answer. ${correctOpt?.explanation || baseExplanation || `This satisfies all requirements for ${topic?.name || 'this concept'}.`}`;
+      whyIncorrect = '';
+    } else {
+      // 1. Why Incorrect
+      if (chosenOpt && chosenOpt.explanation) {
+        whyIncorrect = `You selected Option (${chosenAnswer}) "${chosenText}". ${chosenOpt.explanation}`;
+      } else if (isNegativeQuestion) {
+        whyIncorrect = `You selected Option (${chosenAnswer || 'None'}) "${chosenText}". Notice that the question specifically contains a negative constraint asking which option does NOT apply. "${chosenText}" is actually an established, valid condition for ${topic?.name || 'this topic'}, which is why selecting it here is incorrect.`;
+      } else {
+        whyIncorrect = `You selected Option (${chosenAnswer || 'None'}) "${chosenText}". This option does not satisfy the requirements of ${topic?.name || 'this problem'}, because it either contradicts the underlying principle or belongs to a different classification.`;
+      }
+
+      // 2. Why Correct
+      if (correctOpt && correctOpt.explanation) {
+        whyCorrect = `The exact correct answer is Option (${q.correct_answer}) "${correctText}". ${correctOpt.explanation}`;
+      } else if (baseExplanation) {
+        if (isNegativeQuestion) {
+          whyCorrect = `The exact correct answer is Option (${q.correct_answer}) "${correctText}". ${baseExplanation} Because "${correctText}" is the exception or prevention technique, it correctly answers what is NOT a required condition.`;
+        } else {
+          whyCorrect = `The exact correct answer is Option (${q.correct_answer}) "${correctText}". ${baseExplanation}`;
+        }
+      } else {
+        whyCorrect = `The exact correct answer is Option (${q.correct_answer}) "${correctText}". This is the standard, verified principle in ${topic?.name || subject?.name || 'computer science'}.`;
+      }
+    }
+
+    return {
+      chosenText,
+      correctText,
+      whyCorrect,
+      whyIncorrect,
+      isNegativeQuestion
+    };
+  }
+
+  /**
    * Submits answers, grades quiz, calculates XP with speed bonus,
    * updates topic weaknesses, streaks, and user level.
    */
@@ -349,35 +401,30 @@ export class QuizEngine {
     if (session.status === 'COMPLETED') {
       const existingAttempts = db.find('attempts', a => a.session_id === sessionId);
       const sessionQuestions = db.find('quizQuestions', qq => qq.session_id === sessionId);
-      const graded = sessionQuestions.map(qq => {
+      const graded = sessionQuestions.map((qq, idx) => {
         const q = allQuestions.find(item => item.id === qq.question_id) || {};
         const qOptions = db.find('questionOptions', opt => opt.question_id === q.id);
         const chosenOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === (qq.user_answer || '').toUpperCase());
         const correctOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === (q.correct_answer || '').toUpperCase());
         const isCorr = Boolean(qq.is_correct);
 
-        const chosenText = chosenOpt ? chosenOpt.option_text : (qq.user_answer || 'No response');
-        const correctText = correctOpt ? correctOpt.option_text : q.correct_answer;
-
-        const whyCorr = correctOpt?.explanation || q.explanation || `Option (${q.correct_answer}) is the correct answer.`;
-        const whyIncorr = isCorr
-          ? ''
-          : (chosenOpt?.explanation || `You selected Option (${qq.user_answer}) "${chosenText}", which is incorrect for this problem.`);
-
         const subject = db.get('subjects', q.subject_id);
         const topic = db.get('topics', q.topic_id);
+        const details = QuizEngine.explainMistakeDetails(q, qq.user_answer || '', chosenOpt, correctOpt, subject, topic);
 
         return {
           question_id: q.id,
+          sequence: qq.sequence_order || (idx + 1),
           question: q.question,
           chosen_answer: qq.user_answer,
-          chosen_text: chosenText,
+          chosen_text: details.chosenText,
           correct_answer: q.correct_answer,
-          correct_text: correctText,
+          correct_text: details.correctText,
           is_correct: isCorr,
-          why_correct: whyCorr,
-          why_incorrect: whyIncorr,
+          why_correct: details.whyCorrect,
+          why_incorrect: details.whyIncorrect,
           explanation: q.explanation,
+          is_negative_constraint: details.isNegativeQuestion,
           options: qOptions.map(o => ({
             option_key: o.option_key,
             option_text: o.option_text,
@@ -472,33 +519,21 @@ export class QuizEngine {
       const chosenOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === chosenAnswer.toUpperCase());
       const correctOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === q.correct_answer.toUpperCase());
 
-      const chosenText = chosenOpt ? chosenOpt.option_text : (chosenAnswer || 'No response');
-      const correctText = correctOpt ? correctOpt.option_text : q.correct_answer;
-
-      let whyCorrect = correctOpt?.explanation || q.explanation || `Option (${q.correct_answer}) is the correct answer.`;
-      let whyIncorrect = '';
-
-      if (isCorrect) {
-        whyCorrect = `Correct! Option (${q.correct_answer}) "${correctText}" is the right answer. ${whyCorrect}`;
-      } else {
-        if (chosenOpt && chosenOpt.explanation) {
-          whyIncorrect = `You selected Option (${chosenAnswer}) "${chosenText}", which is incorrect. ${chosenOpt.explanation}`;
-        } else {
-          whyIncorrect = `You selected Option (${chosenAnswer || 'None'}) "${chosenText}", which is incorrect for this problem.`;
-        }
-      }
+      const details = QuizEngine.explainMistakeDetails(q, chosenAnswer, chosenOpt, correctOpt, subject, topic);
 
       gradedDetails.push({
         question_id: q.id,
+        sequence: qq.sequence_order || (gradedDetails.length + 1),
         question: q.question,
         chosen_answer: chosenAnswer,
-        chosen_text: chosenText,
+        chosen_text: details.chosenText,
         correct_answer: q.correct_answer,
-        correct_text: correctText,
+        correct_text: details.correctText,
         is_correct: isCorrect,
-        why_correct: whyCorrect,
-        why_incorrect: whyIncorrect,
+        why_correct: details.whyCorrect,
+        why_incorrect: details.whyIncorrect,
         explanation: q.explanation,
+        is_negative_constraint: details.isNegativeQuestion,
         options: qOptions.map(o => ({
           option_key: o.option_key,
           option_text: o.option_text,

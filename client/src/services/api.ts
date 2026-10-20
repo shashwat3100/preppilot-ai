@@ -233,9 +233,18 @@ export const api = {
   explainSingleMistake: async (payload: {
     question: string;
     chosen_answer: string;
+    chosen_text?: string;
     correct_answer: string;
-    explanation: string;
+    correct_text?: string;
+    explanation?: string;
+    why_correct?: string;
+    why_incorrect?: string;
     topic_name?: string;
+    subject_name?: string;
+    sequence?: number;
+    options?: any[];
+    is_negative_constraint?: boolean;
+    question_id?: string;
   }) => {
     const res = await fetch(`${API_BASE}/preppilot/explain-single-mistake`, {
       method: 'POST',

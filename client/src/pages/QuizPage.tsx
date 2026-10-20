@@ -51,10 +51,33 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
   const [voiceDiagnostic, setVoiceDiagnostic] = useState<{
     speech_text: string;
     overview: string;
-    mistakes: Array<{ questionNumber: number; question: string; chosenAnswer: string; correctAnswer: string; topic: string; diagnosis: string; remediation: string }>;
+    mistakes: Array<{
+      questionNumber: number;
+      sequence?: number;
+      question: string;
+      chosenAnswer?: string;
+      chosen_answer?: string;
+      chosenText?: string;
+      chosen_text?: string;
+      correctAnswer?: string;
+      correct_answer?: string;
+      correctText?: string;
+      correct_text?: string;
+      topic: string;
+      subject?: string;
+      diagnosis?: string;
+      remediation?: string;
+      why_chosen_wrong?: string;
+      why_correct?: string;
+      technical_deep_dive?: string;
+      viva_tip?: string;
+      is_negative_constraint?: boolean;
+      speech_text?: string;
+    }>;
     recommendations: string[];
   } | null>(null);
   const [activeVoiceQuestionIdx, setActiveVoiceQuestionIdx] = useState<number | null>(null);
+  const [activeVoiceMistakeIdx, setActiveVoiceMistakeIdx] = useState<number | null>(null);
   const [loadingQuestionIdx, setLoadingQuestionIdx] = useState<number | null>(null);
 
   const questions = quizSession.questions || [];
@@ -128,7 +151,11 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
       // If already loaded, toggle speech
       if (isSpeaking) {
         stopSpeaking();
+        setActiveVoiceQuestionIdx(null);
+        setActiveVoiceMistakeIdx(null);
       } else {
+        setActiveVoiceQuestionIdx(null);
+        setActiveVoiceMistakeIdx(null);
         speakText(voiceDiagnostic.speech_text);
       }
       return;
@@ -145,6 +172,8 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
 
       if (res.success) {
         setVoiceDiagnostic(res);
+        setActiveVoiceQuestionIdx(null);
+        setActiveVoiceMistakeIdx(null);
         speakText(res.speech_text);
       }
     } catch (err) {
@@ -154,6 +183,17 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
     }
   };
 
+  const handleSpeakMistake = (m: any, mIdx: number) => {
+    if (activeVoiceMistakeIdx === mIdx && isSpeaking) {
+      stopSpeaking();
+      setActiveVoiceMistakeIdx(null);
+      return;
+    }
+    setActiveVoiceQuestionIdx(null);
+    setActiveVoiceMistakeIdx(mIdx);
+    speakText(m.speech_text || m.remediation || m.why_correct || m.diagnosis);
+  };
+
   const handleExplainSingleQuestion = async (g: any, idx: number) => {
     if (activeVoiceQuestionIdx === idx && isSpeaking) {
       stopSpeaking();
@@ -161,14 +201,24 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
       return;
     }
 
+    setActiveVoiceMistakeIdx(null);
     setLoadingQuestionIdx(idx);
     try {
       const res = await api.explainSingleMistake({
         question: g.question,
         chosen_answer: g.chosen_answer,
+        chosen_text: g.chosen_text,
         correct_answer: g.correct_answer,
+        correct_text: g.correct_text,
         explanation: g.explanation,
-        topic_name: g.topic_name || g.subject_name
+        why_correct: g.why_correct,
+        why_incorrect: g.why_incorrect,
+        topic_name: g.topic_name,
+        subject_name: g.subject_name,
+        sequence: g.sequence || (idx + 1),
+        options: g.options,
+        is_negative_constraint: g.is_negative_constraint,
+        question_id: g.question_id
       });
 
       if (res.success && res.speech_text) {
@@ -319,13 +369,140 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
 
           {/* Expanded Diagnostic Details */}
           {voiceDiagnostic && (
-            <div className="mt-6 pt-5 border-t border-slate-800/80 space-y-4 animate-in fade-in duration-300">
+            <div className="mt-6 pt-5 border-t border-slate-800/80 space-y-5 animate-in fade-in duration-300">
+              {/* Diagnostic Overview Banner */}
               <div className="p-4 rounded-2xl bg-slate-950/80 border border-cyan-500/20 text-xs space-y-2">
                 <span className="font-extrabold text-cyan-300 flex items-center gap-1.5">
                   <Sparkles size={14} /> Diagnostic Summary:
                 </span>
                 <p className="text-slate-200 leading-relaxed">{voiceDiagnostic.overview}</p>
               </div>
+
+              {/* Detailed Breakdown for each mistake */}
+              {voiceDiagnostic.mistakes && voiceDiagnostic.mistakes.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <Sparkles size={13} className="text-cyan-400" />
+                      Detailed Mistake Breakdown & Interview Viva Keys:
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      Tap any card to hear dedicated audio diagnosis
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {voiceDiagnostic.mistakes.map((m, mIdx) => {
+                      const isSpeakingThisMistake = activeVoiceMistakeIdx === mIdx && isSpeaking;
+                      const qNumber = m.sequence || m.questionNumber || (mIdx + 1);
+                      const chosenAnswerKey = m.chosen_answer || m.chosenAnswer || '';
+                      const chosenAnswerText = m.chosen_text || m.chosenText || '';
+                      const correctAnswerKey = m.correct_answer || m.correctAnswer || '';
+                      const correctAnswerText = m.correct_text || m.correctText || '';
+
+                      return (
+                        <div
+                          key={mIdx}
+                          className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 ${
+                            isSpeakingThisMistake
+                              ? 'bg-slate-900 border-cyan-400 shadow-lg shadow-cyan-500/10'
+                              : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
+                          }`}
+                        >
+                          {/* Question header info */}
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-0.5 rounded-lg bg-indigo-600/20 text-indigo-300 font-bold text-xs border border-indigo-500/30">
+                                Question {qNumber}
+                              </span>
+                              <span className="text-xs font-semibold text-slate-300">
+                                {m.topic}
+                              </span>
+                            </div>
+                            {m.is_negative_constraint && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                                <AlertTriangle size={11} /> Negative Premise (Contains NOT / EXCEPT)
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Full Question Text */}
+                          <h4 className="text-xs sm:text-sm font-bold text-white leading-relaxed">
+                            {m.question}
+                          </h4>
+
+                          {/* Side-by-side: Why chosen was wrong vs Why correct is right */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                            {/* Chosen Option Card */}
+                            <div className="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/30 text-xs space-y-1.5">
+                              <div className="flex items-center gap-1.5 font-bold text-rose-400">
+                                <XCircle size={14} className="flex-shrink-0" />
+                                <span>You Chose: Option {chosenAnswerKey}</span>
+                              </div>
+                              {chosenAnswerText && (
+                                <p className="font-semibold text-slate-200">
+                                  "{chosenAnswerText}"
+                                </p>
+                              )}
+                              <p className="text-slate-300 leading-relaxed text-[11px] sm:text-xs">
+                                {m.why_chosen_wrong || m.diagnosis || `This selection does not satisfy the requirements.`}
+                              </p>
+                            </div>
+
+                            {/* Exact Correct Option Card */}
+                            <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs space-y-1.5">
+                              <div className="flex items-center gap-1.5 font-bold text-emerald-400">
+                                <CheckCircle2 size={14} className="flex-shrink-0" />
+                                <span>Exact Correct Answer: Option {correctAnswerKey}</span>
+                              </div>
+                              {correctAnswerText && (
+                                <p className="font-semibold text-slate-200">
+                                  "{correctAnswerText}"
+                                </p>
+                              )}
+                              <p className="text-slate-300 leading-relaxed text-[11px] sm:text-xs">
+                                {m.why_correct || m.technical_deep_dive || m.remediation || `Option ${correctAnswerKey} is the correct answer.`}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Placement Viva Takeaway */}
+                          {m.viva_tip && (
+                            <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-xs text-cyan-200 flex items-start gap-2">
+                              <Sparkles size={14} className="text-cyan-400 flex-shrink-0 mt-0.5" />
+                              <span className="leading-relaxed"><strong>Placement Viva Key:</strong> {m.viva_tip}</span>
+                            </div>
+                          )}
+
+                          {/* Action Button for single question voice */}
+                          <div className="flex items-center gap-2 pt-1">
+                            <button
+                              onClick={() => handleSpeakMistake(m, mIdx)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                                isSpeakingThisMistake
+                                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
+                                  : 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30'
+                              }`}
+                            >
+                              {isSpeakingThisMistake ? (
+                                <>
+                                  <VolumeX size={12} />
+                                  <span>Stop Voice Explanation</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Volume2 size={12} />
+                                  <span>Listen to Question {qNumber} Audio Diagnosis</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {voiceDiagnostic.recommendations && voiceDiagnostic.recommendations.length > 0 && (
                 <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 text-xs space-y-2">
@@ -406,8 +583,8 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
                       <h3 className="text-sm font-semibold text-[var(--text-primary)]">{g.question}</h3>
 
                       <div className="flex flex-wrap gap-4 text-xs pt-1">
-                        <span>Your choice: <strong className={g.is_correct ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}>{g.chosen_answer}</strong></span>
-                        <span>Correct answer: <strong className="text-emerald-500 dark:text-emerald-400">{g.correct_answer}</strong></span>
+                        <span>Your choice: <strong className={g.is_correct ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}>Option {g.chosen_answer}{g.chosen_text ? ` ("${g.chosen_text}")` : ''}</strong></span>
+                        <span>Correct answer: <strong className="text-emerald-500 dark:text-emerald-400">Option {g.correct_answer}{g.correct_text ? ` ("${g.correct_text}")` : ''}</strong></span>
                         <span className="text-[var(--text-muted)]">Time: {g.time_spent}s</span>
                         {g.xp_gained > 0 && <span className="text-amber-500 dark:text-amber-400 font-semibold">+{g.xp_gained} XP</span>}
                       </div>

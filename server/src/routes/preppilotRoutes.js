@@ -65,6 +65,178 @@ router.get('/knowledge', optionalAuthenticate, (req, res) => {
   return res.json({ success: true, documents: docs });
 });
 
+/**
+ * Generates an empathetic, deep, and unambiguous pedagogical diagnosis for a quiz mistake.
+ * Accurately articulates:
+ * 1) Exact question number & question premise (including negative constraints like "NOT" / "EXCEPT").
+ * 2) The student's chosen option letter and full option text, explaining WHY selecting it is incorrect.
+ * 3) The exact correct option letter and full option text, explaining the deep technical reason WHY it is right.
+ * 4) An actionable campus interview viva key.
+ */
+async function generateDeepMistakeDiagnosis(q, qIndex, apiKey = null) {
+  let dbQ = null;
+  let dbOpts = [];
+  const qId = q.question_id || q.id;
+  if (qId) {
+    dbQ = db.get('questions', qId);
+    dbOpts = db.find('questionOptions', opt => opt.question_id === qId);
+  }
+
+  const questionText = q.question || dbQ?.question || 'Technical Problem';
+  const topic = q.topic_name || q.topic || dbQ?.topic_id || 'Core Concept';
+  const subject = q.subject_name || q.subject || 'Engineering Subject';
+  const chosenKey = (q.chosen_answer || q.user_answer || '').trim().toUpperCase();
+  const correctKey = (q.correct_answer || dbQ?.correct_answer || '').trim().toUpperCase();
+
+  const optionsList = (q.options && q.options.length > 0) ? q.options : dbOpts;
+  const chosenOpt = optionsList.find(o => (o.option_key || '').toUpperCase() === chosenKey);
+  const correctOpt = optionsList.find(o => (o.option_key || '').toUpperCase() === correctKey);
+
+  const chosenText = q.chosen_text || chosenOpt?.option_text || (chosenKey ? `Option ${chosenKey}` : 'No response');
+  const correctText = q.correct_text || correctOpt?.option_text || correctKey;
+
+  const sequenceNum = q.sequence || q.sequence_order || q.questionNumber || (qIndex != null ? qIndex + 1 : 1);
+  const isNegative = q.is_negative_constraint != null
+    ? Boolean(q.is_negative_constraint)
+    : /\b(NOT|EXCEPT|FALSE|INCORRECT|NEVER|CANNOT|CAN NOT|LEAST)\b/i.test(questionText);
+
+  const cleanExplanation = (q.explanation || dbQ?.explanation || '')
+    .replace(/[#*`_\[\]()]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 1. Check if Gemini Live AI is available
+  const effectiveApiKey = apiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (effectiveApiKey) {
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: effectiveApiKey });
+      const prompt = `You are PrepPilot, an elite B.Tech campus placement voice coach. A student made a conceptual mistake on Question ${sequenceNum}.
+Question: "${questionText}"
+Options:
+${optionsList.map(o => `${o.option_key}: ${o.option_text}`).join('\n')}
+Student Chose: Option ${chosenKey} ("${chosenText}")
+Exact Correct Answer: Option ${correctKey} ("${correctText}")
+Topic: ${topic}
+Verified Technical Explanation: ${cleanExplanation}
+
+Generate a clear, authoritative, and encouraging verbal explanation for text-to-speech narration:
+1. State Question ${sequenceNum} and topic (${topic}). If the question has a negative constraint (such as "NOT" or "EXCEPT"), explicitly point this out so the student understands the premise.
+2. Clearly state that they selected Option ${chosenKey}: "${chosenText}", and explain why choosing it was incorrect.
+3. Clearly state that the exact correct answer is Option ${correctKey}: "${correctText}", and deeply explain the underlying technical mechanism.
+4. Conclude with an "Interview Viva Takeaway".
+IMPORTANT: Do NOT use markdown symbols, asterisks, bullet points, or special characters. Speak directly in clean, audible sentences.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: { temperature: 0.2 }
+      });
+
+      if (response && response.text) {
+        const liveText = response.text
+          .replace(/[#*`_\[\]()]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (liveText.length > 60) {
+          return {
+            questionNumber: sequenceNum,
+            sequence: sequenceNum,
+            question_id: qId,
+            question: questionText,
+            topic,
+            subject,
+            chosen_answer: chosenKey,
+            chosen_text: chosenText,
+            correct_answer: correctKey,
+            correct_text: correctText,
+            is_negative_constraint: isNegative,
+            why_chosen_wrong: q.why_incorrect || `You selected Option ${chosenKey}: "${chosenText}". ${isNegative ? `Because the question asks which is NOT true, choosing "${chosenText}" is incorrect as it is an established requirement for ${topic}.` : `This does not satisfy the requirements of ${topic}.`}`,
+            why_correct: q.why_correct || `The exact correct answer is Option ${correctKey}: "${correctText}". ${cleanExplanation}`,
+            technical_deep_dive: cleanExplanation || `Option ${correctKey} is the verified standard.`,
+            viva_tip: `Interview Viva Tip: Pay close attention to negative constraints (NOT, EXCEPT) and core invariants in ${topic}.`,
+            speech_text: liveText,
+            is_live_ai: true
+          };
+        }
+      }
+    } catch (geminiErr) {
+      console.warn('[Diagnose] Gemini live synthesis error, falling back to grounded technical mentor:', geminiErr.message);
+    }
+  }
+
+  // 2. High-Yield Grounded Deterministic Technical Mentor Fallback
+  let whyWrong = q.why_incorrect;
+  if (!whyWrong) {
+    if (isNegative) {
+      whyWrong = `You selected Option ${chosenKey}: "${chosenText}". Notice that the question contains a negative constraint asking which option is NOT required. "${chosenText}" is actually an essential, standard requirement for ${topic}, which makes selecting it here incorrect.`;
+    } else {
+      whyWrong = `You selected Option ${chosenKey}: "${chosenText}". This option does not satisfy the technical requirements for ${topic} in this scenario.`;
+    }
+  }
+
+  let whyRight = q.why_correct;
+  if (!whyRight) {
+    if (isNegative) {
+      whyRight = `The exact correct answer is Option ${correctKey}: "${correctText}". ${cleanExplanation || `Because "${correctText}" is an exception or prevention measure, it is NOT one of the required conditions.`}`;
+    } else {
+      whyRight = `The exact correct answer is Option ${correctKey}: "${correctText}". ${cleanExplanation || `Option ${correctKey} is the authoritative principle for ${topic}.`}`;
+    }
+  }
+
+  // Viva Key tailored to topic
+  let vivaTip = '';
+  const searchStr = (topic + ' ' + questionText).toLowerCase();
+  if (searchStr.includes('deadlock') || searchStr.includes('coffman')) {
+    vivaTip = 'Viva Key: In technical interviews, remember that all 4 Coffman conditions (Mutual Exclusion, Hold and Wait, No Preemption, Circular Wait) must hold simultaneously for a deadlock to exist. Denying any single condition completely prevents deadlocks.';
+  } else if (searchStr.includes('paging') || searchStr.includes('virtual memory') || searchStr.includes('tlb')) {
+    vivaTip = 'Viva Key: Virtual memory questions often test the difference between page faults (an OS software trap) and TLB misses (a hardware lookup miss).';
+  } else if (searchStr.includes('scheduling') || searchStr.includes('round robin') || searchStr.includes('fcfs')) {
+    vivaTip = 'Viva Key: A large time quantum makes Round Robin behave like FCFS, whereas a very short quantum introduces excessive context-switching overhead.';
+  } else if (searchStr.includes('b+ tree') || searchStr.includes('indexing') || searchStr.includes('b-tree')) {
+    vivaTip = 'Viva Key: B+ Trees store all actual record pointers at leaf nodes connected by a linked list, which is why database engines use them for fast range queries.';
+  } else if (searchStr.includes('acid') || searchStr.includes('transaction')) {
+    vivaTip = 'Viva Key: In DBMS viva, remember: Atomicity and Durability are guaranteed by the recovery log (WAL), while Isolation is enforced by two-phase locking (2PL).';
+  } else if (searchStr.includes('normalization') || searchStr.includes('bcnf') || searchStr.includes('3nf')) {
+    vivaTip = 'Viva Key: 3NF preserves functional dependencies and guarantees lossless join, whereas BCNF eliminates all anomalies from non-superkey determinants but may not preserve dependencies.';
+  } else if (searchStr.includes('tcp') || searchStr.includes('udp') || searchStr.includes('three-way')) {
+    vivaTip = 'Viva Key: TCP three-way handshake uses SYN, SYN-ACK, ACK. TCP provides reliable byte-stream transfer with congestion control, while UDP provides connectionless, low-overhead datagrams.';
+  } else if (isNegative) {
+    vivaTip = 'Viva Key: In fast-paced technical screening rounds, always look out for negative qualifiers like NOT, EXCEPT, or FALSE in the problem statement.';
+  } else {
+    vivaTip = `Viva Key: When answering questions on ${topic}, begin by stating the formal definition, followed by complexity analysis or architectural trade-offs.`;
+  }
+
+  // Build spoken speech script
+  let spokenScript = '';
+  if (isNegative) {
+    spokenScript = `In Question ${sequenceNum} regarding ${topic}: The question asked: "${questionText.replace(/[?.]/g, '')}". Notice that this question contains a negative constraint asking which option does not apply. You selected Option ${chosenKey}: ${chosenText}. However, ${chosenText} is actually an essential requirement, which is why selecting it was incorrect. The exact correct answer is Option ${correctKey}: ${correctText}. ${cleanExplanation ? cleanExplanation : `Because ${correctText} prevents or breaks the condition, it is not one of the required conditions.`} ${vivaTip}`;
+  } else {
+    spokenScript = `In Question ${sequenceNum} regarding ${topic}: You selected Option ${chosenKey}: ${chosenText}. However, this does not satisfy the requirements. The exact correct answer is Option ${correctKey}: ${correctText}. ${cleanExplanation ? cleanExplanation : `Option ${correctKey} is the correct answer.`} ${vivaTip}`;
+  }
+
+  return {
+    questionNumber: sequenceNum,
+    sequence: sequenceNum,
+    question_id: qId,
+    question: questionText,
+    topic,
+    subject,
+    chosen_answer: chosenKey,
+    chosen_text: chosenText,
+    correct_answer: correctKey,
+    correct_text: correctText,
+    is_negative_constraint: isNegative,
+    why_chosen_wrong: whyWrong,
+    why_correct: whyRight,
+    technical_deep_dive: cleanExplanation || whyRight,
+    viva_tip: vivaTip,
+    speech_text: spokenScript,
+    is_live_ai: false
+  };
+}
+
 // POST /api/preppilot/diagnose-mistakes
 // Provides thorough voice synthesis text and remediation guide for quiz or coding mistakes
 router.post('/diagnose-mistakes', authenticate, async (req, res) => {
@@ -120,43 +292,25 @@ router.post('/diagnose-mistakes', authenticate, async (req, res) => {
       });
     }
 
-    // Build pedagogical script
-    let speechParts = [
+    // Build pedagogical diagnoses for mistakes
+    const diagnosedMistakes = [];
+    const speechParts = [
       `Hi there! Let's examine where you faced difficulties in this session and what you should do next.`
     ];
 
-    const mistakes = [];
-
-    incorrectQuestions.slice(0, 3).forEach((q, idx) => {
-      const qNum = idx + 1;
-      const topic = q.topic_name || q.subject_name || 'Core Concept';
-      const cleanExp = (q.explanation || '')
-        .replace(/[#*`_\[\]()]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      const itemDiagnosis = `In question ${qNum} regarding ${topic}, you chose "${q.chosen_answer}", but the correct answer is "${q.correct_answer}".`;
-      const itemRemediation = cleanExp || `Review the theoretical definitions and standard interview rules for ${topic}.`;
-
-      speechParts.push(`${itemDiagnosis} Here is why: ${itemRemediation}`);
-
-      mistakes.push({
-        questionNumber: qNum,
-        question: q.question,
-        chosenAnswer: q.chosen_answer,
-        correctAnswer: q.correct_answer,
-        topic,
-        diagnosis: itemDiagnosis,
-        remediation: itemRemediation
-      });
-    });
+    const questionsToDiagnose = incorrectQuestions.slice(0, 3);
+    for (let i = 0; i < questionsToDiagnose.length; i++) {
+      const diag = await generateDeepMistakeDiagnosis(questionsToDiagnose[i], i, req.body.apiKey);
+      diagnosedMistakes.push(diag);
+      speechParts.push(diag.speech_text);
+    }
 
     const weakList = (weak_topics && weak_topics.length > 0)
       ? weak_topics.join(', ')
       : incorrectQuestions.map(q => q.topic_name).filter(Boolean).slice(0, 2).join(', ');
 
     speechParts.push(
-      `To solidify these concepts, spend 15 minutes reviewing ${weakList || 'these topics'}, then re-attempt targeted practice questions in the quiz engine.`
+      `To solidify these concepts, spend 15 minutes reviewing theoretical foundations for ${weakList || 'these topics'}, then re-attempt targeted practice questions in the quiz engine.`
     );
 
     const fullSpeech = speechParts.join(' ');
@@ -165,7 +319,7 @@ router.post('/diagnose-mistakes', authenticate, async (req, res) => {
       success: true,
       speech_text: fullSpeech,
       overview: `Detected ${incorrectQuestions.length} conceptual gaps across: ${weakList || 'tested topics'}.`,
-      mistakes,
+      mistakes: diagnosedMistakes,
       recommendations: [
         `Review theoretical foundations for ${weakList || 'key topics'}`,
         'Practice 5 targeted questions in Custom Practice mode',
@@ -183,21 +337,15 @@ router.post('/diagnose-mistakes', authenticate, async (req, res) => {
 
 // POST /api/preppilot/explain-single-mistake
 // Generates a quick, focused voice explanation for a single question mistake
-router.post('/explain-single-mistake', authenticate, (req, res) => {
+router.post('/explain-single-mistake', authenticate, async (req, res) => {
   try {
-    const { question, chosen_answer, correct_answer, explanation, topic_name } = req.body;
-
-    const cleanExplanation = (explanation || '')
-      .replace(/[#*`_\[\]()]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    const voiceScript = `For this question on ${topic_name || 'this topic'}, you selected ${chosen_answer}, but the correct answer is ${correct_answer}. The reason is: ${cleanExplanation}. What you should do: Revisit the core rules of ${topic_name || 'this subject'} and pay attention to edge-case definitions during interview viva questions.`;
+    const diag = await generateDeepMistakeDiagnosis(req.body, req.body.sequence || 1, req.body.apiKey);
 
     return res.json({
       success: true,
-      speech_text: voiceScript,
-      topic: topic_name
+      speech_text: diag.speech_text,
+      topic: diag.topic,
+      diagnosis: diag
     });
   } catch (err) {
     console.error('[PrepPilot Single Mistake Error]:', err);
