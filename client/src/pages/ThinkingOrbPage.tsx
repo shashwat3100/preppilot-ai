@@ -16,13 +16,7 @@ import {
   Database,
   Cpu,
   Layers,
-  Building2,
-  ChevronDown,
-  Key,
-  Check,
-  Zap,
-  Settings2,
-  X
+  Building2
 } from 'lucide-react';
 
 const SUGGESTIONS = [
@@ -67,19 +61,10 @@ export default function ThinkingOrbPage() {
     sendQuery,
     speakText,
     stopSpeaking,
-    clearConversation,
-    selectedModel,
-    setSelectedModel,
-    availableModels,
-    apiKey,
-    setApiKey,
-    hasSystemKey
+    clearConversation
   } = useVoice();
 
   const [inputVal, setInputVal] = useState('');
-  const [showModelMenu, setShowModelMenu] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [tempApiKey, setTempApiKey] = useState(apiKey);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -99,7 +84,7 @@ export default function ThinkingOrbPage() {
     if (!text || isProcessing) return;
 
     setInputVal('');
-    await sendQuery(text, false, selectedModel);
+    await sendQuery(text, false);
 
     // Re-focus input immediately so user can type second/third message with zero friction
     setTimeout(() => {
@@ -122,17 +107,6 @@ export default function ThinkingOrbPage() {
     }
   };
 
-  const currentModelInfo = availableModels.find(m => m.id === selectedModel) || {
-    id: selectedModel,
-    name: selectedModel,
-    tag: 'Latest Model'
-  };
-
-  const handleSaveApiKey = () => {
-    setApiKey(tempApiKey.trim());
-    setShowSettingsModal(false);
-  };
-
   const hasMessages = conversation.length > 1; // 1 is default welcome message
 
   return (
@@ -150,84 +124,14 @@ export default function ThinkingOrbPage() {
               <h1 className="text-sm font-bold text-white flex items-center gap-2 truncate">
                 <span>PrepPilot AI</span>
               </h1>
-
-              {/* Model Selector Pill */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowModelMenu(!showModelMenu)}
-                  className="text-[11px] px-2.5 py-1 rounded-full font-medium bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:to-cyan-500/30 text-indigo-200 border border-indigo-500/40 flex items-center gap-1.5 transition-all shadow-sm"
-                  title="Switch AI Model"
-                >
-                  <Sparkles size={11} className="text-cyan-400" />
-                  <span className="font-semibold">{currentModelInfo.name}</span>
-                  <ChevronDown size={11} className={`text-slate-400 transition-transform ${showModelMenu ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* Dropdown Menu */}
-                {showModelMenu && (
-                  <div className="absolute left-0 mt-2 w-72 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-                    <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-3 py-1.5">
-                      Select Google Gemini Model
-                    </div>
-                    {availableModels.map(m => (
-                      <button
-                        key={m.id}
-                        onClick={() => {
-                          setSelectedModel(m.id);
-                          setShowModelMenu(false);
-                        }}
-                        className={`w-full text-left p-2.5 rounded-xl transition-colors flex items-start gap-2.5 ${
-                          selectedModel === m.id
-                            ? 'bg-indigo-600/20 border border-indigo-500/40 text-white'
-                            : 'hover:bg-slate-800/80 text-slate-300'
-                        }`}
-                      >
-                        <Zap size={15} className={`mt-0.5 flex-shrink-0 ${selectedModel === m.id ? 'text-indigo-400' : 'text-slate-500'}`} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-100">{m.name}</span>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded font-medium bg-slate-800 text-indigo-300 border border-slate-700">
-                              {m.tag}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">
-                            {m.description}
-                          </p>
-                        </div>
-                        {selectedModel === m.id && <Check size={14} className="text-indigo-400 mt-1 flex-shrink-0" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border bg-slate-900 border-slate-800 text-slate-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span>Placement AI Mentor</span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Active Mode Pill */}
-            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border bg-slate-900 border-slate-800 text-slate-300">
-              <span className={`w-2 h-2 rounded-full ${apiKey || hasSystemKey ? 'bg-emerald-400 animate-pulse' : 'bg-cyan-400'}`} />
-              <span>{apiKey || hasSystemKey ? 'Live GenAI Mode' : 'Curriculum RAG Grounded'}</span>
-            </div>
-
-            {/* Model Settings Button */}
-            <button
-              onClick={() => {
-                setTempApiKey(apiKey);
-                setShowSettingsModal(true);
-              }}
-              className={`p-2 rounded-xl border transition-colors ${
-                apiKey || hasSystemKey
-                  ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/40'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-              }`}
-              title="Configure Gemini API Settings"
-              aria-label="Gemini API Key Settings"
-            >
-              <Settings2 size={16} />
-            </button>
-
             {/* Audio Indicator */}
             {isSpeaking && (
               <button
@@ -257,7 +161,7 @@ export default function ThinkingOrbPage() {
       {/* ───────────────────────────────────────────────────────────── */}
       {/* Central Content Area (Stream of Conversation in Middle)       */}
       {/* ───────────────────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto px-4 py-8" onClick={() => setShowModelMenu(false)}>
+      <main className="flex-1 overflow-y-auto px-4 py-8">
         <div className="max-w-4xl mx-auto w-full">
           {!hasMessages ? (
             /* Empty State: Center Hero Aura & Suggestions */
@@ -271,7 +175,7 @@ export default function ThinkingOrbPage() {
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
-                What would you like to prepare with {currentModelInfo.name}?
+                What would you like to prepare today?
               </h2>
               <p className="text-sm text-slate-400 max-w-lg mb-8 leading-relaxed">
                 Trained on Pune University curriculum and verified against placement interviews from TCS, Infosys, Capgemini, Google, and Amazon.
@@ -355,17 +259,8 @@ export default function ThinkingOrbPage() {
                         {!isUser && (
                           <>
                             <span className="text-indigo-400 font-medium">
-                              • {msg.model || selectedModel}
+                              • PrepPilot AI Mentor
                             </span>
-                            {msg.isLiveApi ? (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                Live GenAI API
-                              </span>
-                            ) : (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                                Grounded RAG & Syllabus Demo Mode
-                              </span>
-                            )}
                             {(msg.text.includes("connection hiccup") || msg.text.includes("Please retry")) && (
                               <button
                                 onClick={() => {
@@ -406,7 +301,7 @@ export default function ThinkingOrbPage() {
                 </div>
               )}
 
-              {/* Quick & Snappy Thinking Indicator (Gemini-style) */}
+              {/* Quick & Snappy Thinking Indicator */}
               {isProcessing && (
                 <div className="flex items-center gap-3.5 text-slate-400 text-xs animate-in fade-in duration-150">
                   <div className="w-8 h-8 rounded-xl bg-slate-900 border border-cyan-500/30 flex items-center justify-center text-cyan-400 flex-shrink-0">
@@ -415,7 +310,7 @@ export default function ThinkingOrbPage() {
                   <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800">
                     <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
                     <span className="text-slate-300 text-xs font-medium">
-                      {currentModelInfo.name} synthesizing curriculum & interview insights...
+                      Synthesizing curriculum & interview insights...
                     </span>
                   </div>
                 </div>
@@ -455,7 +350,7 @@ export default function ThinkingOrbPage() {
               placeholder={
                 isListening
                   ? 'Listening to speech...'
-                  : `Ask ${currentModelInfo.name} about DSA, DBMS, Microprocessor, or interview rounds...`
+                  : 'Ask about DSA, DBMS, Microprocessor, or interview rounds...'
               }
               className="flex-1 bg-transparent border-0 text-slate-100 placeholder-slate-400 text-xs sm:text-sm px-3 py-2 resize-none focus:outline-none max-h-36 min-h-[42px] leading-relaxed"
             />
@@ -493,78 +388,10 @@ export default function ThinkingOrbPage() {
 
           <div className="flex items-center justify-between text-[11px] text-slate-400 px-2">
             <span>Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Enter</kbd> to send, <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Shift+Enter</kbd> for line breaks</span>
-            <span className="hidden sm:inline">Model: {currentModelInfo.name} • SPPU Syllabus Grounded</span>
+            <span className="hidden sm:inline">SPPU Syllabus Grounded • AI Placement Mentor</span>
           </div>
         </div>
       </footer>
-
-      {/* Model & API Settings Modal */}
-      {showSettingsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Key size={18} className="text-cyan-400" />
-                <h3 className="text-base font-bold text-white">Google Gemini Settings</h3>
-              </div>
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Active AI Model
-              </label>
-              <select
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
-              >
-                {availableModels.map(m => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.tag})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Google Gemini API Key (Optional)
-              </label>
-              <input
-                type="password"
-                value={tempApiKey}
-                onChange={(e) => setTempApiKey(e.target.value)}
-                placeholder="AIzaSy..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 placeholder-slate-600 font-mono"
-              />
-              <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
-                If provided, PrepPilot connects directly to official Google GenAI endpoints. If left blank, PrepPilot utilizes our high-precision syllabus-grounded Gemini 2.5 synthesis engine.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveApiKey}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30"
-              >
-                Save Preferences
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

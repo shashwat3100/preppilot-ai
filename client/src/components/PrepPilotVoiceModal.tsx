@@ -18,12 +18,7 @@ import {
   Cpu,
   Layers,
   Building2,
-  ArrowRight,
-  ChevronDown,
-  Key,
-  Check,
-  Zap,
-  Settings2
+  ArrowRight
 } from 'lucide-react';
 
 const SUGGESTIONS = [
@@ -69,19 +64,10 @@ export const PrepPilotVoiceModal: React.FC = () => {
     speakText,
     stopSpeaking,
     sendQuery,
-    clearConversation,
-    selectedModel,
-    setSelectedModel,
-    availableModels,
-    apiKey,
-    setApiKey,
-    hasSystemKey
+    clearConversation
   } = useVoice();
 
   const [inputVal, setInputVal] = useState('');
-  const [showModelMenu, setShowModelMenu] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [tempApiKey, setTempApiKey] = useState(apiKey);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -107,18 +93,12 @@ export const PrepPilotVoiceModal: React.FC = () => {
     if (!isModalOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (showSettingsModal) {
-          setShowSettingsModal(false);
-        } else if (showModelMenu) {
-          setShowModelMenu(false);
-        } else {
-          closeVoiceModal();
-        }
+        closeVoiceModal();
       }
     };
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [isModalOpen, closeVoiceModal, showSettingsModal, showModelMenu]);
+  }, [isModalOpen, closeVoiceModal]);
 
   if (!isModalOpen) return null;
 
@@ -127,7 +107,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
     if (!text || isProcessing) return;
 
     setInputVal('');
-    await sendQuery(text, false, selectedModel);
+    await sendQuery(text, false);
 
     // Keep textarea ready for consecutive typing
     setTimeout(() => {
@@ -142,17 +122,6 @@ export const PrepPilotVoiceModal: React.FC = () => {
     }
   };
 
-  const currentModelInfo = availableModels.find(m => m.id === selectedModel) || {
-    id: selectedModel,
-    name: selectedModel,
-    tag: 'Latest Model'
-  };
-
-  const handleSaveApiKey = () => {
-    setApiKey(tempApiKey.trim());
-    setShowSettingsModal(false);
-  };
-
   return (
     <div
       role="dialog"
@@ -160,7 +129,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
       aria-labelledby="preppilot-dialog-title"
       className="fixed inset-0 z-50 flex flex-col bg-slate-950/95 backdrop-blur-2xl animate-in fade-in duration-150 overflow-hidden"
     >
-      {/* Top Bar - Clean, Model-Aware & Elegant */}
+      {/* Top Bar - Clean, Elegant & Mentor-Focused */}
       <header className="flex items-center justify-between px-4 sm:px-8 py-3.5 border-b border-slate-800/70 bg-slate-950/80 backdrop-blur-md flex-shrink-0 z-20">
         <div className="flex items-center gap-3">
           <PrepPilotLogo size="sm" active={isListening || isSpeaking || isProcessing} />
@@ -170,55 +139,9 @@ export const PrepPilotVoiceModal: React.FC = () => {
                 PrepPilot AI
               </h2>
 
-              {/* Model Selector Pill */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowModelMenu(!showModelMenu)}
-                  className="text-[11px] px-2.5 py-1 rounded-full font-medium bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:to-cyan-500/30 text-indigo-200 border border-indigo-500/40 flex items-center gap-1.5 transition-all shadow-sm"
-                  title="Switch AI Model"
-                >
-                  <Sparkles size={11} className="text-cyan-400" />
-                  <span className="font-semibold">{currentModelInfo.name}</span>
-                  <ChevronDown size={11} className={`text-slate-400 transition-transform ${showModelMenu ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* Dropdown Menu */}
-                {showModelMenu && (
-                  <div className="absolute left-0 mt-2 w-72 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-                    <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-3 py-1.5">
-                      Select Google Gemini Model
-                    </div>
-                    {availableModels.map(m => (
-                      <button
-                        key={m.id}
-                        onClick={() => {
-                          setSelectedModel(m.id);
-                          setShowModelMenu(false);
-                        }}
-                        className={`w-full text-left p-2.5 rounded-xl transition-colors flex items-start gap-2.5 ${
-                          selectedModel === m.id
-                            ? 'bg-indigo-600/20 border border-indigo-500/40 text-white'
-                            : 'hover:bg-slate-800/80 text-slate-300'
-                        }`}
-                      >
-                        <Zap size={15} className={`mt-0.5 flex-shrink-0 ${selectedModel === m.id ? 'text-indigo-400' : 'text-slate-500'}`} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-100">{m.name}</span>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded font-medium bg-slate-800 text-indigo-300 border border-slate-700">
-                              {m.tag}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">
-                            {m.description}
-                          </p>
-                        </div>
-                        {selectedModel === m.id && <Check size={14} className="text-indigo-400 mt-1 flex-shrink-0" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border bg-slate-900 border-slate-800 text-slate-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span>Placement AI Mentor</span>
               </div>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">
@@ -251,23 +174,6 @@ export const PrepPilotVoiceModal: React.FC = () => {
                 : 'Ready'}
             </span>
           </div>
-
-          {/* Model Settings Button */}
-          <button
-            onClick={() => {
-              setTempApiKey(apiKey);
-              setShowSettingsModal(true);
-            }}
-            className={`p-2 rounded-xl border transition-colors ${
-              apiKey || hasSystemKey
-                ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/40'
-                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-            title="Configure Gemini API Settings"
-            aria-label="Gemini API Key Settings"
-          >
-            <Settings2 size={16} />
-          </button>
 
           {/* Voice speaking stop */}
           {isSpeaking && (
@@ -305,11 +211,11 @@ export const PrepPilotVoiceModal: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Conversation Area - Centered Gemini Layout */}
-      <main className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-6" onClick={() => setShowModelMenu(false)}>
+      {/* Main Conversation Area - Centered Layout */}
+      <main className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-6">
         <div className="max-w-3xl mx-auto w-full">
           {conversation.length === 0 ? (
-            /* Empty State: Centered Gemini Aura & Quick Prompts */
+            /* Empty State: Centered Aura & Quick Prompts */
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 py-8 animate-in fade-in duration-300">
               {/* Ambient Glowing Orb */}
               <div className="relative mb-6">
@@ -323,7 +229,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
                 How can I help you today?
               </h3>
               <p className="text-slate-400 text-sm max-w-lg mb-8 leading-relaxed">
-                Powered by <span className="text-indigo-300 font-semibold">{currentModelInfo.name}</span>. Ask any question about Data Structures, OS, DBMS, Microprocessors, or campus placement rounds.
+                Ask any question about Data Structures, OS, DBMS, Microprocessors, or campus placement rounds.
               </p>
 
               {/* Suggestions Grid */}
@@ -408,16 +314,9 @@ export const PrepPilotVoiceModal: React.FC = () => {
                       {msg.sender === 'preppilot' && (
                         <>
                           <span className="text-indigo-400 font-medium">
-                            • {msg.model || selectedModel}
+                            • PrepPilot AI Mentor
                           </span>
-                          {msg.isLiveApi && (
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                              Live GenAI API
-                            </span>
-                          )}
-                          {msg.sources && msg.sources.length > 0 && (
-                            <span className="text-slate-400 hidden sm:inline">• Syllabus Grounded</span>
-                          )}
+                          <span className="text-slate-400 hidden sm:inline">• Syllabus Grounded</span>
                         </>
                       )}
                     </div>
@@ -454,7 +353,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
                   <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 text-slate-300 text-sm flex items-center gap-3">
                     <Loader2 size={16} className="text-indigo-400 animate-spin" />
                     <span className="text-slate-300 text-xs sm:text-sm">
-                      {currentModelInfo.name} synthesizing syllabus context & answers...
+                      Synthesizing syllabus context & answers...
                     </span>
                   </div>
                 </div>
@@ -486,7 +385,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
               placeholder={
                 isListening
                   ? 'Listening to your voice...'
-                  : `Ask ${currentModelInfo.name} about concepts, gate questions, or interview topics...`
+                  : 'Ask about concepts, gate questions, or interview topics...'
               }
               className="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-400 px-3 py-2 resize-none focus:outline-none max-h-36 min-h-[40px] leading-relaxed"
             />
@@ -528,78 +427,10 @@ export const PrepPilotVoiceModal: React.FC = () => {
 
           <div className="flex items-center justify-between mt-2 px-1 text-[11px] text-slate-400">
             <span>Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Enter</kbd> to send, <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Shift+Enter</kbd> for new line</span>
-            <span className="hidden sm:inline">Active Model: {currentModelInfo.name}</span>
+            <span className="hidden sm:inline">PrepPilot Placement Mentor</span>
           </div>
         </div>
       </footer>
-
-      {/* Model & API Settings Modal */}
-      {showSettingsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Key size={18} className="text-cyan-400" />
-                <h3 className="text-base font-bold text-white">Google Gemini Settings</h3>
-              </div>
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Active AI Model
-              </label>
-              <select
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
-              >
-                {availableModels.map(m => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.tag})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Google Gemini API Key (Optional)
-              </label>
-              <input
-                type="password"
-                value={tempApiKey}
-                onChange={(e) => setTempApiKey(e.target.value)}
-                placeholder="AIzaSy..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 placeholder-slate-600 font-mono"
-              />
-              <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
-                If provided, PrepPilot connects directly to official Google GenAI endpoints. If left blank, PrepPilot utilizes our high-precision syllabus-grounded Gemini 2.5 synthesis engine.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveApiKey}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30"
-              >
-                Save Preferences
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

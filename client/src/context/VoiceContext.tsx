@@ -107,10 +107,10 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     {
       id: 'init-1',
       sender: 'preppilot',
-      text: "Welcome to PrepPilot, your technical interview and curriculum mentor powered by Gemini. You can ask conceptual questions across Database Management Systems, Operating Systems, Computer Networks, Data Structures, or campus placement patterns.",
+      text: "Welcome to PrepPilot, your technical interview and curriculum mentor. You can ask conceptual questions across Database Management Systems, Operating Systems, Computer Networks, Data Structures, or campus placement patterns.",
       speechText: "Welcome to PrepPilot, your technical interview and curriculum mentor. Ask me any conceptual or placement question.",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      model: 'gemini-2.5-flash'
+      model: 'default'
     }
   ]);
 
