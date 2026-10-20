@@ -18,6 +18,7 @@ import DeanDashboardPage from './pages/DeanDashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import CodingPracticePage from './pages/CodingPracticePage';
 import AssessmentPage from './pages/AssessmentPage';
+import AptitudePracticePage from './pages/AptitudePracticePage';
 const ThinkingOrbPage = React.lazy(() => import('./pages/ThinkingOrbPage'));
 import api from './services/api';
 import type { QuizSession } from './types';
@@ -27,6 +28,7 @@ import { APP_CONFIG } from './config/app.config';
 const VALID_TABS = new Set([
   'dashboard',
   'adaptive-quiz',
+  'aptitude',
   'coding-practice',
   'assessment',
   'companies',
@@ -51,7 +53,8 @@ const VALID_TABS = new Set([
   'thinking-orb',
   'quiz_active',
   'login',
-  'register'
+  'register',
+  'logout'
 ]);
 
 const resolveRoute = (raw: string): string => {
@@ -76,21 +79,38 @@ const getTabFromHash = (): string => {
 };
 
 const MainApp: React.FC = () => {
-  const { user, loading } = useAuth();
-  const [currentTab, setCurrentTab] = useState<string>(() => getTabFromHash());
+  const { user, loading, logout } = useAuth();
+  const [currentTab, setCurrentTab] = useState<string>(() => {
+    const initial = getTabFromHash();
+    return initial === 'logout' ? 'login' : initial;
+  });
   const [activeQuizSession, setActiveQuizSession] = useState<QuizSession | null>(null);
+
+  // Whenever navigating to login or logout with active session, purge auth state
+  React.useEffect(() => {
+    const target = getTabFromHash();
+    if ((target === 'login' || target === 'logout' || currentTab === 'login' || currentTab === 'logout') && user) {
+      logout();
+    }
+  }, [currentTab, user]);
 
   // Synchronize hash with back/forward history navigation
   React.useEffect(() => {
     const handleHashChange = () => {
       let target = getTabFromHash();
+      if (target === 'logout' || (target === 'login' && user)) {
+        logout();
+        setCurrentTab('login');
+        window.location.hash = '#/login';
+        return;
+      }
       if (user?.role === 'STUDENT' && (target.startsWith('admin') || target.startsWith('dean'))) {
         target = 'dashboard';
         window.location.hash = '#/dashboard';
-      } else if (user?.role === 'ADMIN' && (target === 'dashboard' || target === 'login' || target === 'register' || target.startsWith('dean'))) {
+      } else if (user?.role === 'ADMIN' && (target === 'dashboard' || target.startsWith('dean'))) {
         target = 'admin-overview';
         window.location.hash = '#/admin-overview';
-      } else if (user?.role === 'DEAN' && (target === 'dashboard' || target === 'login' || target === 'register' || target.startsWith('admin'))) {
+      } else if (user?.role === 'DEAN' && (target === 'dashboard' || target.startsWith('admin'))) {
         target = 'dean-overview';
         window.location.hash = '#/dean-overview';
       }
@@ -101,6 +121,12 @@ const MainApp: React.FC = () => {
   }, [user]);
 
   const handleSelectTab = (tab: string) => {
+    if (tab === 'logout' || (tab === 'login' && user)) {
+      logout();
+      setCurrentTab('login');
+      window.location.hash = '#/login';
+      return;
+    }
     // Role-based security routing:
     // If student attempts to access admin or dean, strictly force to dashboard
     if (user?.role === 'STUDENT' && (tab.startsWith('admin') || tab.startsWith('dean'))) {
@@ -125,17 +151,17 @@ const MainApp: React.FC = () => {
     if (!user) return;
     if (user.role === 'ADMIN') {
       // Admin accounts MUST open admin panel on login or if on student/dean dashboard
-      if (currentTab === 'dashboard' || currentTab === 'login' || currentTab === 'register' || currentTab.startsWith('dean')) {
+      if (currentTab === 'dashboard' || currentTab.startsWith('dean')) {
         handleSelectTab('admin-overview');
       }
     } else if (user.role === 'DEAN') {
       // Dean accounts MUST open dean overview on login and NEVER access admin panel or student dashboard
-      if (currentTab === 'dashboard' || currentTab === 'login' || currentTab === 'register' || currentTab.startsWith('admin')) {
+      if (currentTab === 'dashboard' || currentTab.startsWith('admin')) {
         handleSelectTab('dean-overview');
       }
     } else if (user.role === 'STUDENT') {
       // Student accounts MUST open student dashboard on login and NEVER access admin or dean panel
-      if (currentTab.startsWith('admin') || currentTab.startsWith('dean') || currentTab === 'login' || currentTab === 'register') {
+      if (currentTab.startsWith('admin') || currentTab.startsWith('dean')) {
         handleSelectTab('dashboard');
       }
     }
@@ -152,6 +178,16 @@ const MainApp: React.FC = () => {
     );
   }
 
+  // Priority Route: If user specifically asks for login or logout, ALWAYS render LoginPage and reset session
+  if (currentTab === 'login' || currentTab === 'logout') {
+    return (
+      <LoginPage
+        onSuccess={(role) => handleSelectTab(role === 'ADMIN' ? 'admin-overview' : role === 'DEAN' ? 'dean-overview' : 'dashboard')}
+        onGoToRegister={() => handleSelectTab('register')}
+      />
+    );
+  }
+
   // If not authenticated
   if (!user) {
     if (currentTab === 'register') {
@@ -159,14 +195,6 @@ const MainApp: React.FC = () => {
         <RegisterPage
           onSuccess={() => handleSelectTab('dashboard')}
           onGoToLogin={() => handleSelectTab('login')}
-        />
-      );
-    }
-    if (currentTab === 'login') {
-      return (
-        <LoginPage
-          onSuccess={(role) => handleSelectTab(role === 'ADMIN' ? 'admin-overview' : role === 'DEAN' ? 'dean-overview' : 'dashboard')}
-          onGoToRegister={() => handleSelectTab('register')}
         />
       );
     }
@@ -265,6 +293,14 @@ const MainApp: React.FC = () => {
         />
       ) : currentTab === 'coding-practice' ? (
         <CodingPracticePage />
+      ) : currentTab === 'aptitude' ? (
+        <AptitudePracticePage
+          onNavigateToDashboard={() => handleSelectTab('dashboard')}
+          onStartQuizSession={(session) => {
+            setActiveQuizSession(session);
+            setCurrentTab('quiz_active');
+          }}
+        />
       ) : currentTab === 'assessment' ? (
         <AssessmentPage onReturnToDashboard={() => handleSelectTab('dashboard')} />
       ) : currentTab === 'companies' ? (
@@ -298,6 +334,7 @@ const MainApp: React.FC = () => {
           onExploreCompanies={() => handleSelectTab('companies')}
           onViewAnalytics={() => handleSelectTab('analytics')}
           onNavigateToCoding={() => handleSelectTab('coding-practice')}
+          onNavigateToAptitude={() => handleSelectTab('aptitude')}
         />
       )}
 

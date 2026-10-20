@@ -575,6 +575,11 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
                 {currentQ.company_name}
               </span>
             )}
+            {currentQ.is_unattempted !== false && (
+              <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                <Sparkles size={11} /> Fresh Question
+              </span>
+            )}
             <span className="ml-auto text-xs text-amber-500 dark:text-amber-400 font-bold flex items-center gap-1">
               <Zap size={13} /> {currentQ.xp_value || 25} XP
             </span>

@@ -618,6 +618,85 @@ export const api = {
       body: JSON.stringify(data)
     });
     return safeJson(res);
+  },
+
+  // Aptitude
+  getAptitudeTypes: async () => {
+    const res = await fetch(`${API_BASE}/aptitude/types`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  getAptitudeQuestions: async (params: {
+    type?: string;
+    subtopic?: string;
+    difficulty?: string;
+    company_id?: string;
+    search?: string;
+    mode?: 'practice' | 'test';
+    limit?: number;
+  } = {}) => {
+    const cleanParams: Record<string, string> = {};
+    for (const [key, val] of Object.entries(params)) {
+      if (val !== undefined && val !== null && val !== '' && val !== 'undefined' && val !== 'null') {
+        cleanParams[key] = String(val);
+      }
+    }
+    const query = new URLSearchParams(cleanParams).toString();
+    const url = query ? `${API_BASE}/aptitude/questions?${query}` : `${API_BASE}/aptitude/questions`;
+    const res = await fetch(url, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
+  },
+
+  checkAptitudeAnswer: async (payload: {
+    question_id: string;
+    chosen_option: string;
+    time_spent?: number;
+  }) => {
+    const res = await fetch(`${API_BASE}/aptitude/check-answer`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return safeJson(res);
+  },
+
+  startAptitudeTestSession: async (payload: {
+    type?: string;
+    difficulty?: string;
+    company_id?: string;
+    count?: number;
+    duration_minutes?: number;
+  }) => {
+    const res = await fetch(`${API_BASE}/aptitude/session/start`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return safeJson(res);
+  },
+
+  submitAptitudeTestSession: async (
+    sessionId: string,
+    answers: Array<{ question_id: string; chosen_option: string | null; time_spent?: number }>,
+    totalTimeTaken: number
+  ) => {
+    const res = await fetch(`${API_BASE}/aptitude/session/${sessionId}/submit`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ answers, total_time_taken: totalTimeTaken })
+    });
+    return safeJson(res);
+  },
+
+  getAptitudeFormulas: async () => {
+    const res = await fetch(`${API_BASE}/aptitude/formulas`, {
+      headers: getAuthHeaders()
+    });
+    return safeJson(res);
   }
 };
 

@@ -45,6 +45,8 @@ export interface Question {
   explanation?: string;
   recommendation_score?: number;
   recommendation_reason?: string;
+  is_unattempted?: boolean;
+  has_attempted?: boolean;
   score_breakdown?: {
     topic_weakness: number;
     company_relevance: number;

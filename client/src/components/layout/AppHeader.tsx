@@ -27,6 +27,7 @@ interface AppHeaderProps {
 const TAB_TITLES: Record<string, { title: string; subtitle: string }> = {
   dashboard: { title: 'Dashboard', subtitle: 'Placement readiness & daily priorities' },
   'adaptive-quiz': { title: 'Adaptive Daily Quiz', subtitle: 'Personalized syllabus question generator' },
+  aptitude: { title: 'Aptitude Practice Arena', subtitle: 'Quantitative, Logical Reasoning, Verbal Ability & Data Interpretation' },
   'quiz_active': { title: 'Active Assessment', subtitle: 'Timed multiple choice session' },
   'coding-practice': { title: 'Coding Practice', subtitle: 'Algorithmic challenges with compiler & test cases' },
   assessment: { title: 'Placement Mock Test', subtitle: 'Comprehensive company screening simulator' },
@@ -165,6 +166,20 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           aria-label="Toggle light or dark theme"
         >
           {resolvedTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+
+        {/* 1-Click Quick Sign Out to reach Login screen */}
+        <button
+          onClick={() => {
+            logout();
+            onSelectTab('login');
+          }}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/25 text-xs font-semibold transition-colors cursor-pointer"
+          title="Sign Out to Login Screen"
+          aria-label="Sign out"
+        >
+          <LogOut size={14} />
+          <span className="hidden sm:inline">Sign Out</span>
         </button>
 
         {/* Profile Dropdown */}

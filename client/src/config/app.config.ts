@@ -47,6 +47,10 @@ export const APP_CONFIG = {
       'revision': 'custom-practice',
       'practice': 'custom-practice',
       'stats': 'analytics',
+      'aptitude': 'aptitude',
+      'aptitude-practice': 'aptitude',
+      'quant': 'aptitude',
+      'reasoning': 'aptitude',
       'admin': 'admin-overview',
       'admin-overview': 'admin-overview',
       'admin-students': 'admin-students',
@@ -96,6 +100,15 @@ export const APP_CONFIG = {
       label: 'Assessments',
       description: 'Timed Core CS, TCS-style, and DSA placement screening tests',
       iconName: 'ShieldCheck',
+      category: 'workspace',
+      isProtected: true
+    },
+    {
+      id: 'aptitude',
+      path: '#/aptitude',
+      label: 'Aptitude Practice',
+      description: 'Interactive Quantitative, Logical Reasoning, Verbal Ability & Data Interpretation solver',
+      iconName: 'Calculator',
       category: 'workspace',
       isProtected: true
     },

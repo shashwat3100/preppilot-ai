@@ -22,7 +22,8 @@ import {
   FileSpreadsheet,
   GraduationCap,
   BookOpen,
-  BarChart2
+  BarChart2,
+  Calculator
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -81,6 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         items: [
           { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
           { id: 'adaptive-quiz', label: 'Adaptive Quiz', icon: Sparkles },
+          { id: 'aptitude', label: 'Aptitude Practice', icon: Calculator },
           { id: 'coding-practice', label: 'Coding Practice', icon: Code2 },
           { id: 'assessment', label: 'Placement Tests', icon: ShieldCheck }
         ]

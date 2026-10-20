@@ -4,38 +4,103 @@ import RecommendationEngine from './recommendationEngine.js';
 
 export class QuizEngine {
   /**
+   * Retrieves all questions a student has ever answered or been assigned across sessions
+   */
+  static getStudentOptedQuestionHistory(userId) {
+    const userAttempts = db.find('attempts', a => a.user_id === userId) || [];
+    const userSessions = db.find('quizSessions', s => s.user_id === userId) || [];
+    const userSessionIds = new Set(userSessions.map(s => s.id));
+    const userQuizQuestions = db.find('quizQuestions', qq => userSessionIds.has(qq.session_id)) || [];
+
+    const optedIds = new Set([
+      ...userAttempts.map(a => a.question_id),
+      ...userQuizQuestions.map(qq => qq.question_id)
+    ]);
+
+    const attemptStats = new Map();
+    userAttempts.forEach(a => {
+      const time = new Date(a.attempted_at || a.created_at || 0).getTime();
+      const curr = attemptStats.get(a.question_id);
+      if (!curr || time > curr.lastTime) {
+        attemptStats.set(a.question_id, {
+          lastTime: time,
+          isCorrect: Boolean(a.is_correct)
+        });
+      }
+    });
+
+    return { optedIds, attemptStats };
+  }
+
+  /**
    * Generates a personalized Adaptive Daily Quiz for a student
+   * Strictly prioritizes 100% fresh, unattempted questions whenever available
    */
   static generateAdaptiveDailyQuiz(userId, questionCount = 5) {
     const user = db.get('users', userId);
     if (!user) throw new Error('User not found');
 
-    // Retrieve high-scoring recommended questions
-    const scoredQuestions = RecommendationEngine.getRecommendations(userId, 30);
+    const { optedIds, attemptStats } = QuizEngine.getStudentOptedQuestionHistory(userId);
+
+    // Retrieve high-scoring recommended questions from a large pool of 200 items
+    const scoredQuestions = RecommendationEngine.getRecommendations(userId, 200);
     if (scoredQuestions.length === 0) {
       throw new Error('No questions available in the question bank for this profile.');
     }
 
-    // Stratified sampling: Prioritize weak topics + company pattern questions
-    const weakQuestions = scoredQuestions.filter(q => q.score_breakdown.topic_weakness >= 20);
-    const companyQuestions = scoredQuestions.filter(q => q.score_breakdown.company_relevance >= 15);
-    const freshQuestions = scoredQuestions.filter(q => q.score_breakdown.unattempted_priority >= 10);
+    // Partition candidate pool into unattempted and previously attempted/opted
+    const unattemptedPool = scoredQuestions.filter(q => !optedIds.has(q.id));
+    const attemptedPool = scoredQuestions.filter(q => optedIds.has(q.id));
 
     const selectedMap = new Map();
 
-    // 1. Weak topics (up to 40% of quiz)
-    weakQuestions.slice(0, Math.ceil(questionCount * 0.4)).forEach(q => selectedMap.set(q.id, q));
+    if (unattemptedPool.length >= questionCount) {
+      // 100% FRESH UNATTEMPTED QUESTIONS GUARANTEE:
+      const weakUnattempted = unattemptedPool.filter(q => (q.score_breakdown?.topic_weakness || 0) >= 20);
+      const companyUnattempted = unattemptedPool.filter(q => (q.score_breakdown?.company_relevance || 0) >= 15);
 
-    // 2. Company relevant (up to 30% of quiz)
-    for (const q of companyQuestions) {
-      if (selectedMap.size >= Math.ceil(questionCount * 0.7)) break;
-      selectedMap.set(q.id, q);
-    }
+      // 1. Weak topics (up to 40% of quiz)
+      const weakTarget = Math.ceil(questionCount * 0.4);
+      const shuffledWeak = [...weakUnattempted].sort(() => 0.5 - Math.random());
+      shuffledWeak.slice(0, weakTarget).forEach(q => selectedMap.set(q.id, q));
 
-    // 3. Fill remaining with highest overall recommendation score
-    for (const q of scoredQuestions) {
-      if (selectedMap.size >= questionCount) break;
-      selectedMap.set(q.id, q);
+      // 2. Target company relevant (up to 30% of quiz)
+      const companyTarget = Math.ceil(questionCount * 0.7);
+      const shuffledCompany = [...companyUnattempted].sort(() => 0.5 - Math.random());
+      for (const q of shuffledCompany) {
+        if (selectedMap.size >= companyTarget) break;
+        selectedMap.set(q.id, q);
+      }
+
+      // 3. Fill remaining slots from unattempted candidates with variety
+      const remainingUnattempted = unattemptedPool.filter(q => !selectedMap.has(q.id));
+      for (const q of remainingUnattempted) {
+        if (selectedMap.size >= questionCount) break;
+        selectedMap.set(q.id, q);
+      }
+    } else {
+      // Candidate pool has fewer unattempted questions than requested:
+      // Include all available fresh unattempted questions first
+      unattemptedPool.forEach(q => selectedMap.set(q.id, q));
+
+      // Fill remainder with attempted questions, prioritizing:
+      // 1. Previously incorrect questions (spaced repetition revision)
+      // 2. Oldest attempted questions
+      const sortedAttempted = [...attemptedPool].sort((a, b) => {
+        const statA = attemptStats.get(a.id);
+        const statB = attemptStats.get(b.id);
+        const incorrA = statA && !statA.isCorrect ? 1 : 0;
+        const incorrB = statB && !statB.isCorrect ? 1 : 0;
+        if (incorrA !== incorrB) return incorrB - incorrA;
+        const timeA = statA ? statA.lastTime : 0;
+        const timeB = statB ? statB.lastTime : 0;
+        return timeA - timeB;
+      });
+
+      for (const q of sortedAttempted) {
+        if (selectedMap.size >= questionCount) break;
+        selectedMap.set(q.id, q);
+      }
     }
 
     const quizQuestions = Array.from(selectedMap.values());
@@ -53,7 +118,7 @@ export class QuizEngine {
       xp_earned: 0,
       time_taken_seconds: 0,
       config_params: {
-        weak_topics_targeted: weakQuestions.map(w => w.topic_name),
+        weak_topics_targeted: quizQuestions.filter(q => (q.score_breakdown?.topic_weakness || 0) >= 20).map(w => w.topic_name),
         companies_targeted: user.target_companies || []
       },
       created_at: new Date().toISOString(),
@@ -91,6 +156,8 @@ export class QuizEngine {
         expected_time: q.expected_time,
         xp_value: q.xp_value,
         recommendation_reason: q.recommendation_reason,
+        is_unattempted: !optedIds.has(q.id),
+        has_attempted: optedIds.has(q.id),
         options: q.options.map(o => ({
           option_key: o.option_key,
           option_text: o.option_text
@@ -148,12 +215,43 @@ export class QuizEngine {
       candidateQuestions = candidateQuestions.filter(q => q.difficulty === difficulty);
     }
 
-    // Shuffle questions
-    candidateQuestions.sort(() => 0.5 - Math.random());
-    const selectedQuestions = candidateQuestions.slice(0, Math.min(question_count, candidateQuestions.length));
-
-    if (selectedQuestions.length === 0) {
+    if (candidateQuestions.length === 0) {
       throw new Error('No questions match your selected custom criteria. Please broaden your filters.');
+    }
+
+    const { optedIds, attemptStats } = QuizEngine.getStudentOptedQuestionHistory(userId);
+
+    // Partition candidate questions into unattempted and attempted
+    const unattempted = candidateQuestions.filter(q => !optedIds.has(q.id));
+    const attempted = candidateQuestions.filter(q => optedIds.has(q.id));
+
+    // Shuffle unattempted questions for varied practice
+    unattempted.sort(() => 0.5 - Math.random());
+
+    let selectedQuestions = [];
+    const countNeeded = Math.min(question_count, candidateQuestions.length);
+
+    if (unattempted.length >= countNeeded) {
+      // 100% fresh questions
+      selectedQuestions = unattempted.slice(0, countNeeded);
+    } else {
+      // Take all available unattempted questions
+      selectedQuestions = [...unattempted];
+      const remainderNeeded = countNeeded - selectedQuestions.length;
+
+      // Fill remainder with attempted questions, prioritizing previously incorrect and oldest attempts
+      const sortedAttempted = [...attempted].sort((a, b) => {
+        const statA = attemptStats.get(a.id);
+        const statB = attemptStats.get(b.id);
+        const incorrA = statA && !statA.isCorrect ? 1 : 0;
+        const incorrB = statB && !statB.isCorrect ? 1 : 0;
+        if (incorrA !== incorrB) return incorrB - incorrA;
+        const timeA = statA ? statA.lastTime : 0;
+        const timeB = statB ? statB.lastTime : 0;
+        return timeA - timeB;
+      });
+
+      selectedQuestions = selectedQuestions.concat(sortedAttempted.slice(0, remainderNeeded));
     }
 
     const sessionId = `session-${crypto.randomUUID()}`;
@@ -207,6 +305,8 @@ export class QuizEngine {
           company_name: company?.name || 'General Pattern',
           expected_time: q.expected_time,
           xp_value: q.xp_value,
+          is_unattempted: !optedIds.has(q.id),
+          has_attempted: optedIds.has(q.id),
           options: options.map(o => ({
             option_key: o.option_key,
             option_text: o.option_text
@@ -697,9 +797,33 @@ export class QuizEngine {
       throw new Error(`No questions available for assessment type: ${assessmentType}`);
     }
 
-    // Shuffle questions
-    const shuffled = [...targetQuestions].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, Math.min(requiredCount, shuffled.length));
+    const { optedIds, attemptStats } = QuizEngine.getStudentOptedQuestionHistory(userId);
+
+    const unattempted = targetQuestions.filter(q => !optedIds.has(q.id));
+    const attempted = targetQuestions.filter(q => optedIds.has(q.id));
+
+    unattempted.sort(() => 0.5 - Math.random());
+
+    let selected = [];
+    const countNeeded = Math.min(requiredCount, targetQuestions.length);
+
+    if (unattempted.length >= countNeeded) {
+      selected = unattempted.slice(0, countNeeded);
+    } else {
+      selected = [...unattempted];
+      const remainderNeeded = countNeeded - selected.length;
+      const sortedAttempted = [...attempted].sort((a, b) => {
+        const statA = attemptStats.get(a.id);
+        const statB = attemptStats.get(b.id);
+        const incorrA = statA && !statA.isCorrect ? 1 : 0;
+        const incorrB = statB && !statB.isCorrect ? 1 : 0;
+        if (incorrA !== incorrB) return incorrB - incorrA;
+        const timeA = statA ? statA.lastTime : 0;
+        const timeB = statB ? statB.lastTime : 0;
+        return timeA - timeB;
+      });
+      selected = selected.concat(sortedAttempted.slice(0, remainderNeeded));
+    }
 
     const sessionId = `asmt-sess-${crypto.randomUUID()}`;
     const session = {

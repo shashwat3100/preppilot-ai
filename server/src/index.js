@@ -22,6 +22,7 @@ import preppilotRoutes from './routes/preppilotRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import deanRoutes from './routes/deanRoutes.js';
 import codingRoutes from './routes/codingRoutes.js';
+import aptitudeRoutes from './routes/aptitudeRoutes.js';
 import { authLimiter } from './middleware/rateLimiter.js';
 import { accessLogger } from './middleware/accessLogger.js';
 
@@ -133,12 +134,24 @@ app.use('/api/preppilot', preppilotRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/dean', deanRoutes);
 app.use('/api/coding', codingRoutes);
+app.use('/api/aptitude', aptitudeRoutes);
 
 // Serve static frontend build if present (for Go Live, production, or unified port 5000 access)
 if (fs.existsSync(clientDist)) {
-  app.use(express.static(clientDist));
+  app.use(express.static(clientDist, {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+    }
+  }));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(path.join(clientDist, 'index.html'));
   });
 }

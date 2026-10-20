@@ -20,10 +20,15 @@ export class RecommendationEngine {
     const user = db.get('users', userId);
     if (!user) return [];
 
-    const allQuestions = db.getAll('questions');
-    const allOptions = db.getAll('questionOptions');
-    const userAttempts = db.find('attempts', a => a.user_id === userId);
-    const userPerf = db.find('studentPerformance', p => p.user_id === userId);
+    const allQuestions = db.getAll('questions') || [];
+    const allOptions = db.getAll('questionOptions') || [];
+    const userAttempts = db.find('attempts', a => a.user_id === userId) || [];
+    const userPerf = db.find('studentPerformance', p => p.user_id === userId) || [];
+
+    // Track active and past quiz sessions so even questions served in-progress are treated as opted
+    const userSessions = db.find('quizSessions', s => s.user_id === userId) || [];
+    const userSessionIds = new Set(userSessions.map(s => s.id));
+    const userQuizQuestions = db.find('quizQuestions', qq => userSessionIds.has(qq.session_id)) || [];
 
     // Build performance lookup maps
     const topicWeaknessMap = new Map();
@@ -31,11 +36,15 @@ export class RecommendationEngine {
       topicWeaknessMap.set(p.topic_id, p.weakness_score || 0.5);
     });
 
-    const attemptedQuestionIds = new Set(userAttempts.map(a => a.question_id));
+    const attemptedQuestionIds = new Set([
+      ...userAttempts.map(a => a.question_id),
+      ...userQuizQuestions.map(qq => qq.question_id)
+    ]);
+
     const questionLastAttemptTime = new Map();
     userAttempts.forEach(a => {
       const prev = questionLastAttemptTime.get(a.question_id) || 0;
-      const current = new Date(a.attempted_at).getTime();
+      const current = new Date(a.attempted_at || a.created_at || 0).getTime();
       if (current > prev) questionLastAttemptTime.set(a.question_id, current);
     });
 
@@ -75,7 +84,6 @@ export class RecommendationEngine {
       }
 
       // 4. Difficulty Match (0 to 10 points)
-      // Intermediate student -> Medium preferred (10 pts), Easy (7 pts), Hard (6 pts)
       const userSkill = user.skill_level || 'Intermediate';
       if (userSkill === 'Beginner') {
         if (q.difficulty === 'Easy') difficultyScore = 10;
@@ -92,39 +100,42 @@ export class RecommendationEngine {
         else difficultyScore = 7;
       }
 
-      // 5. Unattempted Priority (0 to 15 points)
+      // 5. Unattempted Priority (0 to 50 points)
+      // Crucial: Fresh unattempted questions receive a dominant boost so they always outrank attempted items
       const hasAttempted = attemptedQuestionIds.has(q.id);
       if (!hasAttempted) {
-        unattemptedScore = 15;
+        unattemptedScore = 50; // Decisive priority for brand new questions
       } else {
         // Check if previous attempt was incorrect
         const latestAttempt = userAttempts
           .filter(a => a.question_id === q.id)
-          .sort((a, b) => new Date(b.attempted_at) - new Date(a.attempted_at))[0];
+          .sort((a, b) => new Date(b.attempted_at || b.created_at || 0) - new Date(a.attempted_at || a.created_at || 0))[0];
 
         if (latestAttempt && !latestAttempt.is_correct) {
-          unattemptedScore = 12; // Revise failed questions
+          unattemptedScore = 15; // Spaced revision for mistaken concepts
         } else {
-          unattemptedScore = 2; // Already mastered
+          unattemptedScore = 0; // Already mastered; deprioritize to prevent repetitions
         }
       }
 
-      // 6. Recency / Spaced Repetition (0 to 5 points)
+      // 6. Recency / Spaced Repetition (0 to 10 points)
       if (hasAttempted) {
-        const lastTime = questionLastAttemptTime.get(q.id);
+        const lastTime = questionLastAttemptTime.get(q.id) || 0;
         const hoursAgo = (Date.now() - lastTime) / (1000 * 3600);
-        if (hoursAgo > 72) {
-          // Ready for spaced repetition review
+        if (hoursAgo > 168) {
+          // Attempted more than 7 days ago, eligible for spaced repetition
           recencyScore = 5;
         } else {
-          recencyScore = 1;
+          recencyScore = 0;
         }
       } else {
-        recencyScore = 4;
+        recencyScore = 10; // Fresh questions get full recency advantage
       }
 
-      // Total Weighted Score (0 to 105 max, normalized to 100)
-      const totalScore = Math.min(100, Math.round(topicScore + companyScore + branchScore + difficultyScore + unattemptedScore + recencyScore));
+      // Total Weighted Score (0 to 145 max, normalized to 100)
+      const totalScore = Math.min(100, Math.round(
+        ((topicScore + companyScore + branchScore + difficultyScore + unattemptedScore + recencyScore) / 145) * 100
+      ));
 
       // Subject and Topic details for rich UI cards
       const subject = db.get('subjects', q.subject_id);
@@ -138,6 +149,8 @@ export class RecommendationEngine {
         subject_name: subject?.name || 'Computer Science',
         topic_name: topic?.name || 'General Concept',
         company_name: company?.name || 'Multi-Company Pattern',
+        is_unattempted: !hasAttempted,
+        has_attempted: hasAttempted,
         recommendation_score: totalScore,
         score_breakdown: {
           topic_weakness: Math.round(topicScore),
@@ -148,6 +161,7 @@ export class RecommendationEngine {
           spaced_repetition: Math.round(recencyScore)
         },
         recommendation_reason: RecommendationEngine.generateReason({
+          isUnattempted: !hasAttempted,
           topicScore,
           companyScore,
           unattemptedScore,
@@ -165,23 +179,35 @@ export class RecommendationEngine {
     if (filters.subject_id) filtered = filtered.filter(q => q.subject_id === filters.subject_id);
     if (filters.difficulty) filtered = filtered.filter(q => q.difficulty === filters.difficulty);
 
-    // Sort by highest recommendation score first
-    filtered.sort((a, b) => b.recommendation_score - a.recommendation_score);
+    // Sort strictly: Fresh unattempted questions FIRST, then by highest recommendation score
+    filtered.sort((a, b) => {
+      if (a.is_unattempted !== b.is_unattempted) {
+        return a.is_unattempted ? -1 : 1;
+      }
+      return b.recommendation_score - a.recommendation_score;
+    });
 
     return filtered.slice(0, limit);
   }
 
-  static generateReason({ topicScore, companyScore, unattemptedScore, topicName, companyName, isWeak }) {
+  static generateReason({ isUnattempted, topicScore, companyScore, unattemptedScore, topicName, companyName, isWeak }) {
+    if (isUnattempted) {
+      if (companyScore >= 20 && companyName) {
+        return `Fresh, unattempted question matching ${companyName} placement interview patterns.`;
+      }
+      if (isWeak && topicName) {
+        return `New challenge in ${topicName} to strengthen your detected weak concept.`;
+      }
+      return `Brand-new curriculum question aligned with your engineering branch.`;
+    }
+
     if (isWeak && topicName) {
       return `Targeted for revision: Your past accuracy in ${topicName} needs reinforcement.`;
     }
     if (companyScore >= 20 && companyName) {
       return `High priority for your target recruitment drive: ${companyName} pattern question.`;
     }
-    if (unattemptedScore >= 14) {
-      return `Fresh curriculum question matched to your engineering branch profile.`;
-    }
-    return `Balanced adaptive practice item to broaden your technical interview readiness.`;
+    return `Spaced repetition review to reinforce long-term conceptual retention.`;
   }
 }
 

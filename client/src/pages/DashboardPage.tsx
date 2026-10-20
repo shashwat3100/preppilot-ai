@@ -28,7 +28,8 @@ import {
   Briefcase,
   Layers,
   Clock,
-  Compass
+  Compass,
+  Calculator
 } from 'lucide-react';
 
 interface DashboardPageProps {
@@ -38,6 +39,7 @@ interface DashboardPageProps {
   onExploreCompanies: () => void;
   onViewAnalytics: () => void;
   onNavigateToCoding?: () => void;
+  onNavigateToAptitude?: () => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
@@ -46,7 +48,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onStartAssessment,
   onExploreCompanies,
   onViewAnalytics,
-  onNavigateToCoding
+  onNavigateToCoding,
+  onNavigateToAptitude
 }) => {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -213,20 +216,25 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       </div>
 
       {/* QUICK LAUNCH ACTION CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div
           onClick={onStartAdaptiveQuiz}
           className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] hover:border-indigo-500/40 hover:bg-[var(--surface-hover)] transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
         >
           <div className="space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Brain size={20} />
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Brain size={20} />
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                <Sparkles size={10} /> Fresh Questions
+              </span>
             </div>
             <h3 className="text-sm font-extrabold text-[var(--text-primary)] group-hover:text-indigo-400 transition-colors">
               Adaptive Daily Quiz
             </h3>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              Personalized 5-question multi-factor drill targeting your detected weak syllabus concepts.
+              Always brings new, unattempted questions synthesized from your target companies & weak concepts.
             </p>
           </div>
           <div className="pt-4 flex items-center text-xs font-bold text-indigo-400">
@@ -234,6 +242,29 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <ChevronRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
+
+        {onNavigateToAptitude && (
+          <div
+            onClick={onNavigateToAptitude}
+            className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] hover:border-indigo-500/40 hover:bg-[var(--surface-hover)] transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Calculator size={20} />
+              </div>
+              <h3 className="text-sm font-extrabold text-[var(--text-primary)] group-hover:text-indigo-400 transition-colors">
+                Aptitude Arena
+              </h3>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Quantitative, Logical Reasoning, Verbal Ability & DI with step-by-step formula derivations.
+              </p>
+            </div>
+            <div className="pt-4 flex items-center text-xs font-bold text-indigo-400">
+              <span>Practice Aptitude</span>
+              <ChevronRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+        )}
 
         {onNavigateToCoding && (
           <div
