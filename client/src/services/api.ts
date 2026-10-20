@@ -155,6 +155,45 @@ export const api = {
     return res.json();
   },
 
+  // Mistake Vault & Revision Drill
+  getMistakeVault: async (params: { status?: string; subject_id?: string; search?: string } = {}) => {
+    const cleanParams: Record<string, string> = {};
+    if (params.status) cleanParams.status = params.status;
+    if (params.subject_id) cleanParams.subject_id = params.subject_id;
+    if (params.search) cleanParams.search = params.search;
+    const query = new URLSearchParams(cleanParams).toString();
+    const res = await fetch(`${API_BASE}/quiz/mistakes?${query}`, {
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
+  startMistakeDrill: async (count: number = 5, subjectId?: string) => {
+    const res = await fetch(`${API_BASE}/quiz/mistakes/drill`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ count, subject_id: subjectId })
+    });
+    return res.json();
+  },
+
+  submitMistakeDrill: async (sessionId: string, answers: any[], totalTimeTaken: number = 0) => {
+    const res = await fetch(`${API_BASE}/quiz/mistakes/drill/submit`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ session_id: sessionId, answers, total_time_taken: totalTimeTaken })
+    });
+    return res.json();
+  },
+
+  toggleMistakeMastery: async (questionId: string) => {
+    const res = await fetch(`${API_BASE}/quiz/mistakes/${questionId}/toggle-mastery`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return res.json();
+  },
+
   // Analytics
   getAnalytics: async () => {
     const res = await fetch(`${API_BASE}/analytics`, {

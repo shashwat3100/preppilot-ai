@@ -142,6 +142,14 @@ const TABLE_SCHEMAS = {
     CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
     CREATE INDEX IF NOT EXISTS idx_attempts_question ON attempts(question_id);
   `,
+  mistakeVault: `
+    CREATE TABLE IF NOT EXISTS mistakeVault (
+      id TEXT PRIMARY KEY,
+      data TEXT NOT NULL,
+      created_at TEXT,
+      updated_at TEXT
+    );
+  `,
   accessLogs: `
     CREATE TABLE IF NOT EXISTS accessLogs (
       id TEXT PRIMARY KEY,
@@ -171,6 +179,7 @@ const ALL_TABLE_NAMES = [
   'questions',
   'questionOptions',
   'attempts',
+  'mistakeVault',
   'quizSessions',
   'quizQuestions',
   'studentPerformance',
@@ -209,6 +218,14 @@ const ensureDataDirectory = (filePath) => {
  */
 const ensureTable = (tableName) => {
   if (!sqlite) return;
+  if (tableName === 'mistakeVault') {
+    try {
+      const info = sqlite.prepare(`PRAGMA table_info(mistakeVault)`).all();
+      if (info.some(c => c.name === 'user_id')) {
+        sqlite.exec('DROP TABLE IF EXISTS mistakeVault;');
+      }
+    } catch {}
+  }
   if (TABLE_SCHEMAS[tableName]) {
     sqlite.exec(TABLE_SCHEMAS[tableName]);
   } else {

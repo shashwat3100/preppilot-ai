@@ -32,6 +32,7 @@ const TAB_TITLES: Record<string, { title: string; subtitle: string }> = {
   'coding-practice': { title: 'Coding Practice', subtitle: 'Algorithmic challenges with compiler & test cases' },
   assessment: { title: 'Placement Mock Test', subtitle: 'Comprehensive company screening simulator' },
   companies: { title: 'Company Preparation', subtitle: 'Tier-1 IT drive patterns and hiring rubrics' },
+  'mistake-vault': { title: 'Mistake Vault & Revision Drill', subtitle: 'Personalized spaced repetition locker & mistake mastery' },
   'custom-practice': { title: 'Custom Revision', subtitle: 'Targeted topic selection & weakness drills' },
   analytics: { title: 'Performance Analytics', subtitle: 'Subject mastery, accuracy trends, and readiness' },
   'thinking-orb': { title: 'PrepPilot AI Mentor', subtitle: 'Syllabus grounded technical placement copilot' },

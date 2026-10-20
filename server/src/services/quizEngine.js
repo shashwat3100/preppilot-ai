@@ -491,6 +491,48 @@ export class QuizEngine {
         attempted_at: new Date().toISOString()
       });
 
+      // Track in Mistake Vault for personalized spaced repetition
+      try {
+        const mvId = `mv-${userId}-${q.id}`;
+        const existingMv = db.get('mistakeVault', mvId);
+        const nowIso = new Date().toISOString();
+        if (!isCorrect) {
+          if (existingMv) {
+            db.update('mistakeVault', mvId, {
+              last_attempt_id: attemptId,
+              last_chosen_answer: chosenAnswer,
+              mistake_count: (existingMv.mistake_count || 1) + 1,
+              mastery_status: 'unresolved',
+              updated_at: nowIso
+            });
+          } else {
+            db.insert('mistakeVault', {
+              id: mvId,
+              user_id: userId,
+              question_id: q.id,
+              source_type: 'quiz',
+              last_attempt_id: attemptId,
+              last_chosen_answer: chosenAnswer,
+              mistake_count: 1,
+              mastery_status: 'unresolved',
+              mastered_at: null,
+              created_at: nowIso,
+              updated_at: nowIso
+            });
+          }
+        } else if (existingMv && existingMv.mastery_status === 'unresolved') {
+          db.update('mistakeVault', mvId, {
+            last_attempt_id: attemptId,
+            last_chosen_answer: chosenAnswer,
+            mastery_status: 'mastered',
+            mastered_at: nowIso,
+            updated_at: nowIso
+          });
+        }
+      } catch (mvErr) {
+        console.warn('[MistakeVault Error in submitQuiz]:', mvErr.message);
+      }
+
       // Update quizQuestions join record
       db.update('quizQuestions', qq.id, {
         user_answer: chosenAnswer,

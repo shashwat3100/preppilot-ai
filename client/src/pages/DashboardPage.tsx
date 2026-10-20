@@ -29,7 +29,8 @@ import {
   Layers,
   Clock,
   Compass,
-  Calculator
+  Calculator,
+  RotateCcw
 } from 'lucide-react';
 
 interface DashboardPageProps {
@@ -40,6 +41,7 @@ interface DashboardPageProps {
   onViewAnalytics: () => void;
   onNavigateToCoding?: () => void;
   onNavigateToAptitude?: () => void;
+  onNavigateToMistakes?: () => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
@@ -49,7 +51,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onExploreCompanies,
   onViewAnalytics,
   onNavigateToCoding,
-  onNavigateToAptitude
+  onNavigateToAptitude,
+  onNavigateToMistakes
 }) => {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -191,23 +194,33 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </button>
 
             {/* Secondary Dual Action Row */}
-            <div className="grid grid-cols-2 gap-2 w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full">
               <button
                 onClick={() => {
                   if (onStartAssessment) onStartAssessment();
                   else onStartAdaptiveQuiz();
                 }}
-                className="px-3 py-2.5 rounded-xl bg-[var(--surface-elevated)] hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 font-bold text-xs border border-emerald-500/20 hover:border-emerald-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                className="px-2.5 py-2.5 rounded-xl bg-[var(--surface-elevated)] hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 font-bold text-xs border border-emerald-500/20 hover:border-emerald-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <Code2 size={14} />
+                <Code2 size={13} />
                 <span>Mock Test</span>
               </button>
 
               <button
-                onClick={onStartCustomQuiz}
-                className="px-3 py-2.5 rounded-xl bg-[var(--surface-elevated)] hover:bg-indigo-500/10 text-[var(--text-secondary)] hover:text-indigo-300 font-bold text-xs border border-[var(--surface-border)] hover:border-indigo-500/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                onClick={() => {
+                  if (onNavigateToMistakes) onNavigateToMistakes();
+                }}
+                className="px-2.5 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-xs border border-amber-500/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <Sliders size={14} />
+                <RotateCcw size={13} />
+                <span>Mistake Vault</span>
+              </button>
+
+              <button
+                onClick={onStartCustomQuiz}
+                className="px-2.5 py-2.5 rounded-xl bg-[var(--surface-elevated)] hover:bg-indigo-500/10 text-[var(--text-secondary)] hover:text-indigo-300 font-bold text-xs border border-[var(--surface-border)] hover:border-indigo-500/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs col-span-2 sm:col-span-1"
+              >
+                <Sliders size={13} />
                 <span>Custom Drill</span>
               </button>
             </div>

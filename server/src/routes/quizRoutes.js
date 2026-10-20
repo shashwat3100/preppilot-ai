@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import QuizEngine from '../services/quizEngine.js';
 import RecommendationEngine from '../services/recommendationEngine.js';
+import MistakeVaultService from '../services/mistakeVaultService.js';
 import db from '../database/db.js';
 
 const router = express.Router();
@@ -97,6 +98,72 @@ router.get('/recommendations', authenticate, (req, res) => {
   } catch (err) {
     console.error('[Recommendations Error]:', err);
     return res.status(500).json({ success: false, message: 'Error retrieving recommendations.' });
+  }
+});
+
+// ==========================================
+// MISTAKE VAULT & REVISION DRILL ENDPOINTS
+// ==========================================
+
+// GET /api/quiz/mistakes (Fetch student's mistake vault with analytics and filters)
+router.get('/mistakes', authenticate, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { status = 'all', subject_id = null, search = null } = req.query;
+    const result = MistakeVaultService.getUserMistakes(userId, {
+      status,
+      subjectId: subject_id,
+      search
+    });
+    return res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('[Mistake Vault Error]:', err);
+    return res.status(500).json({ success: false, message: 'Failed to retrieve mistake vault.' });
+  }
+});
+
+// POST /api/quiz/mistakes/drill (Launch a targeted Smart Revision Drill from unresolved mistakes)
+router.post('/mistakes/drill', authenticate, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { count = 5, subject_id = null } = req.body;
+    const result = MistakeVaultService.generateRevisionDrill(userId, { count: parseInt(count) || 5, subjectId: subject_id });
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+    return res.json(result);
+  } catch (err) {
+    console.error('[Mistake Drill Generation Error]:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Failed to generate revision drill.' });
+  }
+});
+
+// POST /api/quiz/mistakes/drill/submit (Submit and grade Revision Drill, marking mastered mistakes)
+router.post('/mistakes/drill/submit', authenticate, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { session_id, answers = [], total_time_taken = 0 } = req.body;
+    if (!session_id) {
+      return res.status(400).json({ success: false, message: 'Session ID is required.' });
+    }
+    const result = MistakeVaultService.submitRevisionDrill(userId, session_id, answers, total_time_taken);
+    return res.json({ success: true, result });
+  } catch (err) {
+    console.error('[Mistake Drill Submit Error]:', err);
+    return res.status(400).json({ success: false, message: err.message || 'Error grading revision drill.' });
+  }
+});
+
+// POST /api/quiz/mistakes/:id/toggle-mastery (Toggle mastery status)
+router.post('/mistakes/:id/toggle-mastery', authenticate, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const questionId = req.params.id;
+    const result = MistakeVaultService.toggleMastery(userId, questionId);
+    return res.json(result);
+  } catch (err) {
+    console.error('[Mistake Toggle Error]:', err);
+    return res.status(400).json({ success: false, message: err.message || 'Error toggling mastery.' });
   }
 });
 

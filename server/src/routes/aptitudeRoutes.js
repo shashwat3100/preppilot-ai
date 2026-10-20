@@ -386,6 +386,48 @@ router.post('/check-answer', authenticate, (req, res) => {
       created_at: new Date().toISOString()
     });
 
+    // Track in Mistake Vault
+    try {
+      const mvId = `mv-${userId}-${question.id}`;
+      const existingMv = db.get('mistakeVault', mvId);
+      const nowIso = new Date().toISOString();
+      if (!isCorrect) {
+        if (existingMv) {
+          db.update('mistakeVault', mvId, {
+            last_attempt_id: attemptId,
+            last_chosen_answer: chosen_option,
+            mistake_count: (existingMv.mistake_count || 1) + 1,
+            mastery_status: 'unresolved',
+            updated_at: nowIso
+          });
+        } else {
+          db.insert('mistakeVault', {
+            id: mvId,
+            user_id: userId,
+            question_id: question.id,
+            source_type: 'aptitude',
+            last_attempt_id: attemptId,
+            last_chosen_answer: chosen_option,
+            mistake_count: 1,
+            mastery_status: 'unresolved',
+            mastered_at: null,
+            created_at: nowIso,
+            updated_at: nowIso
+          });
+        }
+      } else if (existingMv && existingMv.mastery_status === 'unresolved') {
+        db.update('mistakeVault', mvId, {
+          last_attempt_id: attemptId,
+          last_chosen_answer: chosen_option,
+          mastery_status: 'mastered',
+          mastered_at: nowIso,
+          updated_at: nowIso
+        });
+      }
+    } catch (mvErr) {
+      console.warn('[MistakeVault Error in Aptitude Check]:', mvErr.message);
+    }
+
     // Award XP and streak to user
     const user = db.get('users', userId);
     let newXp = (user?.total_xp || 0) + xpGained;
@@ -612,8 +654,9 @@ router.post('/session/:id/submit', authenticate, (req, res) => {
       db.update('quizQuestions', qq.id, qq);
 
       // Save user attempt
+      const attemptId = `att-apt-test-${crypto.randomUUID()}`;
       db.insert('attempts', {
-        id: `att-apt-test-${crypto.randomUUID()}`,
+        id: attemptId,
         user_id: userId,
         question_id: q.id,
         session_id: sessionId,
@@ -623,6 +666,48 @@ router.post('/session/:id/submit', authenticate, (req, res) => {
         xp_awarded: isCorr ? (q.xp_value || 25) : 5,
         created_at: new Date().toISOString()
       });
+
+      // Track in Mistake Vault
+      try {
+        const mvId = `mv-${userId}-${q.id}`;
+        const existingMv = db.get('mistakeVault', mvId);
+        const nowIso = new Date().toISOString();
+        if (!isCorr) {
+          if (existingMv) {
+            db.update('mistakeVault', mvId, {
+              last_attempt_id: attemptId,
+              last_chosen_answer: chosenOptionKey,
+              mistake_count: (existingMv.mistake_count || 1) + 1,
+              mastery_status: 'unresolved',
+              updated_at: nowIso
+            });
+          } else {
+            db.insert('mistakeVault', {
+              id: mvId,
+              user_id: userId,
+              question_id: q.id,
+              source_type: 'aptitude',
+              last_attempt_id: attemptId,
+              last_chosen_answer: chosenOptionKey,
+              mistake_count: 1,
+              mastery_status: 'unresolved',
+              mastered_at: null,
+              created_at: nowIso,
+              updated_at: nowIso
+            });
+          }
+        } else if (existingMv && existingMv.mastery_status === 'unresolved') {
+          db.update('mistakeVault', mvId, {
+            last_attempt_id: attemptId,
+            last_chosen_answer: chosenOptionKey,
+            mastery_status: 'mastered',
+            mastered_at: nowIso,
+            updated_at: nowIso
+          });
+        }
+      } catch (mvErr) {
+        console.warn('[MistakeVault Error in Aptitude Test]:', mvErr.message);
+      }
 
       const qOpts = allOptions.filter(o => o.question_id === q.id);
       const chosenOpt = qOpts.find(o => (o.option_key || '').toUpperCase() === (chosenOptionKey || '').toUpperCase());

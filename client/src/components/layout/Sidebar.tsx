@@ -23,7 +23,8 @@ import {
   GraduationCap,
   BookOpen,
   BarChart2,
-  Calculator
+  Calculator,
+  RotateCcw
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -91,6 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         title: 'Preparation',
         items: [
           { id: 'companies', label: 'Company Prep', icon: Building2 },
+          { id: 'mistake-vault', label: 'Mistake Vault', icon: RotateCcw },
           { id: 'custom-practice', label: 'Custom Revision', icon: Sliders }
         ]
       },

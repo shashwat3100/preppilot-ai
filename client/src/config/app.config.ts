@@ -46,6 +46,8 @@ export const APP_CONFIG = {
       'voice-studio': 'preppilot-studio',
       'revision': 'custom-practice',
       'practice': 'custom-practice',
+      'mistakes': 'mistake-vault',
+      'mistake-vault': 'mistake-vault',
       'stats': 'analytics',
       'aptitude': 'aptitude',
       'aptitude-practice': 'aptitude',
@@ -118,6 +120,15 @@ export const APP_CONFIG = {
       label: 'Company Prep',
       description: 'Tier-1 IT drive patterns, syllabus rubrics, and hiring tests',
       iconName: 'Building2',
+      category: 'preparation',
+      isProtected: true
+    },
+    {
+      id: 'mistake-vault',
+      path: '#/mistakes',
+      label: 'Mistake Vault',
+      description: 'Personalized spaced repetition locker & mistake revision drills',
+      iconName: 'RotateCcw',
       category: 'preparation',
       isProtected: true
     },

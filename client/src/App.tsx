@@ -19,6 +19,7 @@ import ProfilePage from './pages/ProfilePage';
 import CodingPracticePage from './pages/CodingPracticePage';
 import AssessmentPage from './pages/AssessmentPage';
 import AptitudePracticePage from './pages/AptitudePracticePage';
+import MistakeVaultPage from './pages/MistakeVaultPage';
 const ThinkingOrbPage = React.lazy(() => import('./pages/ThinkingOrbPage'));
 import api from './services/api';
 import type { QuizSession } from './types';
@@ -32,6 +33,7 @@ const VALID_TABS = new Set([
   'coding-practice',
   'assessment',
   'companies',
+  'mistake-vault',
   'custom-practice',
   'analytics',
   'preppilot-studio',
@@ -284,6 +286,8 @@ const MainApp: React.FC = () => {
             </div>
           </div>
         </div>
+      ) : currentTab === 'mistake-vault' ? (
+        <MistakeVaultPage onNavigateTab={handleSelectTab} />
       ) : currentTab === 'custom-practice' ? (
         <CustomPracticePage
           onStartQuiz={(session) => {
@@ -335,6 +339,7 @@ const MainApp: React.FC = () => {
           onViewAnalytics={() => handleSelectTab('analytics')}
           onNavigateToCoding={() => handleSelectTab('coding-practice')}
           onNavigateToAptitude={() => handleSelectTab('aptitude')}
+          onNavigateToMistakes={() => handleSelectTab('mistake-vault')}
         />
       )}
 
