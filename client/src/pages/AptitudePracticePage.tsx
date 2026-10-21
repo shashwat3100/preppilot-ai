@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import api from '../services/api';
+import { useVoice } from '../context/VoiceContext';
 import {
   Calculator,
   Brain,
@@ -29,7 +30,13 @@ import {
   Target,
   PenTool,
   Check,
-  LayoutGrid
+  LayoutGrid,
+  Volume2,
+  VolumeX,
+  Mic,
+  Pause,
+  Radio,
+  HelpCircle
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -154,6 +161,27 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
 
   const timerRef = useRef<any>(null);
 
+  // Voice Mentor Integration
+  const {
+    speakText,
+    stopSpeaking,
+    isSpeaking,
+    openVoiceModal,
+    setActiveQuestionContext
+  } = useVoice();
+
+  // Aptitude Voice Mistake Mentor State
+  const [voiceDiagnosis, setVoiceDiagnosis] = useState<any | null>(null);
+  const [loadingVoiceDiagnosis, setLoadingVoiceDiagnosis] = useState<boolean>(false);
+  const [voiceSpeechRate, setVoiceSpeechRate] = useState<number>(1.05);
+  const [showVoiceMentorPanel, setShowVoiceMentorPanel] = useState<boolean>(false);
+
+  // Timed Test Mode Voice Diagnostic
+  const [testVoiceDiagnostic, setTestVoiceDiagnostic] = useState<any | null>(null);
+  const [loadingTestDiagnostic, setLoadingTestDiagnostic] = useState<boolean>(false);
+  const [activeTestVoiceQuestionIdx, setActiveTestVoiceQuestionIdx] = useState<number | null>(null);
+  const [loadingTestQuestionIdx, setLoadingTestQuestionIdx] = useState<number | null>(null);
+
   // 1. Initial Load: Categories & Stats
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -214,11 +242,47 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
     return questions[currentIndex];
   }, [questions, currentIndex]);
 
+  // Synchronize Active Question Context with Global Voice Assistant
+  useEffect(() => {
+    if (!currentQuestion) {
+      setActiveQuestionContext(null);
+      return;
+    }
+
+    const prevAttempt = answeredQuestions[currentQuestion.id];
+    const chosenKey = selectedOption || prevAttempt?.chosen || '';
+    const chosenOpt = currentQuestion.options.find(o => o.option_key === chosenKey);
+    const correctKey = validationResult?.correct_answer || currentQuestion.correct_answer || '';
+    const correctOpt = currentQuestion.options.find(o => o.option_key === correctKey);
+
+    setActiveQuestionContext({
+      questionId: currentQuestion.id,
+      sequence: currentIndex + 1,
+      questionText: currentQuestion.question,
+      topic: currentQuestion.topic_name || currentQuestion.category_name || 'Aptitude & Reasoning',
+      subject: 'Campus Placement Aptitude',
+      options: currentQuestion.options.map(o => ({ option_key: o.option_key, option_text: o.option_text })),
+      chosenAnswer: chosenKey,
+      chosenText: chosenOpt?.option_text || (chosenKey ? `Option ${chosenKey}` : ''),
+      correctAnswer: correctKey,
+      correctText: correctOpt?.option_text || (correctKey ? `Option ${correctKey}` : ''),
+      explanation: validationResult?.explanation || currentQuestion.explanation || '',
+      isCorrect: validationResult ? validationResult.is_correct : (prevAttempt ? prevAttempt.isCorrect : undefined)
+    });
+
+    return () => {
+      setActiveQuestionContext(null);
+    };
+  }, [currentQuestion, selectedOption, answerSubmitted, validationResult, answeredQuestions, currentIndex]);
+
   // Jump to specific question index in practice mode
   const jumpToQuestion = (idx: number) => {
     if (idx < 0 || idx >= questions.length) return;
     const targetQ = questions[idx];
     setCurrentIndex(idx);
+    stopSpeaking();
+    setVoiceDiagnosis(null);
+    setShowVoiceMentorPanel(false);
 
     const prevAttempt = answeredQuestions[targetQ.id];
     if (prevAttempt) {
@@ -261,6 +325,128 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentQuestion, selectedOption, answerSubmitted, isTestActive]);
 
+  // Aptitude Voice Mistake Mentor: Fetch and narrate detailed mathematical/logical derivation
+  const handleExplainQuestionWithVoice = async (
+    targetQuestion?: AptitudeQuestion,
+    chosenKeyParam?: string | null,
+    resultParam?: any,
+    autoSpeak: boolean = true
+  ) => {
+    const targetQ = targetQuestion || currentQuestion;
+    if (!targetQ) return;
+
+    if (isSpeaking && autoSpeak) {
+      stopSpeaking();
+      return;
+    }
+
+    const prevAttempt = answeredQuestions[targetQ.id];
+    const chosenKey = chosenKeyParam || selectedOption || prevAttempt?.chosen || '';
+    const chosenOpt = targetQ.options.find(o => o.option_key === chosenKey);
+    const resultObj = resultParam || validationResult || prevAttempt?.result;
+    const correctKey = resultObj?.correct_answer || targetQ.correct_answer || '';
+    const correctOpt = targetQ.options.find(o => o.option_key === correctKey);
+
+    setShowVoiceMentorPanel(true);
+    setLoadingVoiceDiagnosis(true);
+    try {
+      const res = await api.explainSingleMistake({
+        question: targetQ.question,
+        chosen_answer: chosenKey,
+        chosen_text: chosenOpt?.option_text || (chosenKey ? `Option ${chosenKey}` : 'Unanswered'),
+        correct_answer: correctKey,
+        correct_text: correctOpt?.option_text || correctKey,
+        explanation: resultObj?.explanation || targetQ.explanation || '',
+        topic_name: targetQ.topic_name || targetQ.category_name || 'Aptitude & Reasoning',
+        subject_name: 'Campus Placement Aptitude',
+        sequence: (targetQ.sequence || currentIndex + 1),
+        options: targetQ.options,
+        question_id: targetQ.id
+      });
+
+      if (res && res.success && res.diagnosis) {
+        setVoiceDiagnosis(res.diagnosis);
+        if (autoSpeak) {
+          speakText(res.speech_text || res.diagnosis.speech_text, voiceSpeechRate);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to explain aptitude mistake with voice mentor:', err);
+    } finally {
+      setLoadingVoiceDiagnosis(false);
+    }
+  };
+
+  // Timed Test Mode Comprehensive Voice Diagnostic
+  const handleVoiceDiagnoseTest = async () => {
+    if (!testResult) return;
+
+    if (isSpeaking && !loadingTestDiagnostic) {
+      stopSpeaking();
+      setActiveTestVoiceQuestionIdx(null);
+      return;
+    }
+
+    if (testVoiceDiagnostic) {
+      speakText(testVoiceDiagnostic.speech_text, voiceSpeechRate);
+      return;
+    }
+
+    setLoadingTestDiagnostic(true);
+    try {
+      const res = await api.diagnoseMistakes({
+        type: 'quiz',
+        gradedQuestions: testResult.graded_questions,
+        weak_topics: testResult.weak_topics || [],
+        accuracy_rate: testResult.accuracy_rate
+      });
+
+      if (res && res.success) {
+        setTestVoiceDiagnostic(res);
+        speakText(res.speech_text, voiceSpeechRate);
+      }
+    } catch (err) {
+      console.error('Failed to run test voice diagnosis:', err);
+    } finally {
+      setLoadingTestDiagnostic(false);
+    }
+  };
+
+  // Timed Test Mode: Single Question Voice Explanation
+  const handleExplainTestQuestionVoice = async (g: any, idx: number) => {
+    if (activeTestVoiceQuestionIdx === idx && isSpeaking) {
+      stopSpeaking();
+      setActiveTestVoiceQuestionIdx(null);
+      return;
+    }
+
+    setLoadingTestQuestionIdx(idx);
+    try {
+      const res = await api.explainSingleMistake({
+        question: g.question,
+        chosen_answer: g.chosen_answer,
+        chosen_text: g.chosen_text,
+        correct_answer: g.correct_answer,
+        correct_text: g.correct_text,
+        explanation: g.explanation,
+        topic_name: g.topic_name || selectedCategory || 'Aptitude',
+        subject_name: 'Campus Placement Aptitude',
+        sequence: idx + 1,
+        options: g.options,
+        question_id: g.question_id
+      });
+
+      if (res && res.success && res.speech_text) {
+        setActiveTestVoiceQuestionIdx(idx);
+        speakText(res.speech_text, voiceSpeechRate);
+      }
+    } catch (err) {
+      console.error('Failed to voice-explain test question:', err);
+    } finally {
+      setLoadingTestQuestionIdx(null);
+    }
+  };
+
   // Verify Practice Answer
   const handleVerifyPracticeAnswer = async () => {
     if (!currentQuestion || !selectedOption || checkingAnswer || answerSubmitted) return;
@@ -300,6 +486,9 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
             spread: 60,
             origin: { y: 0.7 }
           });
+        } else {
+          // Pre-fetch the deep Voice Mistake Mentor breakdown immediately
+          handleExplainQuestionWithVoice(currentQuestion, selectedOption, res, false);
         }
       }
     } catch (err) {
@@ -1071,6 +1260,57 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
             </div>
           </div>
 
+          {/* Aptitude Comprehensive Voice Diagnostic Banner */}
+          <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-slate-900 border border-indigo-500/30 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-cyan-400 shrink-0 shadow-inner">
+                <Mic size={24} className={isSpeaking && activeTestVoiceQuestionIdx === null ? 'animate-bounce text-cyan-300' : ''} />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-sm sm:text-base font-extrabold text-white">
+                    Aptitude Voice Mistake Diagnostic
+                  </h4>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                    Comprehensive Mentor Review
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  {testResult.correct_count === testResult.total_questions
+                    ? 'Perfect score! Listen to advanced placement strategy and speed-math mastery.'
+                    : `Listen to a comprehensive voice breakdown of your ${testResult.total_questions - testResult.correct_count} mistakes with step-by-step logic.`}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={handleVoiceDiagnoseTest}
+                disabled={loadingTestDiagnostic}
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md ${
+                  isSpeaking && activeTestVoiceQuestionIdx === null
+                    ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 animate-pulse'
+                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30'
+                }`}
+              >
+                {loadingTestDiagnostic ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : isSpeaking && activeTestVoiceQuestionIdx === null ? (
+                  <Pause size={15} className="fill-current" />
+                ) : (
+                  <Volume2 size={15} />
+                )}
+                <span>
+                  {loadingTestDiagnostic
+                    ? 'Analyzing...'
+                    : isSpeaking && activeTestVoiceQuestionIdx === null
+                    ? 'Pause Diagnostic'
+                    : 'Listen to Voice Diagnostic'}
+                </span>
+              </button>
+            </div>
+          </div>
+
           {/* Graded Question Breakdown */}
           <div className="space-y-4 pt-4 border-t border-[var(--surface-border)]">
             <h4 className="text-sm font-bold text-[var(--text-primary)]">
@@ -1091,14 +1331,34 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
                     <span className="text-xs font-bold text-[var(--text-secondary)]">
                       Question #{idx + 1} ({g.difficulty})
                     </span>
-                    <span
-                      className={`text-xs font-bold flex items-center gap-1 ${
-                        g.is_correct ? 'text-emerald-500' : 'text-rose-500'
-                      }`}
-                    >
-                      {g.is_correct ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
-                      {g.is_correct ? 'Correct (+25 XP)' : 'Incorrect'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleExplainTestQuestionVoice(g, idx)}
+                        disabled={loadingTestQuestionIdx === idx}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                          activeTestVoiceQuestionIdx === idx && isSpeaking
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse'
+                            : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20 hover:bg-indigo-500/20'
+                        }`}
+                      >
+                        {loadingTestQuestionIdx === idx ? (
+                          <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                        ) : activeTestVoiceQuestionIdx === idx && isSpeaking ? (
+                          <Pause size={12} className="fill-current" />
+                        ) : (
+                          <Volume2 size={12} />
+                        )}
+                        <span>{activeTestVoiceQuestionIdx === idx && isSpeaking ? 'Stop Voice' : 'Voice Mentor'}</span>
+                      </button>
+                      <span
+                        className={`text-xs font-bold flex items-center gap-1 ${
+                          g.is_correct ? 'text-emerald-500' : 'text-rose-500'
+                        }`}
+                      >
+                        {g.is_correct ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                        {g.is_correct ? 'Correct (+25 XP)' : 'Incorrect'}
+                      </span>
+                    </div>
                   </div>
 
                   <p className="text-sm font-semibold text-[var(--text-primary)]">
@@ -1237,6 +1497,28 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
                   <span className="text-xs text-indigo-400 font-bold flex items-center gap-1">
                     <Zap size={13} /> +{currentQuestion.xp_value || 25} XP
                   </span>
+
+                  <button
+                    onClick={() => {
+                      if (showVoiceMentorPanel && isSpeaking) {
+                        stopSpeaking();
+                      } else {
+                        handleExplainQuestionWithVoice(currentQuestion, selectedOption, validationResult, true);
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                      isSpeaking
+                        ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 ring-2 ring-amber-500/20 animate-pulse'
+                        : showVoiceMentorPanel
+                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                        : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20'
+                    }`}
+                    title="Aptitude Voice Mistake Mentor: Listen to step-by-step reasoning"
+                  >
+                    <Mic size={13} className={isSpeaking ? 'text-amber-400 animate-pulse' : 'text-indigo-400'} />
+                    <span>{isSpeaking ? 'Mentor Speaking...' : 'Voice Mentor'}</span>
+                  </button>
+
                   <button
                     onClick={() => toggleBookmark(currentQuestion.id)}
                     className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
@@ -1378,7 +1660,7 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
                       <span>{checkingAnswer ? 'Checking...' : 'Check Answer'}</span>
                     </button>
                   ) : (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span
                         className={`text-xs font-bold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${
                           validationResult?.is_correct
@@ -1393,10 +1675,37 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
                       </span>
 
                       <button
+                        onClick={() => {
+                          if (!showVoiceMentorPanel) {
+                            handleExplainQuestionWithVoice(currentQuestion, selectedOption, validationResult, true);
+                          } else if (isSpeaking) {
+                            stopSpeaking();
+                          } else if (voiceDiagnosis) {
+                            speakText(voiceDiagnosis.speech_text, voiceSpeechRate);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                          !validationResult?.is_correct
+                            ? 'bg-gradient-to-r from-rose-500/20 to-indigo-500/20 border-rose-500/40 text-rose-300 hover:from-rose-500/30 hover:to-indigo-500/30 ring-1 ring-rose-500/30 animate-pulse'
+                            : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/20'
+                        }`}
+                        title="Open Voice Mistake Mentor for verbal step-by-step guidance"
+                      >
+                        <Radio size={14} className={isSpeaking ? 'animate-pulse text-amber-400' : 'text-indigo-400'} />
+                        <span>
+                          {isSpeaking
+                            ? 'Stop Voice Narration'
+                            : !validationResult?.is_correct
+                            ? '🎙️ Voice Mistake Mentor'
+                            : '🎙️ Voice Speed Shortcut'}
+                        </span>
+                      </button>
+
+                      <button
                         onClick={() => setShowExplanation(!showExplanation)}
                         className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4 cursor-pointer"
                       >
-                        {showExplanation ? 'Hide Explanation' : 'View Explanation'}
+                        {showExplanation ? 'Hide Text Solution' : 'View Text Solution'}
                       </button>
                     </div>
                   )}
@@ -1427,6 +1736,203 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
                   </button>
                 </div>
               </div>
+
+              {/* ======================================================== */}
+              {/* APTITUDE VOICE MISTAKE MENTOR PANEL                      */}
+              {/* ======================================================== */}
+              {showVoiceMentorPanel && (
+                <div className="p-6 rounded-3xl bg-slate-900/95 border border-indigo-500/40 shadow-2xl space-y-5 animate-in fade-in duration-200 backdrop-blur-md">
+                  {/* Panel Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-500/20 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center text-cyan-400 shrink-0 shadow-inner">
+                        <Mic size={20} className={isSpeaking ? 'animate-bounce text-cyan-300' : ''} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-sm font-extrabold text-white tracking-tight flex items-center gap-2">
+                            PrepPilot Aptitude Voice Mistake Mentor
+                          </h4>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
+                            <Sparkles size={11} /> AI Voice Derivation
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400">
+                          Step-by-step mathematical reasoning, error root-cause critique, and campus screening speed shortcuts
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Voice Controls: Play/Stop & Speed */}
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      <div className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800 text-[11px]">
+                        <span className="text-slate-400 text-[10px] px-1 font-semibold">Speed:</span>
+                        {[1.0, 1.25].map(rate => (
+                          <button
+                            key={rate}
+                            onClick={() => {
+                              setVoiceSpeechRate(rate);
+                              if (isSpeaking && voiceDiagnosis) {
+                                speakText(voiceDiagnosis.speech_text, rate);
+                              }
+                            }}
+                            className={`px-2 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
+                              voiceSpeechRate === rate
+                                ? 'bg-indigo-600 text-white shadow-xs'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {rate}x
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          if (isSpeaking) {
+                            stopSpeaking();
+                          } else if (voiceDiagnosis) {
+                            speakText(voiceDiagnosis.speech_text, voiceSpeechRate);
+                          } else {
+                            handleExplainQuestionWithVoice(currentQuestion, selectedOption, validationResult, true);
+                          }
+                        }}
+                        disabled={loadingVoiceDiagnosis}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md ${
+                          isSpeaking
+                            ? 'bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 ring-2 ring-amber-500/20'
+                            : 'bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/40 shadow-indigo-600/30'
+                        }`}
+                      >
+                        {loadingVoiceDiagnosis ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : isSpeaking ? (
+                          <Pause size={14} className="fill-current" />
+                        ) : (
+                          <Volume2 size={14} />
+                        )}
+                        <span>{loadingVoiceDiagnosis ? 'Synthesizing...' : isSpeaking ? 'Pause Narration' : 'Listen to Mentor'}</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          stopSpeaking();
+                          setShowVoiceMentorPanel(false);
+                        }}
+                        className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                        title="Close voice mentor panel"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Live Soundwave Audio Bar (active while speaking) */}
+                  {isSpeaking && (
+                    <div className="p-3 rounded-2xl bg-slate-950/70 border border-cyan-500/30 flex items-center justify-between gap-4 animate-in fade-in">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+                        <span className="text-xs font-semibold text-cyan-300">
+                          Mentor Speaking: Explaining Option comparison and step-by-step logic...
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 h-5 pr-2">
+                        {[35, 75, 100, 55, 90, 45, 80, 60].map((h, i) => (
+                          <span
+                            key={i}
+                            className="w-1 rounded-full bg-gradient-to-t from-indigo-500 to-cyan-400 animate-pulse"
+                            style={{
+                              height: `${h}%`,
+                              animationDuration: '650ms',
+                              animationDelay: `${i * 90}ms`
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Content Breakdown Grid */}
+                  {loadingVoiceDiagnosis ? (
+                    <div className="py-8 text-center space-y-3">
+                      <div className="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                      <p className="text-xs text-slate-400 font-medium">
+                        PrepPilot Mentor is analyzing your chosen answer, verifying the formula, and generating audio derivation...
+                      </p>
+                    </div>
+                  ) : voiceDiagnosis ? (
+                    <div className="space-y-4">
+                      {/* Side-by-side comparison cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Card 1: Candidate's Chosen Answer */}
+                        <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/30 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1">
+                              <XCircle size={13} /> Your Selected Choice
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-xs font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                              Option {voiceDiagnosis.chosen_answer}
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-white">
+                            {voiceDiagnosis.chosen_text}
+                          </div>
+                          <div className="text-xs text-slate-300 leading-relaxed pt-1">
+                            <strong className="text-rose-400">Why this was incorrect: </strong>
+                            {voiceDiagnosis.why_chosen_wrong}
+                          </div>
+                        </div>
+
+                        {/* Card 2: Exact Correct Solution */}
+                        <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/30 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                              <CheckCircle2 size={13} /> Verified Correct Answer
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              Option {voiceDiagnosis.correct_answer}
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-white">
+                            {voiceDiagnosis.correct_text}
+                          </div>
+                          <div className="text-xs text-slate-300 leading-relaxed pt-1">
+                            <strong className="text-emerald-400">Mathematical & Logical Proof: </strong>
+                            {voiceDiagnosis.why_correct}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Speed Shortcut & Placement Tip */}
+                      <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 flex items-start gap-3">
+                        <Zap size={18} className="text-cyan-400 shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                          <h5 className="text-xs font-bold text-cyan-300">
+                            Campus Screening Speed-Math Shortcut (TCS, Infosys, Accenture, Cognizant)
+                          </h5>
+                          <p className="text-xs text-slate-300 leading-relaxed">
+                            {voiceDiagnosis.speed_shortcut || 'Use option elimination and test boundaries first.'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Spoken Text Accordion Preview */}
+                      <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 flex items-center justify-between gap-3">
+                        <span className="flex items-center gap-1.5">
+                          <Radio size={13} className="text-indigo-400" />
+                          <span>Audible narration script ready for replay anytime.</span>
+                        </span>
+                        <button
+                          onClick={() => speakText(voiceDiagnosis.speech_text, voiceSpeechRate)}
+                          className="text-indigo-400 hover:text-indigo-300 font-bold underline cursor-pointer"
+                        >
+                          Replay Audio
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              )}
 
               {/* Step-by-Step Mathematical & Logical Solution Reveal */}
               {showExplanation && (

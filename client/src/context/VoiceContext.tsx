@@ -24,6 +24,21 @@ const DEFAULT_MODELS: AiModelOption[] = [
   }
 ];
 
+export interface ActiveQuestionContext {
+  questionId?: string;
+  sequence?: number;
+  questionText: string;
+  topic?: string;
+  subject?: string;
+  options?: Array<{ option_key: string; option_text: string }>;
+  chosenAnswer?: string;
+  chosenText?: string;
+  correctAnswer?: string;
+  correctText?: string;
+  explanation?: string;
+  isCorrect?: boolean;
+}
+
 interface VoiceContextType {
   isListening: boolean;
   isSpeaking: boolean;
@@ -37,7 +52,7 @@ interface VoiceContextType {
   toggleVoiceModal: () => void;
   startListening: () => void;
   stopListening: () => void;
-  speakText: (text: string) => void;
+  speakText: (text: string, rate?: number) => void;
   stopSpeaking: () => void;
   sendQuery: (queryText: string, isVoice?: boolean, overrideModel?: string) => Promise<string>;
   clearConversation: () => void;
@@ -48,6 +63,8 @@ interface VoiceContextType {
   setApiKey: (key: string) => void;
   availableModels: AiModelOption[];
   hasSystemKey: boolean;
+  activeQuestionContext: ActiveQuestionContext | null;
+  setActiveQuestionContext: (ctx: ActiveQuestionContext | null) => void;
 }
 
 const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
@@ -68,6 +85,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [voiceError, setVoiceError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
+  const [activeQuestionContext, setActiveQuestionContext] = useState<ActiveQuestionContext | null>(null);
 
   // Model & API configuration
   const [selectedModel, setSelectedModelState] = useState<string>(() => {
@@ -269,7 +287,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const speakText = (text: string) => {
+  const speakText = (text: string, rate: number = 1.05) => {
     if (!synthRef.current) return;
     synthRef.current.cancel();
 
@@ -288,14 +306,15 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     let speechToRead = cleanSpeech;
-    if (speechToRead.length > 500) {
-      const sentenceEnd = speechToRead.lastIndexOf('.', 500);
-      speechToRead = sentenceEnd > 150 ? speechToRead.slice(0, sentenceEnd + 1) : speechToRead.slice(0, 500);
+    // Allow generous speech limit up to 1200 characters without early truncation
+    if (speechToRead.length > 1200) {
+      const sentenceEnd = speechToRead.lastIndexOf('.', 1200);
+      speechToRead = sentenceEnd > 300 ? speechToRead.slice(0, sentenceEnd + 1) : speechToRead.slice(0, 1200);
     }
 
     const utterance = new SpeechSynthesisUtterance(speechToRead);
     activeUtteranceRef.current = utterance;
-    utterance.rate = 1.05;
+    utterance.rate = Math.max(0.8, Math.min(rate, 1.6));
     utterance.pitch = 1.0;
 
     const voices = synthRef.current.getVoices();
@@ -485,18 +504,67 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       let sources: any[] = [];
       let isLive = false;
 
-      try {
-        const res = await api.askPrepPilot(normalizedQuery, activeModel, apiKey || undefined);
-        replyText = res.reply || res.message || "I have received your placement query.";
-        speechOutput = res.speech_text || replyText;
-        sources = res.sources || [];
-        isLive = res.is_live_api;
-      } catch (networkErr) {
-        // Intelligent offline curriculum fallback if server is unreachable or offline
-        console.warn('[PrepPilot API offline fallback]:', networkErr);
-        const fallback = getOfflineFallbackResponse(normalizedQuery);
-        replyText = fallback.reply;
-        speechOutput = fallback.speech;
+      // Check if candidate is asking about their active question on screen
+      const lowerQuery = normalizedQuery.toLowerCase();
+      const isQuestionQuery = activeQuestionContext && (
+        lowerQuery.includes('mistake') ||
+        lowerQuery.includes('wrong') ||
+        lowerQuery.includes('why') ||
+        lowerQuery.includes('correct') ||
+        lowerQuery.includes('answer') ||
+        lowerQuery.includes('explain') ||
+        lowerQuery.includes('diagnos') ||
+        lowerQuery.includes('help') ||
+        lowerQuery.includes('this question') ||
+        lowerQuery.includes('option')
+      );
+
+      if (isQuestionQuery && activeQuestionContext) {
+        try {
+          const res = await api.explainSingleMistake({
+            question: activeQuestionContext.questionText,
+            chosen_answer: activeQuestionContext.chosenAnswer || '',
+            chosen_text: activeQuestionContext.chosenText || '',
+            correct_answer: activeQuestionContext.correctAnswer || '',
+            correct_text: activeQuestionContext.correctText || '',
+            explanation: activeQuestionContext.explanation || '',
+            topic_name: activeQuestionContext.topic || 'Aptitude & Reasoning',
+            subject_name: activeQuestionContext.subject || 'Campus Placement Aptitude',
+            options: activeQuestionContext.options || [],
+            sequence: activeQuestionContext.sequence || 1,
+            question_id: activeQuestionContext.questionId
+          });
+
+          if (res && res.success && res.diagnosis) {
+            const diag = res.diagnosis;
+            replyText = `### ${activeQuestionContext.topic || 'Aptitude'} Mentor Diagnostic\n\n` +
+              `**Problem:** ${activeQuestionContext.questionText}\n\n` +
+              `❌ **Your Choice (Option ${diag.chosen_answer}):** ${diag.chosen_text}\n` +
+              `*${diag.why_chosen_wrong}*\n\n` +
+              `✅ **Exact Correct Answer (Option ${diag.correct_answer}):** ${diag.correct_text}\n` +
+              `*${diag.why_correct}*\n\n` +
+              (diag.speed_shortcut ? `> ⚡ **${diag.speed_shortcut}**\n\n` : '') +
+              (diag.viva_tip ? `> 🎓 **${diag.viva_tip}**` : '');
+            speechOutput = res.speech_text || diag.speech_text;
+          }
+        } catch (diagErr) {
+          console.warn('[VoiceContext active question diagnosis fallback]:', diagErr);
+        }
+      }
+
+      if (!replyText) {
+        try {
+          const res = await api.askPrepPilot(normalizedQuery, activeModel, apiKey || undefined);
+          replyText = res.reply || res.message || "I have received your placement query.";
+          speechOutput = res.speech_text || replyText;
+          sources = res.sources || [];
+          isLive = res.is_live_api;
+        } catch (networkErr) {
+          console.warn('[PrepPilot API offline fallback]:', networkErr);
+          const fallback = getOfflineFallbackResponse(normalizedQuery);
+          replyText = fallback.reply;
+          speechOutput = fallback.speech;
+        }
       }
 
       const botMsg: PrepPilotChatMessage = {
@@ -578,7 +646,9 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         apiKey,
         setApiKey,
         availableModels,
-        hasSystemKey
+        hasSystemKey,
+        activeQuestionContext,
+        setActiveQuestionContext
       }}
     >
       {children}
