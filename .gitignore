@@ -43,7 +43,8 @@ migration_dump.sql
 
 # Runtime databases & local data storage (Strictly excluded from VCS)
 server/data/
-**/data/
+!server/scripts/data/
+/assets/
 careerprep_runtime.json
 **/careerprep_runtime.json
 careerprep_data.json

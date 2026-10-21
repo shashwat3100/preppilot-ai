@@ -24,7 +24,7 @@ echo.
 echo ==================================================================
 echo   Platform is running!
 echo   - Web Application: http://localhost:5000
-echo   - VS Code Live Server: http://127.0.0.1:5500
+echo   - Vite Development Server: http://localhost:5173
 echo.
 echo   Demo Logins:
 echo   - Student: student@preppilot.ai (password: password123)
