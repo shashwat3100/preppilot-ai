@@ -8,6 +8,8 @@
     "build": "node -e \"console.log('Server ready')\"",
     "start": "node src/index.js",
     "seed": "node src/database/seed.js",
+    "seed:students": "node scripts/seedDepartmentStudents.js",
+    "verify:students": "node scripts/verifySeededStudents.js",
     "migrate:postgres": "node src/database/migrateToPostgres.js"
   },
   "dependencies": {

@@ -756,6 +756,11 @@ export const db = {
         }
       }
     }
+  },
+
+  getRawDb: () => {
+    if (!sqlite) initDb();
+    return sqlite;
   }
 };
 
