@@ -403,6 +403,25 @@ export async function seedAllDepartmentStudents() {
   }
 
   saveDb();
+
+  // Sync static_fixtures.json so that Vercel serverless deployments inherit all 840 students
+  const fixturesPath = path.join(__dirname, '../src/database/static_fixtures.json');
+  if (fs.existsSync(fixturesPath)) {
+    try {
+      const fixtures = JSON.parse(fs.readFileSync(fixturesPath, 'utf-8'));
+      fixtures.users = newUsers;
+      fixtures.quizSessions = newQuizSessions;
+      fixtures.attempts = newAttempts;
+      fixtures.studentPerformance = newStudentPerformance;
+      fixtures.codingSubmissions = newCodingSubmissions;
+      fixtures.streaks = newStreaks;
+      fs.writeFileSync(fixturesPath, JSON.stringify(fixtures, null, 2), 'utf-8');
+      console.log('[Seed Department Students]: Successfully synced static_fixtures.json for Vercel production deployment!');
+    } catch (fixErr) {
+      console.warn('[Seed Department Students]: Could not update static_fixtures.json:', fixErr.message);
+    }
+  }
+
   console.log('[Seed Department Students]: Seeding complete!');
 
   // Generate Reference markdown log for Dean / Testing verification

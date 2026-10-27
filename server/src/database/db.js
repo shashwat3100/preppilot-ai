@@ -446,6 +446,27 @@ export const initDb = async () => {
     console.warn('[Branch Sync Warning]:', bSyncErr.message);
   }
 
+  // 5. Ensure canonical cohort has exactly 840 students (70 per branch)
+  try {
+    ensureTable('users');
+    const stdCount = sqlite.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'STUDENT' AND id LIKE 'std-%'").get().count;
+    if (stdCount < 840 && fs.existsSync(FIXTURES_FILE)) {
+      console.log(`[SQLite Database] Cohort students count is ${stdCount} (expected 840). Auto-syncing from static fixtures...`);
+      const raw = fs.readFileSync(FIXTURES_FILE, 'utf-8');
+      const fixtures = JSON.parse(raw);
+      if (fixtures.users && fixtures.users.length >= 840) {
+        db.replaceAll('users', fixtures.users);
+        if (fixtures.quizSessions) db.replaceAll('quizSessions', fixtures.quizSessions);
+        if (fixtures.attempts) db.replaceAll('attempts', fixtures.attempts);
+        if (fixtures.studentPerformance) db.replaceAll('studentPerformance', fixtures.studentPerformance);
+        if (fixtures.codingSubmissions) db.replaceAll('codingSubmissions', fixtures.codingSubmissions);
+        if (fixtures.streaks) db.replaceAll('streaks', fixtures.streaks);
+      }
+    }
+  } catch (cohortErr) {
+    console.warn('[Cohort Sync Warning]:', cohortErr.message);
+  }
+
   console.log(`[SQLite Database] Embedded SQLite engine initialized at: ${dbFile}`);
   return sqlite;
 };
