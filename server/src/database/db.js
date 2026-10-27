@@ -330,6 +330,28 @@ export const initDb = async () => {
     }
   }
 
+  // Ensure all canonical subjects and topics from fixtures are in SQLite
+  if (fs.existsSync(FIXTURES_FILE)) {
+    try {
+      const rawFixtures = fs.readFileSync(FIXTURES_FILE, 'utf-8');
+      const fixtures = JSON.parse(rawFixtures);
+      if (Array.isArray(fixtures.subjects)) {
+        const currentSubjects = db.getAll('subjects') || [];
+        if (currentSubjects.length < fixtures.subjects.length) {
+          db.replaceAll('subjects', fixtures.subjects);
+        }
+      }
+      if (Array.isArray(fixtures.topics)) {
+        const currentTopics = db.getAll('topics') || [];
+        if (currentTopics.length < fixtures.topics.length) {
+          db.replaceAll('topics', fixtures.topics);
+        }
+      }
+    } catch (e) {
+      console.warn('[SQLite Database] Could not sync fixtures subjects/topics:', e.message);
+    }
+  }
+
   // Automatic migration: normalize Dean & Admin labels, roles, and eliminate legacy careerprep.ai emails
   try {
     // 1. Remove duplicate or legacy careerprep.ai demo accounts if preppilot.ai counterparts exist

@@ -5,6 +5,7 @@ import db, { initDb, saveDb, CANONICAL_BRANCHES } from '../src/database/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const FIXTURES_FILE = path.join(__dirname, '../src/database/static_fixtures.json');
 
 // Standard bcrypt hash for password "Password123" with salt rounds = 10
 const DEFAULT_PASSWORD_HASH = '$2b$10$HrT5izLhjOv1LR4nw7bAsOQEbopY/viseoDaL1duWUbKUvdmU0agK';
@@ -74,9 +75,312 @@ const ASSESSMENT_TYPES = [
   { type: 'aptitude-speed', title: 'Quantitative & Logical Aptitude Test' }
 ];
 
+export const NEW_DISCIPLINE_TOPICS = [
+  // Civil Engineering (sub-structural, sub-som)
+  { id: 'top-soil-mechanics', subject_id: 'sub-structural', name: 'Soil Mechanics & Foundation Engineering', importance_weight: 0.9 },
+  { id: 'top-structural-analysis', subject_id: 'sub-structural', name: 'Structural Analysis & Trusses', importance_weight: 0.95 },
+  { id: 'top-bending-torsion', subject_id: 'sub-som', name: 'Bending Moments & Torsional Shear Stress', importance_weight: 0.9 },
+
+  // Mechanical Engineering (sub-thermo, sub-som)
+  { id: 'top-fluid-mechanics', subject_id: 'sub-thermo', name: 'Fluid Mechanics & Bernoulli Applications', importance_weight: 0.9 },
+  { id: 'top-heat-transfer', subject_id: 'sub-thermo', name: 'Conduction, Convection & Radiation Heat Transfer', importance_weight: 0.9 },
+
+  // Electrical Engineering (sub-power-sys, sub-ctrl-sys)
+  { id: 'top-transmission-lines', subject_id: 'sub-power-sys', name: 'Transmission Lines & Power Grid Stability', importance_weight: 0.9 },
+  { id: 'top-transfer-functions', subject_id: 'sub-ctrl-sys', name: 'Transfer Functions & Bode Plots', importance_weight: 0.9 },
+  { id: 'top-stability-analysis', subject_id: 'sub-ctrl-sys', name: 'State Space & Nyquist Stability', importance_weight: 0.85 },
+
+  // Electronics & Telecom (sub-digital-elec, sub-microproc)
+  { id: 'top-sequential-circuits', subject_id: 'sub-digital-elec', name: 'Sequential Circuits, Counters & Registers', importance_weight: 0.9 },
+  { id: 'top-embedded-c', subject_id: 'sub-microproc', name: 'Embedded C & Microcontroller Interfacing', importance_weight: 0.9 },
+
+  // Artificial Intelligence (sub-ai-ml)
+  { id: 'top-neural-nets', subject_id: 'sub-ai-ml', name: 'Deep Learning & Neural Network Architectures', importance_weight: 1 },
+  { id: 'top-supervised-learning', subject_id: 'sub-ai-ml', name: 'Supervised Learning & Model Evaluation', importance_weight: 0.95 },
+
+  // Data Science (sub-data-science)
+  { id: 'top-big-data', subject_id: 'sub-data-science', name: 'Feature Engineering & Data Wrangling', importance_weight: 1 },
+  { id: 'top-statistical-inference', subject_id: 'sub-data-science', name: 'Statistical Inference & Hypothesis Testing', importance_weight: 0.95 },
+
+  // Cyber Security (sub-cyber-sec)
+  { id: 'top-cryptography', subject_id: 'sub-cyber-sec', name: 'Cryptographic Protocols & Public Key Infrastructure', importance_weight: 1 },
+  { id: 'top-network-defense', subject_id: 'sub-cyber-sec', name: 'Network Defense, Firewalls & Threat Mitigation', importance_weight: 0.95 },
+
+  // CSBS - TCS (sub-csbs-systems)
+  { id: 'top-enterprise-systems', subject_id: 'sub-csbs-systems', name: 'Enterprise Resource Planning & Business Processes', importance_weight: 1 },
+  { id: 'top-financial-analytics', subject_id: 'sub-csbs-systems', name: 'Financial Analytics & Corporate IT Systems', importance_weight: 0.9 },
+
+  // Industrial IoT (sub-iiot-sensors)
+  { id: 'top-mqtt-edge', subject_id: 'sub-iiot-sensors', name: 'MQTT/CoAP Protocols & Edge Processing', importance_weight: 1 },
+  { id: 'top-scada-plc', subject_id: 'sub-iiot-sensors', name: 'SCADA, PLCs & Industrial Automation', importance_weight: 0.95 },
+
+  // Robotics & AI (sub-robotics-ai)
+  { id: 'top-robot-kinematics', subject_id: 'sub-robotics-ai', name: 'Kinematics & Trajectory Planning', importance_weight: 1 },
+  { id: 'top-ros-slam', subject_id: 'sub-robotics-ai', name: 'Robot Operating System (ROS) & SLAM', importance_weight: 0.95 }
+];
+
+export const BRANCH_CURRICULUM_PROFILES = {
+  'branch-ce': {
+    code: 'CE',
+    name: 'Civil Engineering',
+    strongTopics: [
+      { id: 'top-structural-analysis', sub: 'sub-structural', name: 'Structural Analysis & Trusses', delta: +0.14 },
+      { id: 'top-concrete', sub: 'sub-structural', name: 'RCC Beam Design & Concrete Curing', delta: +0.12 },
+      { id: 'top-soil-mechanics', sub: 'sub-structural', name: 'Soil Mechanics & Foundation Engineering', delta: +0.10 },
+      { id: 'top-stress-strain', sub: 'sub-som', name: 'Stress-Strain Diagrams & Hooke Law', delta: +0.05 },
+      { id: 'top-bending-torsion', sub: 'sub-som', name: 'Bending Moments & Torsional Shear Stress', delta: +0.04 }
+    ],
+    moderateTopics: [
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.01 },
+      { id: 'top-logic', sub: 'sub-aptitude', name: 'Logical Reasoning', delta: +0.02 },
+      { id: 'top-verbal', sub: 'sub-aptitude', name: 'Verbal Ability', delta: -0.04 },
+      { id: 'top-searching-sorting', sub: 'sub-dsa', name: 'Searching & Sorting', delta: -0.08 }
+    ],
+    gapTopic: { id: 'top-arrays', sub: 'sub-dsa', name: 'Arrays & Two Pointers', delta: -0.22 }
+  },
+
+  'branch-me': {
+    code: 'ME',
+    name: 'Mechanical Engineering',
+    strongTopics: [
+      { id: 'top-thermo-laws', sub: 'sub-thermo', name: 'First & Second Laws of Thermodynamics', delta: +0.14 },
+      { id: 'top-heat-transfer', sub: 'sub-thermo', name: 'Conduction, Convection & Radiation Heat Transfer', delta: +0.12 },
+      { id: 'top-fluid-mechanics', sub: 'sub-thermo', name: 'Fluid Mechanics & Bernoulli Applications', delta: +0.10 },
+      { id: 'top-stress-strain', sub: 'sub-som', name: 'Stress-Strain Diagrams & Hooke Law', delta: +0.05 },
+      { id: 'top-bending-torsion', sub: 'sub-som', name: 'Bending Moments & Torsional Shear Stress', delta: +0.04 }
+    ],
+    moderateTopics: [
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.02 },
+      { id: 'top-logic', sub: 'sub-aptitude', name: 'Logical Reasoning', delta: +0.01 },
+      { id: 'top-verbal', sub: 'sub-aptitude', name: 'Verbal Ability', delta: -0.04 },
+      { id: 'top-arrays', sub: 'sub-dsa', name: 'Arrays & Two Pointers', delta: -0.08 }
+    ],
+    gapTopic: { id: 'top-searching-sorting', sub: 'sub-dsa', name: 'Searching & Sorting (Binary Search, Merge/Quick Sort)', delta: -0.22 }
+  },
+
+  'branch-ee': {
+    code: 'EE',
+    name: 'Electrical Engineering',
+    strongTopics: [
+      { id: 'top-transformers', sub: 'sub-power-sys', name: 'Transformers & Induction Motors', delta: +0.14 },
+      { id: 'top-transmission-lines', sub: 'sub-power-sys', name: 'Transmission Lines & Power Grid Stability', delta: +0.12 },
+      { id: 'top-transfer-functions', sub: 'sub-ctrl-sys', name: 'Transfer Functions & Bode Plots', delta: +0.05 },
+      { id: 'top-stability-analysis', sub: 'sub-ctrl-sys', name: 'State Space & Nyquist Stability', delta: +0.04 },
+      { id: 'top-logic-gates', sub: 'sub-digital-elec', name: 'Logic Minimization & Flip Flops', delta: +0.03 }
+    ],
+    moderateTopics: [
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.02 },
+      { id: 'top-logic', sub: 'sub-aptitude', name: 'Logical Reasoning', delta: +0.01 },
+      { id: 'top-cpu-sched', sub: 'sub-os', name: 'CPU Scheduling Algorithms', delta: -0.06 }
+    ],
+    gapTopic: { id: 'top-memory-mgmt', sub: 'sub-os', name: 'Virtual Memory & Paging', delta: -0.22 }
+  },
+
+  'branch-etc': {
+    code: 'ETC',
+    name: 'Electronics & Telecommunication Engineering',
+    strongTopics: [
+      { id: 'top-logic-gates', sub: 'sub-digital-elec', name: 'Logic Minimization & Flip Flops', delta: +0.14 },
+      { id: 'top-sequential-circuits', sub: 'sub-digital-elec', name: 'Sequential Circuits, Counters & Registers', delta: +0.12 },
+      { id: 'top-8085', sub: 'sub-microproc', name: '8085 Instruction Set & Architecture', delta: +0.06 },
+      { id: 'top-embedded-c', sub: 'sub-microproc', name: 'Embedded C & Microcontroller Interfacing', delta: +0.05 },
+      { id: 'top-osi-tcp', sub: 'sub-cn', name: 'OSI vs TCP/IP Protocol Suite', delta: +0.03 }
+    ],
+    moderateTopics: [
+      { id: 'top-routing', sub: 'sub-cn', name: 'IP Addressing & Subnetting', delta: +0.01 },
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.02 },
+      { id: 'top-cpu-sched', sub: 'sub-os', name: 'CPU Scheduling Algorithms', delta: -0.05 }
+    ],
+    gapTopic: { id: 'top-deadlocks', sub: 'sub-os', name: 'Deadlock Detection & Prevention', delta: -0.22 }
+  },
+
+  'branch-cse': {
+    code: 'CSE',
+    name: 'Computer Science and Engineering (CSE)',
+    strongTopics: [
+      { id: 'top-sql-queries', sub: 'sub-dbms', name: 'SQL Queries & Joins', delta: +0.14 },
+      { id: 'top-normalization', sub: 'sub-dbms', name: 'Normalization (1NF to BCNF)', delta: +0.13 },
+      { id: 'top-acid', sub: 'sub-dbms', name: 'Transactions & ACID Properties', delta: +0.11 },
+      { id: 'top-pillars', sub: 'sub-oop', name: 'Core Pillars (Polymorphism & Abstraction)', delta: +0.06 },
+      { id: 'top-trees', sub: 'sub-dsa', name: 'Binary Trees & BSTs', delta: +0.05 }
+    ],
+    moderateTopics: [
+      { id: 'top-osi-tcp', sub: 'sub-cn', name: 'OSI vs TCP/IP Protocol Suite', delta: +0.03 },
+      { id: 'top-cpu-sched', sub: 'sub-os', name: 'CPU Scheduling Algorithms', delta: +0.02 },
+      { id: 'top-hashing', sub: 'sub-dsa', name: 'Hashing & Hash Tables', delta: +0.02 },
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.01 },
+      { id: 'top-graphs', sub: 'sub-dsa', name: 'Graphs & BFS/DFS', delta: -0.06 }
+    ],
+    gapTopic: { id: 'top-dp', sub: 'sub-dsa', name: 'Dynamic Programming', delta: -0.22 }
+  },
+
+  'branch-it': {
+    code: 'IT',
+    name: 'Information Technology',
+    strongTopics: [
+      { id: 'top-osi-tcp', sub: 'sub-cn', name: 'OSI vs TCP/IP Protocol Suite', delta: +0.14 },
+      { id: 'top-routing', sub: 'sub-cn', name: 'IP Addressing & Subnetting', delta: +0.12 },
+      { id: 'top-sql-queries', sub: 'sub-dbms', name: 'SQL Queries & Joins', delta: +0.05 },
+      { id: 'top-acid', sub: 'sub-dbms', name: 'Transactions & ACID Properties', delta: +0.04 },
+      { id: 'top-pillars', sub: 'sub-oop', name: 'Core Pillars (Polymorphism & Abstraction)', delta: +0.03 }
+    ],
+    moderateTopics: [
+      { id: 'top-arrays', sub: 'sub-dsa', name: 'Arrays & Two Pointers', delta: +0.02 },
+      { id: 'top-hashing', sub: 'sub-dsa', name: 'Hashing & Hash Tables', delta: +0.02 },
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.01 },
+      { id: 'top-searching-sorting', sub: 'sub-dsa', name: 'Searching & Sorting', delta: -0.05 }
+    ],
+    gapTopic: { id: 'top-sliding-window', sub: 'sub-dsa', name: 'Sliding Window & Subarray Algorithms', delta: -0.22 }
+  },
+
+  'branch-ai': {
+    code: 'AI',
+    name: 'Artificial Intelligence (AI)',
+    strongTopics: [
+      { id: 'top-neural-nets', sub: 'sub-ai-ml', name: 'Deep Learning & Neural Network Architectures', delta: +0.14 },
+      { id: 'top-supervised-learning', sub: 'sub-ai-ml', name: 'Supervised Learning & Model Evaluation', delta: +0.12 },
+      { id: 'top-trees', sub: 'sub-dsa', name: 'Binary Trees & BSTs', delta: +0.05 },
+      { id: 'top-heaps-priority', sub: 'sub-dsa', name: 'Heaps & Priority Queues', delta: +0.04 },
+      { id: 'top-logic', sub: 'sub-aptitude', name: 'Logical Reasoning', delta: +0.03 }
+    ],
+    moderateTopics: [
+      { id: 'top-sql-queries', sub: 'sub-dbms', name: 'SQL Queries & Joins', delta: +0.02 },
+      { id: 'top-di', sub: 'sub-aptitude', name: 'Data Interpretation', delta: +0.03 },
+      { id: 'top-arrays', sub: 'sub-dsa', name: 'Arrays & Two Pointers', delta: +0.01 },
+      { id: 'top-recursion-backtrack', sub: 'sub-dsa', name: 'Recursion, Backtracking & Subsets', delta: -0.05 }
+    ],
+    gapTopic: { id: 'top-asymptotic', sub: 'sub-dsa', name: 'Asymptotic Analysis & Recurrences', delta: -0.22 }
+  },
+
+  'branch-cs-ds': {
+    code: 'CSE-DS',
+    name: 'Computer Science & Engineering (Data Science)',
+    strongTopics: [
+      { id: 'top-big-data', sub: 'sub-data-science', name: 'Feature Engineering & Data Wrangling', delta: +0.14 },
+      { id: 'top-statistical-inference', sub: 'sub-data-science', name: 'Statistical Inference & Hypothesis Testing', delta: +0.12 },
+      { id: 'top-di', sub: 'sub-aptitude', name: 'Data Interpretation', delta: +0.06 },
+      { id: 'top-sql-queries', sub: 'sub-dbms', name: 'SQL Queries & Joins', delta: +0.05 },
+      { id: 'top-hashing', sub: 'sub-dsa', name: 'Hashing & Hash Tables', delta: +0.04 }
+    ],
+    moderateTopics: [
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.03 },
+      { id: 'top-arrays', sub: 'sub-dsa', name: 'Arrays & Two Pointers', delta: +0.01 },
+      { id: 'top-acid', sub: 'sub-dbms', name: 'Transactions & ACID Properties', delta: +0.02 },
+      { id: 'top-strings', sub: 'sub-dsa', name: 'Strings & Two-Pointers', delta: -0.05 }
+    ],
+    gapTopic: { id: 'top-indexing', sub: 'sub-dbms', name: 'B-Trees & Database Indexing', delta: -0.22 }
+  },
+
+  'branch-cs-cyber': {
+    code: 'CSE-CY',
+    name: 'Computer Science & Engineering (Cyber Security)',
+    strongTopics: [
+      { id: 'top-cryptography', sub: 'sub-cyber-sec', name: 'Cryptographic Protocols & Public Key Infrastructure', delta: +0.14 },
+      { id: 'top-network-defense', sub: 'sub-cyber-sec', name: 'Network Defense, Firewalls & Threat Mitigation', delta: +0.12 },
+      { id: 'top-osi-tcp', sub: 'sub-cn', name: 'OSI vs TCP/IP Protocol Suite', delta: +0.06 },
+      { id: 'top-routing', sub: 'sub-cn', name: 'IP Addressing & Subnetting', delta: +0.05 },
+      { id: 'top-bit-manipulation', sub: 'sub-dsa', name: 'Bit Manipulation & Bitwise Algorithms', delta: +0.03 }
+    ],
+    moderateTopics: [
+      { id: 'top-cpu-sched', sub: 'sub-os', name: 'CPU Scheduling Algorithms', delta: +0.01 },
+      { id: 'top-sql-queries', sub: 'sub-dbms', name: 'SQL Queries & Joins', delta: +0.02 },
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.01 },
+      { id: 'top-deadlocks', sub: 'sub-os', name: 'Deadlock Detection & Prevention', delta: -0.06 }
+    ],
+    gapTopic: { id: 'top-graphs', sub: 'sub-dsa', name: 'Graphs & BFS/DFS', delta: -0.22 }
+  },
+
+  'branch-csbs': {
+    code: 'CSBS',
+    name: 'Computer Science and Business Systems (in partnership with TCS)',
+    strongTopics: [
+      { id: 'top-enterprise-systems', sub: 'sub-csbs-systems', name: 'Enterprise Resource Planning & Business Processes', delta: +0.14 },
+      { id: 'top-financial-analytics', sub: 'sub-csbs-systems', name: 'Financial Analytics & Corporate IT Systems', delta: +0.12 },
+      { id: 'top-design-pat', sub: 'sub-oop', name: 'Creational & Structural Patterns', delta: +0.05 },
+      { id: 'top-pillars', sub: 'sub-oop', name: 'Core Pillars (Polymorphism & Abstraction)', delta: +0.04 },
+      { id: 'top-di', sub: 'sub-aptitude', name: 'Data Interpretation', delta: +0.04 }
+    ],
+    moderateTopics: [
+      { id: 'top-sql-queries', sub: 'sub-dbms', name: 'SQL Queries & Joins', delta: +0.03 },
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.02 },
+      { id: 'top-logic', sub: 'sub-aptitude', name: 'Logical Reasoning', delta: +0.02 },
+      { id: 'top-verbal', sub: 'sub-aptitude', name: 'Verbal Ability', delta: -0.05 }
+    ],
+    gapTopic: { id: 'top-heaps-priority', sub: 'sub-dsa', name: 'Heaps, Priority Queues & Top-K Elements', delta: -0.22 }
+  },
+
+  'branch-iiot': {
+    code: 'IIOT',
+    name: 'Industrial IoT',
+    strongTopics: [
+      { id: 'top-mqtt-edge', sub: 'sub-iiot-sensors', name: 'MQTT/CoAP Protocols & Edge Processing', delta: +0.14 },
+      { id: 'top-scada-plc', sub: 'sub-iiot-sensors', name: 'SCADA, PLCs & Industrial Automation', delta: +0.12 },
+      { id: 'top-embedded-c', sub: 'sub-microproc', name: 'Embedded C & Microcontroller Interfacing', delta: +0.06 },
+      { id: 'top-8085', sub: 'sub-microproc', name: '8085 Instruction Set & Architecture', delta: +0.05 },
+      { id: 'top-logic-gates', sub: 'sub-digital-elec', name: 'Logic Minimization & Flip Flops', delta: +0.03 }
+    ],
+    moderateTopics: [
+      { id: 'top-osi-tcp', sub: 'sub-cn', name: 'OSI vs TCP/IP Protocol Suite', delta: +0.02 },
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.01 },
+      { id: 'top-arrays', sub: 'sub-dsa', name: 'Arrays & Two Pointers', delta: -0.05 }
+    ],
+    gapTopic: { id: 'top-routing', sub: 'sub-cn', name: 'IP Addressing & Subnetting', delta: -0.22 }
+  },
+
+  'branch-robotics-ai': {
+    code: 'ROBOTICS-AI',
+    name: 'Robotics and Artificial Intelligence',
+    strongTopics: [
+      { id: 'top-robot-kinematics', sub: 'sub-robotics-ai', name: 'Kinematics & Trajectory Planning', delta: +0.14 },
+      { id: 'top-ros-slam', sub: 'sub-robotics-ai', name: 'Robot Operating System (ROS) & SLAM', delta: +0.12 },
+      { id: 'top-transfer-functions', sub: 'sub-ctrl-sys', name: 'Transfer Functions & Bode Plots', delta: +0.05 },
+      { id: 'top-neural-nets', sub: 'sub-ai-ml', name: 'Deep Learning & Neural Network Architectures', delta: +0.04 },
+      { id: 'top-trees', sub: 'sub-dsa', name: 'Binary Trees & BSTs', delta: +0.03 }
+    ],
+    moderateTopics: [
+      { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.02 },
+      { id: 'top-logic', sub: 'sub-aptitude', name: 'Logical Reasoning', delta: +0.02 },
+      { id: 'top-arrays', sub: 'sub-dsa', name: 'Arrays & Two Pointers', delta: +0.01 },
+      { id: 'top-searching-sorting', sub: 'sub-dsa', name: 'Searching & Sorting', delta: -0.05 }
+    ],
+    gapTopic: { id: 'top-recursion-backtrack', sub: 'sub-dsa', name: 'Recursion, Backtracking & Subsets', delta: -0.22 }
+  }
+};
+
 export async function seedAllDepartmentStudents() {
   await initDb();
   console.log('[Seed Department Students]: Initializing 70 authentic students per branch...');
+
+  // Ensure all discipline curriculum topics are registered in topics table
+  const existingTopics = db.getAll('topics') || [];
+  const existingTopicIds = new Set(existingTopics.map(t => t.id));
+  const mergedTopics = [...existingTopics];
+  let topicsAdded = 0;
+  for (const newTop of NEW_DISCIPLINE_TOPICS) {
+    if (!existingTopicIds.has(newTop.id)) {
+      mergedTopics.push(newTop);
+      existingTopicIds.add(newTop.id);
+      topicsAdded++;
+    }
+  }
+  if (topicsAdded > 0) {
+    console.log(`[Seed Department Students]: Adding ${topicsAdded} missing discipline topics to SQLite...`);
+    db.replaceAll('topics', mergedTopics);
+  }
+
+  // Ensure all 19 discipline subjects from fixtures are loaded into SQLite
+  if (fs.existsSync(FIXTURES_FILE)) {
+    try {
+      const fixtures = JSON.parse(fs.readFileSync(FIXTURES_FILE, 'utf-8'));
+      if (Array.isArray(fixtures.subjects)) {
+        const currentSubjects = db.getAll('subjects') || [];
+        if (currentSubjects.length < fixtures.subjects.length) {
+          console.log(`[Seed Department Students]: Syncing all ${fixtures.subjects.length} subjects to SQLite...`);
+          db.replaceAll('subjects', fixtures.subjects);
+        }
+      }
+    } catch {}
+  }
 
   const branches = db.getAll('branches');
   console.log(`[Seed Department Students]: Found ${branches.length} active branches in database.`);
@@ -298,48 +602,32 @@ export async function seedAllDepartmentStudents() {
         });
       }
 
-      // Generate StudentPerformance metrics across core curriculum topics
-      const studentTopics = [
-        // Known challenge areas (legitimate learning gaps with lower cohort accuracy)
-        { id: 'top-dp', sub: 'sub-dsa', name: 'Dynamic Programming', delta: -0.22 },
-        { id: 'top-graphs', sub: 'sub-dsa', name: 'Graphs & BFS/DFS', delta: -0.19 },
-        { id: 'top-sliding-window', sub: 'sub-dsa', name: 'Sliding Window & Subarray Algorithms', delta: -0.17 },
-        { id: 'top-indexing', sub: 'sub-dbms', name: 'B-Trees & Database Indexing', delta: -0.15 },
-        { id: 'top-verbal', sub: 'sub-aptitude', name: 'Verbal Ability', delta: -0.13 },
-        { id: 'top-memory-mgmt', sub: 'sub-os', name: 'Virtual Memory & Paging', delta: -0.11 },
-        { id: 'top-deadlocks', sub: 'sub-os', name: 'Deadlock Detection & Prevention', delta: -0.09 },
-        { id: 'top-routing', sub: 'sub-cn', name: 'IP Addressing & Subnetting', delta: -0.07 },
+      // Generate StudentPerformance metrics based on department-specific curriculum and genuine discipline focus
+      const deptCurriculum = BRANCH_CURRICULUM_PROFILES[branch.id] || {
+        strongTopics: [
+          { id: 'top-sql-queries', sub: 'sub-dbms', name: 'SQL Queries & Joins', delta: +0.13 },
+          { id: 'top-normalization', sub: 'sub-dbms', name: 'Normalization (1NF to BCNF)', delta: +0.12 }
+        ],
+        moderateTopics: [
+          { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: +0.02 },
+          { id: 'top-logic', sub: 'sub-aptitude', name: 'Logical Reasoning', delta: +0.01 }
+        ],
+        gapTopic: { id: 'top-dp', sub: 'sub-dsa', name: 'Dynamic Programming', delta: -0.22 }
+      };
 
-        // Core foundational topics (moderate accuracy 64% - 72%)
-        { id: 'top-arrays', sub: 'sub-dsa', name: 'Arrays & Two Pointers', delta: -0.04 },
-        { id: 'top-stack-queue', sub: 'sub-dsa', name: 'Stacks & Queues', delta: -0.03 },
-        { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: -0.02 },
-        { id: 'top-searching-sorting', sub: 'sub-dsa', name: 'Searching & Sorting', delta: -0.01 },
-        { id: 'top-trees', sub: 'sub-dsa', name: 'Binary Trees & BSTs', delta: +0.00 },
-        { id: 'top-linked-lists', sub: 'sub-dsa', name: 'Linked Lists & Pointers', delta: +0.01 },
-        { id: 'top-hashing', sub: 'sub-dsa', name: 'Hashing & Hash Tables', delta: +0.02 },
-        { id: 'top-logic', sub: 'sub-aptitude', name: 'Logical Reasoning', delta: +0.02 },
-        { id: 'top-heaps-priority', sub: 'sub-dsa', name: 'Heaps & Priority Queues', delta: +0.01 },
-        { id: 'top-strings', sub: 'sub-dsa', name: 'Strings & Two-Pointers', delta: +0.02 },
-        { id: 'top-asymptotic', sub: 'sub-dsa', name: 'Asymptotic Analysis', delta: +0.02 },
-        { id: 'top-di', sub: 'sub-aptitude', name: 'Data Interpretation', delta: +0.03 },
-
-        // High mastery topics (strength areas 74% - 85%)
-        { id: 'top-cpu-sched', sub: 'sub-os', name: 'CPU Scheduling Algorithms', delta: +0.04 },
-        { id: 'top-osi-tcp', sub: 'sub-cn', name: 'OSI vs TCP/IP Protocol Suite', delta: +0.04 },
-        { id: 'top-pillars', sub: 'sub-oop', name: 'Core Pillars (Polymorphism & Abstraction)', delta: +0.05 },
-        { id: 'top-design-pat', sub: 'sub-oop', name: 'Creational & Structural Patterns', delta: +0.04 },
-        { id: 'top-normalization', sub: 'sub-dbms', name: 'Normalization (1NF to BCNF)', delta: +0.05 },
-        { id: 'top-acid', sub: 'sub-dbms', name: 'Transactions & ACID Properties', delta: +0.06 },
-        { id: 'top-sql-queries', sub: 'sub-dbms', name: 'SQL Queries & Joins', delta: +0.08 }
+      // Each student practices:
+      // 1. Their department's hallmark discipline strength topics
+      // 2. Discipline and aptitude foundational topics
+      // 3. Their department's priority focus / learning gap topic
+      const studentPracticeTopics = [
+        ...deptCurriculum.strongTopics,
+        ...deptCurriculum.moderateTopics,
+        deptCurriculum.gapTopic
       ];
 
-      // Each student has practice records across all challenge topics plus rotated curriculum topics
-      const studentSubsetTopics = studentTopics.filter((_, tIdx) => tIdx < 8 || (tIdx + i) % 2 === 0);
-
-      studentSubsetTopics.forEach((topic, tIdx) => {
+      studentPracticeTopics.forEach((topic, tIdx) => {
         const topicAttempts = 6 + ((i + tIdx) % 8);
-        const topicAccBase = Math.max(0.35, Math.min(0.96, accuracyBase + topic.delta + (((i + tIdx) % 5) * 0.02 - 0.04)));
+        const topicAccBase = Math.max(0.30, Math.min(0.96, accuracyBase + topic.delta + (((i + tIdx) % 5) * 0.02 - 0.04)));
         const topicCorrect = Math.max(1, Math.min(topicAttempts, Math.round(topicAttempts * topicAccBase)));
         const topicAccuracy = Math.round((topicCorrect / topicAttempts) * 100);
 
@@ -405,17 +693,17 @@ export async function seedAllDepartmentStudents() {
   saveDb();
 
   // Sync static_fixtures.json so that Vercel serverless deployments inherit all 840 students
-  const fixturesPath = path.join(__dirname, '../src/database/static_fixtures.json');
-  if (fs.existsSync(fixturesPath)) {
+  if (fs.existsSync(FIXTURES_FILE)) {
     try {
-      const fixtures = JSON.parse(fs.readFileSync(fixturesPath, 'utf-8'));
+      const fixtures = JSON.parse(fs.readFileSync(FIXTURES_FILE, 'utf-8'));
+      fixtures.topics = mergedTopics;
       fixtures.users = newUsers;
       fixtures.quizSessions = newQuizSessions;
       fixtures.attempts = newAttempts;
       fixtures.studentPerformance = newStudentPerformance;
       fixtures.codingSubmissions = newCodingSubmissions;
       fixtures.streaks = newStreaks;
-      fs.writeFileSync(fixturesPath, JSON.stringify(fixtures, null, 2), 'utf-8');
+      fs.writeFileSync(FIXTURES_FILE, JSON.stringify(fixtures, null, 2), 'utf-8');
       console.log('[Seed Department Students]: Successfully synced static_fixtures.json for Vercel production deployment!');
     } catch (fixErr) {
       console.warn('[Seed Department Students]: Could not update static_fixtures.json:', fixErr.message);

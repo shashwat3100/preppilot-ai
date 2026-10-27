@@ -112,16 +112,32 @@ export function calculateDepartmentMetrics() {
     }
 
     if (bestSubjectAcc === -1) {
+      const fallbackSubjectMap = {
+        'CE': 'Structural Engineering',
+        'ME': 'Thermodynamics & Heat Transfer',
+        'EE': 'Power Systems & Machines',
+        'ETC': 'Digital Electronics',
+        'CSE': 'Database Management Systems (DBMS)',
+        'IT': 'Computer Networks',
+        'AI': 'Machine Learning & Artificial Intelligence',
+        'CSE-DS': 'Data Science & Big Data Analytics',
+        'CSE-CY': 'Cyber Security & Network Defense',
+        'CSBS': 'Business Analytics & Enterprise Systems',
+        'IIOT': 'Industrial IoT & Sensor Networks',
+        'ROBOTICS-AI': 'Robotics & Autonomous Systems'
+      };
       const branchSubjects = subjects.filter(s => s.branch_id === branch.id);
       if (branchSubjects.length > 0) {
         topSubject = branchSubjects[0].name;
+      } else if (fallbackSubjectMap[branch.code]) {
+        topSubject = fallbackSubjectMap[branch.code];
       } else {
         topSubject = branch.name ? branch.name.split('(')[0].trim() : 'Core CS';
       }
     }
 
     // Weakest Topic (learning gap)
-    let weakestTopic = 'Operating Systems';
+    let weakestTopic = 'Algorithm Optimization';
     let lowestTopicAcc = 999;
     for (const [topId, data] of Object.entries(topicAccMap)) {
       const avg = data.count > 0 ? data.sum / data.count : 0;
@@ -130,6 +146,24 @@ export function calculateDepartmentMetrics() {
         const topObj = topics.find(t => t.id === topId);
         if (topObj) weakestTopic = topObj.name;
       }
+    }
+
+    if (lowestTopicAcc === 999) {
+      const fallbackFocusMap = {
+        'CE': 'Arrays & Two Pointers',
+        'ME': 'Searching & Sorting (Binary Search, Merge/Quick Sort)',
+        'EE': 'Virtual Memory & Paging',
+        'ETC': 'Deadlock Detection & Prevention',
+        'CSE': 'Dynamic Programming',
+        'IT': 'Sliding Window & Subarray Algorithms',
+        'AI': 'Asymptotic Analysis & Recurrences',
+        'CSE-DS': 'B-Trees & Database Indexing',
+        'CSE-CY': 'Graphs & BFS/DFS',
+        'CSBS': 'Heaps, Priority Queues & Top-K Elements',
+        'IIOT': 'IP Addressing & Subnetting',
+        'ROBOTICS-AI': 'Recursion, Backtracking & Subsets'
+      };
+      weakestTopic = fallbackFocusMap[branch.code] || 'Algorithm Optimization';
     }
 
     // Performance tier
