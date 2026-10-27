@@ -34,13 +34,14 @@ interface QuizPageProps {
 
 export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRetake }) => {
   const { refreshUser } = useAuth();
-  const { speakText, stopSpeaking, isSpeaking, openVoiceModal } = useVoice();
+  const { speakText, stopSpeaking, isSpeaking, openVoiceModal, setActiveQuestionContext } = useVoice();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [answers, setAnswers] = useState<Array<{ question_id: string; answer: string; time_spent: number }>>([]);
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
   const [overallStartTime] = useState<number>(Date.now());
   const [elapsedTimer, setElapsedTimer] = useState<number>(0);
+
 
   const [submittedCurrent, setSubmittedCurrent] = useState(false);
   const [isEvaluating, setIsEvaluating] = useState(false);
@@ -97,6 +98,36 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
     setSubmittedCurrent(false);
     setQuestionStartTime(Date.now());
   }, [currentIndex]);
+
+  // Synchronize Active Question Context with Global Voice Assistant
+  useEffect(() => {
+    if (!currentQ) {
+      setActiveQuestionContext(null);
+      return;
+    }
+    const chosenOpt = currentQ.options?.find((o: any) => o.option_key === selectedOption);
+    const correctOpt = currentQ.options?.find((o: any) => o.option_key === currentQ.correct_answer);
+
+    setActiveQuestionContext({
+      questionId: currentQ.id,
+      sequence: currentIndex + 1,
+      questionText: currentQ.question || (currentQ as any).question_text || '',
+      topic: currentQ.topic_name,
+      subject: currentQ.subject_name,
+      options: currentQ.options?.map((o: any) => ({ option_key: o.option_key, option_text: o.option_text })),
+      chosenAnswer: selectedOption || undefined,
+      chosenText: chosenOpt?.option_text || undefined,
+      correctAnswer: submittedCurrent ? currentQ.correct_answer : undefined,
+      correctText: submittedCurrent ? correctOpt?.option_text : undefined,
+      explanation: submittedCurrent ? currentQ.explanation : undefined,
+      isCorrect: submittedCurrent ? selectedOption === currentQ.correct_answer : undefined
+    });
+
+    return () => {
+      setActiveQuestionContext(null);
+    };
+  }, [currentQ, currentIndex, selectedOption, submittedCurrent, setActiveQuestionContext]);
+
 
   const handleSelectOption = (key: string) => {
     if (submittedCurrent) return;

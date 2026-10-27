@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
+import { EXTENDED_KNOWLEDGE_DOCS } from './extendedKnowledgeDocs.js';
 
 let DatabaseSync = null;
 let sqliteImportAttempted = false;
@@ -413,6 +414,20 @@ export const initDb = async () => {
     }
   } catch (migErr) {
     // Migration check fails gracefully if tables are still initializing
+  }
+
+  // 3. Ensure all 25 curriculum knowledgeDocuments are synced and up-to-date in SQLite
+  try {
+    ensureTable('knowledgeDocuments');
+    const existingKDocs = sqlite.prepare('SELECT id FROM knowledgeDocuments').all();
+    const existingKIds = new Set(existingKDocs.map(r => r.id));
+    for (const doc of EXTENDED_KNOWLEDGE_DOCS) {
+      if (!existingKIds.has(doc.id)) {
+        insertRow('knowledgeDocuments', doc);
+      }
+    }
+  } catch (kSyncErr) {
+    console.warn('[Knowledge Documents Sync Warning]:', kSyncErr.message);
   }
 
   console.log(`[SQLite Database] Embedded SQLite engine initialized at: ${dbFile}`);

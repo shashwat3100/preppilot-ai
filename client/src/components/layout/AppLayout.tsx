@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import AppHeader from './AppHeader';
+import FloatingVoiceButton from '../FloatingVoiceButton';
 
 interface AppLayoutProps {
   currentTab: string;
@@ -53,8 +54,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           {children}
         </main>
       </div>
+
+      {/* Floating 1-Click Voice Assistant Action Button */}
+      {currentTab !== 'thinking-orb' && currentTab !== 'preppilot-studio' && (
+        <FloatingVoiceButton />
+      )}
     </div>
   );
 };
 
 export default AppLayout;
+

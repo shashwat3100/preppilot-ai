@@ -1,5 +1,6 @@
 import db from '../database/db.js';
 import { GoogleGenAI } from '@google/genai';
+import { toNaturalSpeechText } from './voiceSpeechFormatter.js';
 
 /**
  * Text Vector & Similarity Utilities
@@ -10,12 +11,29 @@ const STOP_WORDS = new Set([
   'function', 'please', 'describe', 'give', 'me', 'it', 'this', 'that', 'from'
 ]);
 
-const TECHNICAL_ACRONYMS_2 = new Set(['os', 'ip', 'dp', 'db', 'io', 'ai', 'ml', 'cs', 'cn', 'rr', '2pl']);
+const TECHNICAL_ACRONYMS_2 = new Set([
+  'os', 'ip', 'dp', 'db', 'io', 'ai', 'ml', 'cs', 'cn', 'rr', '2pl', 'wal', 'tlb',
+  'mmu', 'dsu', 'bst', '1nf', '2nf', '3nf', 'avl', 'kmp', 'lcs', 'lis', 'lcm', 'hcf'
+]);
+
+const SYNONYM_EXPANSIONS = {
+  os: ['operating systems', 'process scheduling', 'deadlock', 'virtual memory', 'paging'],
+  dbms: ['database normalization', 'sql queries', 'acid transactions', 'indexing', 'b+ tree'],
+  sql: ['database', 'queries', 'joins', 'window functions', 'indexing', 'dbms'],
+  dsa: ['data structures', 'algorithms', 'trees', 'graphs', 'dynamic programming', 'sorting'],
+  oop: ['object-oriented programming', 'polymorphism', 'inheritance', 'encapsulation', 'solid principles'],
+  oops: ['object-oriented programming', 'polymorphism', 'inheritance', 'encapsulation', 'solid principles'],
+  quant: ['quantitative aptitude', 'time and work', 'speed distance', 'profit and loss', 'percentages'],
+  aptitude: ['quantitative aptitude', 'speed math', 'logical reasoning', 'syllogisms'],
+  reasoning: ['logical reasoning', 'syllogisms', 'blood relations', 'coding decoding', 'clocks calendars'],
+  cn: ['computer networks', 'tcp', 'udp', 'osi 7-layer', '3-way handshake'],
+  system: ['system design', 'load balancing', 'caching redis', 'cap theorem', 'microservices']
+};
 
 function tokenize(text) {
   return (text || '')
     .toLowerCase()
-    .replace(/[^\w\s]/g, ' ')
+    .replace(/[^\w\s-]/g, ' ')
     .split(/\s+/)
     .filter(token => (token.length > 2 || TECHNICAL_ACRONYMS_2.has(token)) && !STOP_WORDS.has(token));
 }
@@ -101,55 +119,114 @@ export class RagService {
       'company', 'companies', 'platform', 'listed', 'arena', 'coding', 'code', 'ctc', 'salary', 'package',
       'hiring', 'recruitment', 'round', 'rounds', 'eligibility', 'criteria', 'curriculum', 'syllabus',
       'preppilot', 'portal', 'assessment', 'practice', 'test', 'challenge', 'challenges', 'problem', 'problems',
-      'aids', 'aiml', 'cse', 'it', 'entc', 'ee', 'me', 'ce', 'che', 'partner', 'tier', 'dean', 'student'
+      'aids', 'aiml', 'cse', 'it', 'entc', 'ee', 'me', 'ce', 'che', 'partner', 'tier', 'dean', 'student',
+      // Aptitude, Reasoning, Verbal & Systems additions:
+      'quant', 'math', 'aptitude', 'time and work', 'work', 'speed', 'distance', 'train', 'pipes',
+      'profit', 'loss', 'discount', 'percentage', 'ratio', 'alligation', 'mixture', 'divisibility',
+      'reasoning', 'logic', 'syllogism', 'venn', 'blood relation', 'coding decoding', 'ejoty',
+      'direction', 'seating', 'clock', 'calendar', 'odd day', 'verbal', 'grammar', 'parallelism',
+      'star method', 'design pattern', 'solid', 'singleton', 'factory', 'observer', 'strategy',
+      'system design', 'system', 'systems', 'load balance', 'load balancing',
+      'rest', 'caching', 'redis', 'cap theorem', 'quicksort', 'mergesort', 'heapsort', 'knapsack',
+      'lcs', 'lis', 'dijkstra', 'topological'
     ];
 
     return allowedKeywords.some(kw => q.includes(kw));
   }
 
   /**
-   * Vector / Similarity Retrieval from KnowledgeDocuments
+   * Vector / Similarity Retrieval from KnowledgeDocuments with Query Expansion & Hybrid Scoring
    */
   static retrieveContext(query, studentProfile = null, topK = 3) {
-    const queryTokens = tokenize(query);
-    const allDocs = db.getAll('knowledgeDocuments');
+    const rawTokens = tokenize(query);
+    const queryLower = query.toLowerCase();
+
+    // Query expansion with domain synonyms
+    const expandedTokens = [...rawTokens];
+    for (const token of rawTokens) {
+      if (SYNONYM_EXPANSIONS[token]) {
+        for (const term of SYNONYM_EXPANSIONS[token]) {
+          expandedTokens.push(...tokenize(term));
+        }
+      }
+    }
+    const queryTokens = [...new Set(expandedTokens)];
+    const allDocs = db.getAll('knowledgeDocuments') || [];
 
     const scoredDocs = allDocs.map(doc => {
       // Aggregate searchable text
       const docText = `${doc.title} ${doc.summary || ''} ${doc.content} ${(doc.keywords || []).join(' ')}`;
       const docTokens = tokenize(docText);
+      const titleTokens = tokenize(doc.title);
+      const keyTokens = tokenize((doc.keywords || []).join(' '));
+      const summaryTokens = tokenize(doc.summary || '');
+
       const querySet = new Set(queryTokens);
+      const titleSet = new Set(titleTokens);
+      const keySet = new Set(keyTokens);
+      const summarySet = new Set(summaryTokens);
       const docSet = new Set(docTokens);
-      const titleSet = new Set(tokenize(doc.title));
-      const keywordSet = new Set(tokenize((doc.keywords || []).join(' ')));
+
       const coverage = (tokens) => querySet.size
         ? [...querySet].filter(token => tokens.has(token)).length / querySet.size
         : 0;
 
       const cosine = calculateCosineSimilarity(queryTokens, docTokens);
+      const titleCosine = calculateCosineSimilarity(rawTokens, titleTokens);
+      const keyCosine = calculateCosineSimilarity(rawTokens, keyTokens);
       const titleCov = coverage(titleSet);
-      const keyCov = coverage(keywordSet);
+      const keyCov = coverage(keySet);
+      const summaryCov = coverage(summarySet);
       const docCov = coverage(docSet);
 
       let similarity = Math.max(
         cosine,
+        titleCosine * 0.70 + titleCov * 0.30,
+        keyCosine * 0.60 + keyCov * 0.30,
+        summaryCov * 0.35,
         titleCov * 0.35,
         keyCov * 0.30,
         (titleCov > 0 || keyCov > 0 || cosine > 0.1 ? docCov * 0.15 : 0)
       );
 
+      // Multi-word phrase matching bonus
+      const keyphrases = [
+        'time and work', 'pipes and cisterns', 'relative speed', 'trains', 'boats and streams',
+        'profit and loss', 'successive discount', 'alligation', 'divisibility', 'unit digit',
+        'syllogism', 'blood relation', 'coding decoding', 'clocks and calendars',
+        'sentence correction', 'star method', 'virtual memory', 'page fault', 'thrashing',
+        'coffman conditions', 'banker algorithm', 'round robin', 'convoy effect',
+        'normalization', '1nf', '2nf', '3nf', 'bcnf', 'acid properties', 'isolation levels',
+        'tcp 3-way handshake', '3-way handshake', 'osi 7-layer', 'binary search', 'quicksort',
+        'mergesort', 'heapsort', 'binary search tree', 'bst', 'dijkstra', 'topological sort',
+        'dynamic programming', '0/1 knapsack', 'longest common subsequence', 'longest increasing subsequence',
+        'solid principles', 'design patterns', 'singleton', 'factory method', 'observer pattern',
+        'b+ tree', 'double hashing', 'trie', 'prefix tree', 'dsu', 'disjoint set union',
+        'ale pin', '8085 microprocessor', 'first law of thermodynamics', 'second law of thermodynamics'
+      ];
+
+      for (const phrase of keyphrases) {
+        if (queryLower.includes(phrase)) {
+          const docTextLower = docText.toLowerCase();
+          if (docTextLower.includes(phrase)) {
+            similarity += 0.35;
+            break;
+          }
+        }
+      }
+
       if (studentProfile && similarity >= 0.035) {
         if (studentProfile.branch_id && doc.branch_id === studentProfile.branch_id) {
-          similarity += 0.01;
+          similarity += 0.02;
         }
         if (studentProfile.target_companies && studentProfile.target_companies.includes(doc.company_id)) {
-          similarity += 0.015;
+          similarity += 0.03;
         }
       }
 
       return {
         ...doc,
-        similarityScore: similarity
+        similarityScore: Math.min(1.0, similarity)
       };
     });
 
@@ -196,25 +273,7 @@ ${contextText || 'Core engineering syllabus and standard campus placement standa
 
       if (response && response.text) {
         const text = response.text.trim();
-        // Extract 2 clean sentences for natural voice speech output
-        const cleanSpeech = text
-          .replace(/```[\s\S]*?```/g, '')
-          .replace(/[#*`>_]/g, '')
-          .split('\n')
-          .map(l => l.trim())
-          .filter(l => l.length > 15 && !l.toLowerCase().startsWith('key placement'))
-          .slice(0, 2)
-          .join(' ');
-
-        let speechFriendly = cleanSpeech || text.replace(/[#*`>_]/g, '').replace(/\s+/g, ' ').slice(0, 220);
-        if (speechFriendly.length > 250) {
-          const lastPeriod = speechFriendly.lastIndexOf('.', 250);
-          if (lastPeriod > 80) {
-            speechFriendly = speechFriendly.slice(0, lastPeriod + 1);
-          } else {
-            speechFriendly = speechFriendly.slice(0, 247) + '...';
-          }
-        }
+        const speechFriendly = toNaturalSpeechText(text, query);
 
         return {
           answer: text,
@@ -1660,11 +1719,13 @@ To solve **Two Sum** efficiently without an $O(n^2)$ brute-force nested loop:
       speechFriendly = "For Two Sum, use a hash map to store each number and its index. As you iterate, check if the complement, target minus current number, exists in the map in O of 1 time.";
 
     } else if (
-      qLower.includes('oops') ||
-      qLower.includes('object-oriented') ||
-      qLower.includes('object oriented') ||
-      (qLower.includes('oop') && !qLower.includes('loop')) ||
-      (qLower.includes('pillar') && qLower.includes('oop'))
+      !qLower.includes('solid') && (
+        qLower.includes('oops') ||
+        qLower.includes('object-oriented') ||
+        qLower.includes('object oriented') ||
+        (qLower.includes('oop') && !qLower.includes('loop')) ||
+        (qLower.includes('pillar') && qLower.includes('oop'))
+      )
     ) {
       responseMarkdown = `### Core Pillars of Object-Oriented Programming (OOP)
 
@@ -1715,16 +1776,292 @@ The Java Virtual Machine (JVM) divides runtime data memory into distinct logical
 
       speechFriendly = "In the Java memory model, Stack memory stores local primitive variables and method call frames per thread, while Heap memory stores all instantiated objects managed by garbage collection.";
 
+    } else if (
+      qLower.includes('time and work') ||
+      qLower.includes('pipe') ||
+      qLower.includes('cistern') ||
+      (qLower.includes('work') && (qLower.includes('efficiency') || qLower.includes('days') || qLower.includes('complete')))
+    ) {
+      responseMarkdown = `### Quantitative Aptitude: Time & Work (The LCM Rate Method)
+
+In campus placement screening rounds (TCS, Infosys, Accenture, Wipro), solving Time & Work problems with traditional fractions ($1/A + 1/B$) is slow and prone to calculation errors. Use the **LCM Method**:
+
+#### 1. The LCM Method Framework:
+1. **Total Work:** Assume total work equals the **LCM** of individual completion days.
+2. **Efficiency (units/day):** $\\text{Efficiency} = \\frac{\\text{Total Work}}{\\text{Days Taken}}$.
+3. **Combined Time:** $\\text{Total Days} = \\frac{\\text{Total Work}}{\\text{Combined Daily Efficiency}}$.
+
+#### 2. Essential Placement Formulas:
+- **Two Workers ($A$ and $B$ days):** Combined Time = $\\frac{A \\times B}{A + B}$ days.
+- **Three Workers ($A$, $B$, and $C$ days):** Combined Time = $\\frac{A \\times B \\times C}{(AB + BC + CA)}$ days.
+- **Man-Days Formula:** $\\frac{M_1 \\times D_1 \\times H_1}{W_1} = \\frac{M_2 \\times D_2 \\times H_2}{W_2}$ (where $M$ is workers, $D$ is days, $H$ is daily hours, $W$ is work units).
+- **Pipes and Cisterns:** Inlet pipes contribute positive efficiency ($+E$); leak or outlet pipes contribute negative efficiency ($-E$).
+
+#### 3. Standard Placement Trap:
+If worker A is twice as efficient as worker B, their efficiency ratio is $2:1$, which means their time ratio is $1:2$. A takes half the time B takes!
+
+> **Key Placement Interview Consideration:** Aptitude screening rounds evaluate your speed; always set Total Work = LCM to convert fractional equations into rapid whole-number addition.`;
+
+      speechFriendly = "In Time and Work problems, use the LCM method by setting total work to the LCM of individual days. Efficiency equals work divided by days, and combined time equals total work divided by combined daily units.";
+
+    } else if (
+      qLower.includes('speed') && (qLower.includes('distance') || qLower.includes('train') || qLower.includes('boat') || qLower.includes('relative')) ||
+      qLower.includes('relative speed') ||
+      qLower.includes('average speed')
+    ) {
+      responseMarkdown = `### Quantitative Aptitude: Speed, Distance & Time Master Guide
+
+Speed, Distance, and Time problems test conversion accuracy, relative motion, and harmonic averages.
+
+#### 1. Core Conversion Rules:
+- **km/h to m/s:** Multiply by $\\frac{5}{18}$ (since $1\\text{ km/h} = \\frac{1000\\text{ m}}{3600\\text{ s}} = \\frac{5}{18}\\text{ m/s}$).
+- **m/s to km/h:** Multiply by $\\frac{18}{5}$.
+
+#### 2. Average Speed (Harmonic Mean):
+- If a journey travels distance $D$ at speed $x$ and returns the same distance $D$ at speed $y$:
+  $$\\text{Average Speed} = \\frac{2xy}{x + y}$$
+- *Note:* Do NOT compute the simple arithmetic mean $\\frac{x+y}{2}$; average speed is total distance divided by total time!
+
+#### 3. Relative Speed Principles:
+- **Moving in Opposite Directions (Towards each other):** Add speeds: $S_{\\text{rel}} = S_1 + S_2$.
+- **Moving in Same Direction (Chasing):** Subtract speeds: $S_{\\text{rel}} = |S_1 - S_2|$.
+- **Train crossing stationary object of negligible width (pole, tree, person):** Distance = Length of Train.
+- **Train crossing platform, bridge, or tunnel of length $L_p$:** Distance = $\\text{Length of Train} + L_p$.
+- **Boats & Streams:** Downstream Speed = $u + v$, Upstream Speed = $u - v$. Boat speed in still water = $\\frac{\\text{Downstream} + \\text{Upstream}}{2}$.
+
+> **Key Placement Interview Consideration:** Campus test makers frequently mix units (speeds in km/h, train lengths in meters, times in seconds). Standardize all measurements to meters and seconds before calculating.`;
+
+      speechFriendly = "For speed, distance, and time, multiply km per hour by 5 over 18 to convert to meters per second. For equal-distance round trips, average speed is always 2xy over x plus y.";
+
+    } else if (
+      qLower.includes('profit') ||
+      qLower.includes('loss') ||
+      qLower.includes('discount') ||
+      qLower.includes('successive discount')
+    ) {
+      responseMarkdown = `### Quantitative Aptitude: Profit, Loss & Successive Discounts
+
+Profit and Loss questions test commercial arithmetic and percentage calculation speed.
+
+#### 1. Fundamental Benchmarks:
+- **Cost Price (CP):** The benchmark baseline. Profit and Loss percentages are ALWAYS calculated on Cost Price unless explicitly stated otherwise:
+  $$\\text{Profit }\\% = \\left(\\frac{\\text{SP} - \\text{CP}}{\\text{CP}}\\right) \\times 100, \\quad \\text{Loss }\\% = \\left(\\frac{\\text{CP} - \\text{SP}}{\\text{CP}}\\right) \\times 100$$
+- **Marked Price (MP):** The sticker price. Discounts are ALWAYS calculated on Marked Price:
+  $$\\text{Discount }\\% = \\left(\\frac{\\text{MP} - \\text{SP}}{\\text{MP}}\\right) \\times 100$$
+
+#### 2. High-Speed Formulas:
+- **Selling Price with Profit:** $\\text{SP} = \\text{CP} \\times \\frac{100 + P\\%}{100}$.
+- **Net Successive Change Formula:** For two successive changes $+a\\%$ and $+b\\%$:
+  $$\\text{Net Change }\\% = \\left[a + b + \\frac{a \\times b}{100}\\right]\\%$$
+- **Successive Discounts ($d_1\\%$ and $d_2\\%$):**
+  $$\\text{Single Equivalent Discount} = \\left[d_1 + d_2 - \\frac{d_1 \\times d_2}{100}\\right]\\%$$
+  *(Example: Consecutive discounts of 20% and 10% equal $20 + 10 - 2 = 28\\%$, NOT 30%!)*
+
+#### 3. Dishonest Shopkeeper Shortcut:
+$$\\text{Gain }\\% = \\left(\\frac{\\text{Error}}{\\text{True Value} - \\text{Error}}\\right) \\times 100$$
+
+> **Key Placement Interview Consideration:** In fast aptitude rounds, represent percentages as fractions (e.g., $16.67\\% = 1/6$, $12.5\\% = 1/8$, $14.28\\% = 1/7$) to eliminate decimal division.`;
+
+      speechFriendly = "Profit and Loss percentages are always calculated on Cost Price, while discounts are calculated on Marked Price. For consecutive discounts of a and b percent, the equivalent single discount is a plus b minus a times b divided by 100.";
+
+    } else if (
+      qLower.includes('syllogism') ||
+      qLower.includes('syllogisms') ||
+      (qLower.includes('premise') && qLower.includes('conclusion'))
+    ) {
+      responseMarkdown = `### Logical Reasoning: Syllogisms & Deductive Logic
+
+Syllogisms test categorical deduction based strictly on given statements, regardless of real-world facts.
+
+#### 1. Statement Classifications:
+1. **Universal Affirmative (A):** "All $A$ are $B$" $\\rightarrow$ Subject distributed (100), Predicate undistributed (50).
+2. **Universal Negative (E):** "No $A$ is $B$" $\\rightarrow$ Both Subject and Predicate distributed (100, 100).
+3. **Particular Affirmative (I):** "Some $A$ are $B$" $\\rightarrow$ Both undistributed (50, 50).
+4. **Particular Negative (O):** "Some $A$ are not $B$" $\\rightarrow$ Subject undistributed (50), Predicate distributed (100).
+
+#### 2. Deductive Gold Rules:
+- **Rule 1 (Affirmative Premises):** If both statements are affirmative (positive), a negative conclusion can NEVER follow.
+- **Rule 2 (Negative Premises):** Two negative statements yield NO valid definite conclusion.
+- **Rule 3 (One Negative):** If one premise is negative, any valid conclusion MUST be negative.
+- **Rule 4 (Distribution):** A term distributed in the conclusion MUST be distributed in at least one premise.
+- **Either/Or Complementary Pairs:** When both individual conclusions are indeterminate, they form an *Either I or II follows* pair if:
+  1. Both conclusions share the exact same subject and predicate.
+  2. One conclusion is affirmative and the other is negative (e.g., Some + No, or All + Some Not).
+
+> **Key Placement Interview Consideration:** Never inject real-world domain knowledge into syllogisms. If statements say "All dogs are cats", treat it as an unquestionable truth.`;
+
+      speechFriendly = "In syllogisms, two positive premises always produce a positive conclusion, while two negative premises produce no valid conclusion. Look for complementary Either-Or pairs when conclusions are indeterminate.";
+
+    } else if (
+      qLower.includes('blood relation') ||
+      qLower.includes('blood relations') ||
+      qLower.includes('family tree')
+    ) {
+      responseMarkdown = `### Logical Reasoning: Blood Relations & Family Tree Decoding
+
+Blood relations test kinship mapping, generational hierarchy, and inductive reasoning.
+
+#### 1. Core Systematic Framework:
+1. **Draw Generations Vertically:**
+   - Generation +2: Grandparents (Maternal/Paternal).
+   - Generation +1: Parents, Aunts, Uncles.
+   - Generation 0: Self, Siblings, Cousins, Spouse.
+   - Generation -1: Children, Nieces, Nephews.
+2. **Use Standard Notation:**
+   - Square $[\\square]$ or $(+)$ for Male; Circle $[\\bigcirc]$ or $(-)$ for Female.
+   - Horizontal Double Line ($=$) for Married Couple.
+   - Horizontal Single Line ($-$) for Siblings.
+   - Vertical Line ($|$) for Parent-Child connection.
+
+#### 2. Crucial Placement Rules:
+- **The Golden Rule:** NEVER deduce or assume gender from personal names (e.g., Robin, Kiran, Alex) unless explicitly stated using kinship nouns (brother, sister, father, mother, husband, wife).
+- **Reverse Decoding for Coded Relations:** In statements like "Pointing to a man, she said: 'His mother is the only daughter of my father's wife'", decode backwards starting from "my father's wife" $\\rightarrow$ "my mother" $\\rightarrow$ "only daughter" $\\rightarrow$ "myself" $\\rightarrow$ "his mother is myself" $\\rightarrow$ The man is her son!
+
+> **Key Placement Interview Consideration:** Break multi-clause kinship sentences into single-generation links backwards from the speaker to arrive at the solution within 30 seconds.`;
+
+      speechFriendly = "In blood relations, never assume gender from a name without explicit kinship pronouns. Decode complex statements backwards starting from the speaker to map the generational family tree.";
+
+    } else if (
+      qLower.includes('solid principle') ||
+      qLower.includes('solid principles') ||
+      (qLower.includes('solid') && qLower.includes('design'))
+    ) {
+      responseMarkdown = `### SOLID Principles of Object-Oriented Design
+
+The **SOLID** principles are 5 fundamental design guidelines formulated by Robert C. Martin to build maintainable, understandable, and extensible enterprise software:
+
+#### 1. Single Responsibility Principle (SRP):
+- A class should have **one, and only one, reason to change**.
+- A class should encapsulate a single responsibility or business actor.
+- *Violation:* An \`Invoice\` class that calculates taxes, prints PDFs, and writes directly to PostgreSQL.
+
+#### 2. Open/Closed Principle (OCP):
+- Software entities should be **open for extension, but closed for modification**.
+- Extend functionality by creating subclasses or implementing interfaces rather than modifying battle-tested existing code.
+
+#### 3. Liskov Substitution Principle (LSP):
+- Objects of a superclass should be **replaceable with objects of its subclasses** without breaking application correctness.
+- *Classic Violation:* \`Square\` inheriting from \`Rectangle\` where altering width unexpectedly alters height.
+
+#### 4. Interface Segregation Principle (ISP):
+- Clients should **never be forced to depend upon methods they do not use**.
+- Favor many small, client-specific interfaces over one bulky, monolithic interface.
+
+#### 5. Dependency Inversion Principle (DIP):
+- High-level modules should **not depend on low-level modules; both should depend on abstractions**.
+- Abstractions should not depend on details; details should depend on abstractions (enforced via Dependency Injection).
+
+> **Key Placement Interview Consideration:** Top product interviewers (Amazon, Google, Microsoft) evaluate whether your coding solutions violate SRP and DIP during Object-Oriented Design and Machine Coding rounds.`;
+
+      speechFriendly = "The SOLID principles are Single Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion. They ensure software architecture is decoupled, testable, and maintainable.";
+
+    } else if (
+      qLower.includes('binary search') ||
+      (qLower.includes('search') && (qLower.includes('sorted') || qLower.includes('divide and conquer')))
+    ) {
+      responseMarkdown = `### Binary Search Algorithm: Mechanics, Complexity & Invariants
+
+**Binary Search** is an optimal divide-and-conquer search algorithm operating on **sorted contiguous sequences**.
+
+#### 1. Algorithmic Mechanism:
+1. Maintain two pointers: \`low = 0\` and \`high = n - 1\`.
+2. Compute the midpoint:
+   $$\\text{mid} = \\text{low} + \\frac{\\text{high} - \\text{low}}{2} \\quad \\text{(prevents 32-bit integer overflow)}$$
+3. Compare target with \`A[mid]\`:
+   - If \`A[mid] == target\`: Target found at index \`mid\` ($O(1)$).
+   - If \`A[mid] < target\`: Eliminate the left half by setting \`low = mid + 1\`.
+   - If \`A[mid] > target\`: Eliminate the right half by setting \`high = mid - 1\`.
+4. Terminate when \`low > high\` (target does not exist).
+
+#### 2. Complexity Analysis:
+- **Time Complexity:** Best Case: $O(1)$, Average & Worst Case: $O(\\log n)$ because the search space halves at every step ($n, \\frac{n}{2}, \\frac{n}{4}, \\dots, 1$).
+- **Space Complexity:** Iterative: $O(1)$ auxiliary space; Recursive: $O(\\log n)$ call stack frames.
+
+#### 3. Advanced Placement Applications:
+- **Binary Search on Answer Space:** Finding minimum capacities or maximum allocations where a monotonic boolean predicate $\\text{isValid}(x)$ holds (e.g., Aggressive Cows, Painter's Partition, Capacity To Ship Packages).
+- **Rotated Sorted Array Search:** Identify which half is sorted (\`A[low] <= A[mid]\`) before discarding half of the elements.
+
+> **Key Placement Interview Consideration:** In interview viva, always write \`mid = low + (high - low) / 2\` instead of \`mid = (low + high) / 2\` to demonstrate production awareness against integer arithmetic overflow.`;
+
+      speechFriendly = "Binary search is an optimal divide-and-conquer algorithm that finds elements in sorted arrays in O of log n time. Computing the midpoint as low plus high minus low divided by two prevents integer overflow.";
+
+    } else if (
+      qLower.includes('quicksort') ||
+      qLower.includes('mergesort') ||
+      (qLower.includes('sorting') && (qLower.includes('algorithm') || qLower.includes('compare')))
+    ) {
+      responseMarkdown = `### Sorting Algorithms: QuickSort vs. MergeSort Comparative Analysis
+
+Both **QuickSort** and **MergeSort** are divide-and-conquer algorithms with distinct architectural trade-offs:
+
+#### 1. Architectural Comparison:
+| Dimension | QuickSort | MergeSort |
+| :--- | :--- | :--- |
+| **Strategy** | Partitioning around a Pivot element | Divide into halves, sort recursively, and merge |
+| **Best Case Time** | $O(n \\log n)$ | $O(n \\log n)$ |
+| **Average Case Time** | $O(n \\log n)$ | $O(n \\log n)$ |
+| **Worst Case Time** | $O(n^2)$ (sorted input with naive pivot) | $O(n \\log n)$ (strictly guaranteed) |
+| **Auxiliary Space** | $O(\\log n)$ call stack (In-Place) | $O(n)$ temporary merge array (Not in-place) |
+| **Stability** | Unstable by default | Stable (preserves original order of duplicates) |
+| **Memory Locality** | Exceptional CPU cache spatial locality | Slower due to copying into temporary buffers |
+
+#### 2. Why QuickSort Outperforms MergeSort in Practice:
+- QuickSort operates **in-place** without dynamic heap allocation.
+- It accesses array elements sequentially in contiguous memory, maximizing CPU cache line hits.
+- Worst-case $O(n^2)$ is prevented in production systems using randomized pivots or Introsort (switching to HeapSort when recursion depth exceeds $2 \\log n$).
+
+#### 3. When to Choose MergeSort:
+- When **stability** is strictly required.
+- For sorting **Linked Lists**, because lists can be merged in $O(1)$ auxiliary space without random access pointers.
+- For external sorting of multi-gigabyte datasets residing on disk.
+
+> **Key Placement Interview Consideration:** Interviewers frequently ask: "Why does C++ \`std::sort\` use QuickSort/Introsort while Java \`Arrays.sort(Object[])\` uses TimSort (MergeSort variant)?" Answer: Primitive types prioritize raw cache speed (QuickSort), while objects require guaranteed stability (TimSort).`;
+
+      speechFriendly = "QuickSort operates in-place with O of n log n average time and superior CPU cache locality, while MergeSort provides guaranteed O of n log n worst-case performance and stability at the cost of O of n auxiliary memory.";
+
+    } else if (
+      qLower.includes('system design') ||
+      qLower.includes('load balancing') ||
+      qLower.includes('caching') ||
+      qLower.includes('cap theorem')
+    ) {
+      responseMarkdown = `### System Design & High-Scale Web Architecture Essentials
+
+System design interviews for freshers and entry-level Software Engineers evaluate horizontal scalability, caching, and distributed trade-offs.
+
+#### 1. Horizontal vs. Vertical Scaling:
+- **Vertical Scaling (Scale Up):** Adding more CPU cores, RAM, or NVMe storage to a single server. Limited by physical hardware boundaries and represents a Single Point of Failure (SPOF).
+- **Horizontal Scaling (Scale Out):** Distributing traffic across multiple stateless commodity machines behind a Load Balancer. Provides high availability and elasticity.
+
+#### 2. Load Balancing Strategies:
+- **Round Robin:** Cycles requests sequentially among healthy worker nodes.
+- **Least Connections:** Forwards traffic to the node with fewest active concurrent TCP sockets.
+- **Consistent Hashing:** Minimizes cache invalidation and key remapping when nodes join or leave the server cluster.
+
+#### 3. In-Memory Caching (Redis / Memcached):
+- Delivers sub-millisecond read access in $O(1)$ time.
+- **Cache-Aside Pattern:** Application reads from cache; on cache miss, reads from database, populates cache, and returns result.
+- **Eviction Policies:** LRU (Least Recently Used) is the enterprise standard.
+
+#### 4. The CAP Theorem:
+In any distributed data store, you can achieve at most **two out of three** guarantees during a network partition:
+- **Consistency (C):** Every read receives the most recent write or an error.
+- **Availability (A):** Every request receives a non-error response without guarantee of latest data.
+- **Partition Tolerance (P):** The system continues operating despite dropped or delayed network packets.
+- *Reality:* Because physical networks always experience partitions ($P$), systems must choose between **CP** (e.g., Spanner, ZooKeeper) and **AP** (e.g., Cassandra, DynamoDB).
+
+> **Key Placement Interview Consideration:** When asked to design a system, always begin by clarifying Functional vs Non-Functional Requirements (QPS throughput, read-to-write ratio, p99 latency SLAs).`;
+
+      speechFriendly = "System design balances horizontal scalability, in-memory caching with Redis, and load balancing. Under the CAP theorem, distributed systems choose between Consistency and Availability during network partitions.";
+
     } else if (topDoc && topDocRelevance >= 0.14) {
       // B. Dynamic Extractive Grounded Answering from Database RAG Document
-      // Extract the most relevant section/paragraph that answers the student's question
       const rawContent = topDoc.content || '';
       const paragraphs = rawContent
         .split(/\n\s*\n/)
         .map(p => p.trim())
         .filter(p => p.length > 20);
 
-      // When candidate asks for a conceptual definition, prioritize conceptual text over company assessment lists
       const isConceptualQuery = qLower.includes('what is') || qLower.includes('define') || qLower.includes('explain') || qLower.includes('how does') || qLower.includes('why');
       const filteredParagraphs = isConceptualQuery
         ? paragraphs.filter(p => !p.toLowerCase().includes('top repeated coding patterns') && !p.toLowerCase().includes('blueprint'))
@@ -1744,7 +2081,6 @@ The Java Virtual Machine (JVM) divides runtime data memory into distinct logical
         }
       }
 
-      // Only dump extractive paragraph if there is genuine token match in the section
       if (maxSectionScore > 0.04) {
         const company = topDoc.company_id ? db.get('companies', topDoc.company_id)?.name : null;
         const subject = topDoc.subject_id ? db.get('subjects', topDoc.subject_id)?.name : null;
@@ -1759,22 +2095,7 @@ ${bestSection}
 
 > **Key Placement Interview Consideration:** In campus technical interviews, state the formal academic definition clearly, explain runtime and system trade-offs, and trace an illustrative example with standard edge cases.`;
 
-        // Extract 2 clean sentences for natural spoken audio
-        const cleanParaLines = bestSection
-          .replace(/^[0-9]+[.)]\s*/gm, '')
-          .replace(/^[-*]\s*/gm, '')
-          .replace(/[:]/g, '.')
-          .split(/[.\n]+/)
-          .map(s => s.trim())
-          .filter(s => s.length > 15);
-
-        speechFriendly = cleanParaLines.slice(0, 2).join('. ');
-        if (speechFriendly && !speechFriendly.endsWith('.')) {
-          speechFriendly += '.';
-        }
-        if (!speechFriendly || speechFriendly.length < 20) {
-          speechFriendly = `${topDoc.title}. Focus on the core definition, runtime trade-offs, and time complexity.`;
-        }
+        speechFriendly = toNaturalSpeechText(bestSection, topDoc.title);
       } else {
         responseMarkdown = `### Placement Preparation Analysis: ${q.charAt(0).toUpperCase() + q.slice(1)}
 
@@ -1786,7 +2107,7 @@ When approaching technical interview inquiries regarding this topic, candidates 
 
 > **Key Placement Interview Consideration:** Structure your answer by first stating the definition, then walking through an illustrative example, and finally addressing edge cases and performance trade-offs.`;
 
-        speechFriendly = `Regarding ${q}, structure your technical interview response with a formal definition, practical trade-offs, and clear complexity analysis.`;
+        speechFriendly = toNaturalSpeechText(responseMarkdown, q);
       }
 
     } else {
@@ -1806,7 +2127,7 @@ When approaching technical interview inquiries regarding this concept, candidate
 
     return {
       answer: responseMarkdown,
-      speechText: speechFriendly,
+      speechText: speechFriendly || toNaturalSpeechText(responseMarkdown, q),
       retrievedDocuments: retrievedDocs.map(d => ({
         id: d.id,
         title: d.title,

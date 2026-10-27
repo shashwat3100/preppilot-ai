@@ -2,7 +2,7 @@ import express from 'express';
 import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import RagService from '../services/ragService.js';
 import db from '../database/db.js';
-
+import { toNaturalSpeechText } from '../services/voiceSpeechFormatter.js';
 import { SUPPORTED_MODELS } from '../services/ragService.js';
 
 const router = express.Router();
@@ -344,7 +344,7 @@ IMPORTANT: Do NOT use markdown symbols, asterisks, bullet points, or special cha
 
 // POST /api/preppilot/diagnose-mistakes
 // Provides thorough voice synthesis text and remediation guide for quiz or coding mistakes
-router.post('/diagnose-mistakes', authenticate, async (req, res) => {
+router.post('/diagnose-mistakes', optionalAuthenticate, async (req, res) => {
   try {
     const { type, gradedQuestions, weak_topics, accuracy_rate, codingMistake } = req.body;
 
@@ -442,7 +442,7 @@ router.post('/diagnose-mistakes', authenticate, async (req, res) => {
 
 // POST /api/preppilot/explain-single-mistake
 // Generates a quick, focused voice explanation for a single question mistake
-router.post('/explain-single-mistake', authenticate, async (req, res) => {
+router.post('/explain-single-mistake', optionalAuthenticate, async (req, res) => {
   try {
     const diag = await generateDeepMistakeDiagnosis(req.body, req.body.sequence || 1, req.body.apiKey);
 

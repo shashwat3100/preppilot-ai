@@ -159,8 +159,44 @@ async function runRagQATests() {
   assert(qOverview.speechText.includes('B.Tech placement copilot'), 'SpeechText summarizes PrepPilot');
   console.log('  ✓ Query "what can PrepPilot do" returns comprehensive platform features');
 
+  // Test 23: Quantitative Aptitude ("time and work formulas")
+  const qWork = await RagService.answerStudentQuery('explain time and work formulas with LCM method');
+  assert(qWork.answer.includes('Time & Work (The LCM Rate Method)'), 'Answers with LCM method');
+  assert(qWork.speechText.includes('LCM method'), 'SpeechText mentions LCM method');
+  console.log('  ✓ Query "explain time and work formulas..." returns targeted Aptitude LCM framework & speech');
+
+  // Test 24: Relative Speed & Distance ("how to calculate relative speed for trains")
+  const qSpeed = await RagService.answerStudentQuery('how to calculate relative speed for trains');
+  assert(qSpeed.answer.includes('Speed, Distance & Time Master Guide'), 'Answers with speed distance guide');
+  assert(qSpeed.speechText.includes('speed, distance, and time'), 'SpeechText includes speed and distance');
+  console.log('  ✓ Query "how to calculate relative speed for trains" returns relative motion principles');
+
+  // Test 25: Syllogisms in Logical Reasoning ("explain syllogisms rules")
+  const qSyll = await RagService.answerStudentQuery('explain syllogisms rules and either or cases');
+  assert(qSyll.answer.includes('Syllogisms & Deductive Logic'), 'Answers with syllogisms framework');
+  assert(qSyll.speechText.includes('syllogisms'), 'SpeechText directly addresses syllogisms');
+  console.log('  ✓ Query "explain syllogisms rules..." returns deductive rules & Either/Or conditions');
+
+  // Test 26: SOLID Principles ("what are solid principles")
+  const qSolid = await RagService.answerStudentQuery('what are solid principles in oops');
+  assert(qSolid.answer.includes('SOLID Principles of Object-Oriented Design'), 'Answers with SOLID principles');
+  assert(qSolid.speechText.includes('SOLID principles'), 'SpeechText explains SOLID');
+  console.log('  ✓ Query "what are solid principles..." returns 5 SOLID architecture principles');
+
+  // Test 27: Binary Search ("how does binary search work")
+  const qBinary = await RagService.answerStudentQuery('how does binary search work and what is the time complexity');
+  assert(qBinary.answer.includes('Binary Search Algorithm'), 'Answers with binary search');
+  assert(qBinary.speechText.includes('Binary Search is a divide-and-conquer algorithm'), 'SpeechText explains binary search');
+  console.log('  ✓ Query "how does binary search work..." returns binary search mechanics & overflow prevention');
+
+  // Test 28: System Design & Caching ("explain system design and load balancing")
+  const qSys = await RagService.answerStudentQuery('explain system design and load balancing');
+  assert(qSys.answer.includes('System Design & High-Scale Web Architecture Essentials'), 'Answers with system design');
+  assert(qSys.speechText.includes('System design'), 'SpeechText explains system design');
+  console.log('  ✓ Query "explain system design..." returns load balancing, caching, and CAP theorem');
+
   console.log('\n==================================================================');
-  console.log('ALL 22 RAG TARGETED QA TESTS PASSED CLEANLY');
+  console.log('ALL 28 RAG TARGETED QA TESTS PASSED CLEANLY (100%)');
   console.log('==================================================================\n');
 }
 

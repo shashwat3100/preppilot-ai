@@ -16,7 +16,9 @@ import {
   Database,
   Cpu,
   Layers,
-  Building2
+  Building2,
+  Sliders,
+  Check
 } from 'lucide-react';
 
 const SUGGESTIONS = [
@@ -34,9 +36,9 @@ const SUGGESTIONS = [
   },
   {
     icon: Cpu,
-    title: '8085 Microprocessor & Circuits',
-    subtitle: 'ALE pin function & interrupt priorities',
-    prompt: 'Explain the function of the ALE pin in the 8085 Microprocessor, why multiplexed address/data buses exist, and list interrupt priorities.'
+    title: 'SOLID Principles in OOP',
+    subtitle: 'Single responsibility to dependency inversion',
+    prompt: 'Explain the 5 SOLID design principles in Object-Oriented Programming with practical software engineering examples.'
   },
   {
     icon: Building2,
@@ -44,6 +46,13 @@ const SUGGESTIONS = [
     subtitle: 'Campus interview patterns & core questions',
     prompt: 'What are the most frequent technical interview questions and coding patterns asked in TCS NQT and Infosys campus drives?'
   }
+];
+
+const SPEECH_RATES = [
+  { label: '0.9x', value: 0.9 },
+  { label: '1.05x', value: 1.05 },
+  { label: '1.25x', value: 1.25 },
+  { label: '1.5x', value: 1.5 }
 ];
 
 export default function ThinkingOrbPage() {
@@ -61,10 +70,16 @@ export default function ThinkingOrbPage() {
     sendQuery,
     speakText,
     stopSpeaking,
-    clearConversation
+    clearConversation,
+    activeQuestionContext,
+    audioWaveform,
+    audioLevel,
+    speechRate,
+    setSpeechRate
   } = useVoice();
 
   const [inputVal, setInputVal] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -132,6 +147,59 @@ export default function ThinkingOrbPage() {
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Live Waveform Equalizer */}
+            <div className="flex items-center gap-0.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 h-6">
+              {audioWaveform.map((bar, i) => (
+                <span
+                  key={i}
+                  className={`w-[2px] rounded-full transition-all duration-75 ${
+                    isListening ? 'bg-rose-400' : isSpeaking ? 'bg-cyan-400' : 'bg-slate-600'
+                  }`}
+                  style={{ height: `${Math.max(3, Math.round(bar * 16))}px` }}
+                />
+              ))}
+            </div>
+
+            {/* Voice Speed Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowSettings(prev => !prev)}
+                className={`p-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
+                  showSettings ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+                title={`Speech Rate: ${speechRate}x`}
+              >
+                <Sliders size={14} />
+              </button>
+
+              {showSettings && (
+                <div className="absolute right-0 mt-2 w-40 rounded-xl bg-slate-900 border border-slate-800 shadow-2xl p-2 z-30 animate-in fade-in zoom-in-95">
+                  <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-1 mb-1">
+                    Voice Speed
+                  </div>
+                  <div className="grid grid-cols-2 gap-1">
+                    {SPEECH_RATES.map((rate) => (
+                      <button
+                        key={rate.value}
+                        onClick={() => {
+                          setSpeechRate(rate.value);
+                          setShowSettings(false);
+                        }}
+                        className={`flex items-center justify-between px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+                          Math.abs(speechRate - rate.value) < 0.05
+                            ? 'bg-indigo-600 text-white'
+                            : 'text-slate-300 hover:bg-slate-800'
+                        }`}
+                      >
+                        <span>{rate.label}</span>
+                        {Math.abs(speechRate - rate.value) < 0.05 && <Check size={11} />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Audio Indicator */}
             {isSpeaking && (
               <button
@@ -158,6 +226,38 @@ export default function ThinkingOrbPage() {
         </div>
       </header>
 
+      {/* Active Question Context Banner (if user navigated from a quiz/assessment) */}
+      {activeQuestionContext && (
+        <div className="bg-indigo-950/70 border-b border-indigo-900/70 px-4 py-2.5 text-xs">
+          <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse flex-shrink-0" />
+              <span className="font-semibold text-cyan-200 flex-shrink-0">
+                Active Question Context:
+              </span>
+              <span className="text-slate-300 truncate max-w-md">
+                {activeQuestionContext.questionText}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handleSend("Explain this question and diagnose why my answer might be wrong.")}
+                className="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 text-[11px] font-medium transition-colors cursor-pointer"
+              >
+                Diagnose My Answer
+              </button>
+              <button
+                onClick={() => handleSend("Give me a hint for solving this problem step-by-step.")}
+                className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-[11px] font-medium transition-colors cursor-pointer"
+              >
+                Give Me a Hint
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ───────────────────────────────────────────────────────────── */}
       {/* Central Content Area (Stream of Conversation in Middle)       */}
       {/* ───────────────────────────────────────────────────────────── */}
@@ -166,9 +266,15 @@ export default function ThinkingOrbPage() {
           {!hasMessages ? (
             /* Empty State: Center Hero Aura & Suggestions */
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 animate-in fade-in duration-300">
-              {/* Gemini-Inspired Breathing Ambient Orb */}
+              {/* Gemini-Inspired Breathing Ambient Orb with Audio Level Reactivity */}
               <div className="relative mb-8 group cursor-default">
-                <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 opacity-75 blur-2xl animate-pulse" />
+                <div
+                  className="rounded-full bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 opacity-75 blur-2xl transition-all duration-150"
+                  style={{
+                    width: `${112 + (audioLevel / 100) * 40}px`,
+                    height: `${112 + (audioLevel / 100) * 40}px`
+                  }}
+                />
                 <div className="absolute inset-0 m-auto w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 via-indigo-600 to-purple-700 flex items-center justify-center shadow-2xl border border-white/20">
                   <Sparkles size={32} className="text-white animate-spin" style={{ animationDuration: '12s' }} />
                 </div>
@@ -178,7 +284,7 @@ export default function ThinkingOrbPage() {
                 What would you like to prepare today?
               </h2>
               <p className="text-sm text-slate-400 max-w-lg mb-8 leading-relaxed">
-                Trained on Pune University curriculum and verified against placement interviews from TCS, Infosys, Capgemini, Google, and Amazon.
+                Trained on engineering curriculum and verified against placement interviews from TCS, Infosys, Capgemini, Google, and Amazon.
               </p>
 
               {/* 4 Interactive Topic Suggestion Cards */}
@@ -292,7 +398,7 @@ export default function ThinkingOrbPage() {
               {/* Real-time Voice Transcript preview while user speaks */}
               {transcript && (
                 <div className="flex justify-end gap-3 animate-pulse">
-                  <div className="max-w-[80%] p-3.5 rounded-2xl rounded-tr-none bg-indigo-950/70 border border-cyan-500/40 text-cyan-200 text-xs sm:text-sm italic">
+                  <div className="max-w-[80%] p-3.5 rounded-2xl rounded-tr-none bg-indigo-950/80 border border-cyan-500/50 text-cyan-200 text-xs sm:text-sm italic shadow-lg shadow-cyan-500/10">
                     "{transcript}..."
                   </div>
                   <div className="w-8 h-8 rounded-xl bg-indigo-600/60 flex items-center justify-center text-white flex-shrink-0 mt-1">
@@ -349,8 +455,8 @@ export default function ThinkingOrbPage() {
               onKeyDown={handleKeyDown}
               placeholder={
                 isListening
-                  ? 'Listening to speech...'
-                  : 'Ask about DSA, DBMS, Microprocessor, or interview rounds...'
+                  ? 'Listening to speech... Speak now'
+                  : 'Ask about DSA, DBMS, Aptitude, or campus interview patterns...'
               }
               className="flex-1 bg-transparent border-0 text-slate-100 placeholder-slate-400 text-xs sm:text-sm px-3 py-2 resize-none focus:outline-none max-h-36 min-h-[42px] leading-relaxed"
             />
@@ -361,7 +467,7 @@ export default function ThinkingOrbPage() {
               disabled={!speechSupported && !isListening}
               className={`p-2.5 rounded-xl transition-all cursor-pointer flex-shrink-0 ${
                 isListening
-                  ? 'bg-red-600 text-white shadow-lg shadow-red-600/40 animate-pulse'
+                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/40 animate-pulse'
                   : speechSupported
                   ? 'text-slate-400 hover:text-white hover:bg-slate-800'
                   : 'text-slate-600 cursor-not-allowed'
@@ -387,8 +493,8 @@ export default function ThinkingOrbPage() {
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-slate-400 px-2">
-            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Enter</kbd> to send, <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Shift+Enter</kbd> for line breaks</span>
-            <span className="hidden sm:inline">SPPU Syllabus Grounded • AI Placement Mentor</span>
+            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Enter</kbd> to send • <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Alt+V</kbd> opens full voice modal</span>
+            <span className="hidden sm:inline">Engineering Curriculum Grounded • AI Voice Mentor</span>
           </div>
         </div>
       </footer>

@@ -18,7 +18,11 @@ import {
   Cpu,
   Layers,
   Building2,
-  ArrowRight
+  ArrowRight,
+  HelpCircle,
+  Activity,
+  Sliders,
+  Check
 } from 'lucide-react';
 
 const SUGGESTIONS = [
@@ -36,9 +40,9 @@ const SUGGESTIONS = [
   },
   {
     icon: Cpu,
-    title: '8085 Microprocessor',
-    subtitle: 'ALE pin function & interrupt priorities',
-    prompt: 'Explain the function of the ALE pin in the 8085 Microprocessor, why multiplexed address/data buses exist, and list interrupt priorities.'
+    title: 'SOLID Principles in OOP',
+    subtitle: 'Single responsibility to dependency inversion',
+    prompt: 'Explain the 5 SOLID design principles in Object-Oriented Programming with practical software engineering examples.'
   },
   {
     icon: Building2,
@@ -46,6 +50,13 @@ const SUGGESTIONS = [
     subtitle: 'Top questions for TCS NQT & Infosys',
     prompt: 'What are the most frequent technical interview questions and coding patterns asked in TCS NQT and Infosys campus drives?'
   }
+];
+
+const SPEECH_RATES = [
+  { label: '0.9x', value: 0.9 },
+  { label: '1.05x', value: 1.05 },
+  { label: '1.25x', value: 1.25 },
+  { label: '1.5x', value: 1.5 }
 ];
 
 export const PrepPilotVoiceModal: React.FC = () => {
@@ -64,10 +75,16 @@ export const PrepPilotVoiceModal: React.FC = () => {
     speakText,
     stopSpeaking,
     sendQuery,
-    clearConversation
+    clearConversation,
+    activeQuestionContext,
+    audioWaveform,
+    audioLevel,
+    speechRate,
+    setSpeechRate
   } = useVoice();
 
   const [inputVal, setInputVal] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -78,7 +95,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
     }
   }, [conversation, isProcessing, transcript]);
 
-  // Keep input focused so user can click and type anytime (fixes second-click issue)
+  // Keep input focused so user can click and type anytime
   useEffect(() => {
     if (isModalOpen) {
       const timer = setTimeout(() => {
@@ -130,7 +147,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
       className="fixed inset-0 z-50 flex flex-col bg-slate-950/95 backdrop-blur-2xl animate-in fade-in duration-150 overflow-hidden"
     >
       {/* Top Bar - Clean, Elegant & Mentor-Focused */}
-      <header className="flex items-center justify-between px-4 sm:px-8 py-3.5 border-b border-slate-800/70 bg-slate-950/80 backdrop-blur-md flex-shrink-0 z-20">
+      <header className="flex items-center justify-between px-4 sm:px-8 py-3 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md flex-shrink-0 z-20">
         <div className="flex items-center gap-3">
           <PrepPilotLogo size="sm" active={isListening || isSpeaking || isProcessing} />
           <div>
@@ -141,7 +158,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
 
               <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border bg-slate-900 border-slate-800 text-slate-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                <span>Placement AI Mentor</span>
+                <span>Voice Copilot</span>
               </div>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">
@@ -151,28 +168,74 @@ export const PrepPilotVoiceModal: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Status pill */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isListening
-                  ? 'bg-rose-500 animate-ping'
-                  : isSpeaking
-                  ? 'bg-cyan-500 animate-pulse'
-                  : isProcessing
-                  ? 'bg-indigo-500 animate-ping'
-                  : 'bg-emerald-500'
-              }`}
-            />
-            <span className="text-slate-300 text-[11px]">
-              {isListening
-                ? 'Listening...'
-                : isSpeaking
-                ? 'Speaking...'
-                : isProcessing
-                ? 'Thinking...'
-                : 'Ready'}
+          {/* Animated 16-Bar Audio Waveform Visualizer */}
+          <div
+            className="flex items-center gap-0.5 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 h-7"
+            title={isListening ? `Listening (${audioLevel}%)` : isSpeaking ? 'Speaking response' : 'Audio visualizer ready'}
+          >
+            {audioWaveform.map((bar, idx) => (
+              <span
+                key={idx}
+                className={`w-[2.5px] rounded-full transition-all duration-75 ${
+                  isListening
+                    ? 'bg-rose-400'
+                    : isSpeaking
+                    ? 'bg-cyan-400'
+                    : isProcessing
+                    ? 'bg-indigo-400 animate-pulse'
+                    : 'bg-slate-600'
+                }`}
+                style={{
+                  height: `${Math.max(4, Math.round(bar * 20))}px`
+                }}
+              />
+            ))}
+            <span className="text-[10px] font-mono text-slate-400 ml-1.5 hidden sm:inline">
+              {isListening ? 'Listening' : isSpeaking ? 'Speaking' : isProcessing ? 'Thinking' : 'Ready'}
             </span>
+          </div>
+
+          {/* Voice Speed Settings Toggle */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSettings(prev => !prev)}
+              aria-label="Audio speech rate"
+              className={`p-2 rounded-xl transition-colors ${
+                showSettings
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
+              }`}
+              title={`Voice Speed: ${speechRate}x`}
+            >
+              <Sliders size={16} />
+            </button>
+
+            {showSettings && (
+              <div className="absolute right-0 mt-2 w-44 rounded-xl bg-slate-900 border border-slate-800 shadow-2xl p-2 z-30 animate-in fade-in zoom-in-95">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-1 mb-1">
+                  Playback Speed
+                </div>
+                <div className="grid grid-cols-2 gap-1">
+                  {SPEECH_RATES.map((rate) => (
+                    <button
+                      key={rate.value}
+                      onClick={() => {
+                        setSpeechRate(rate.value);
+                        setShowSettings(false);
+                      }}
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        Math.abs(speechRate - rate.value) < 0.05
+                          ? 'bg-indigo-600 text-white'
+                          : 'text-slate-300 hover:bg-slate-800'
+                      }`}
+                    >
+                      <span>{rate.label}</span>
+                      {Math.abs(speechRate - rate.value) < 0.05 && <Check size={12} />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Voice speaking stop */}
@@ -180,7 +243,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
             <button
               onClick={stopSpeaking}
               aria-label="Stop speaking"
-              className="p-2 text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 hover:bg-cyan-900/60 rounded-xl transition-colors"
+              className="p-2 text-rose-400 bg-rose-950/40 border border-rose-800/50 hover:bg-rose-900/60 rounded-xl transition-colors"
               title="Stop voice playback"
             >
               <VolumeX size={16} />
@@ -211,6 +274,36 @@ export const PrepPilotVoiceModal: React.FC = () => {
         </div>
       </header>
 
+      {/* Active Question Context Banner (if user is taking a quiz, assessment, or practice) */}
+      {activeQuestionContext && (
+        <div className="bg-indigo-950/60 border-b border-indigo-900/60 px-4 sm:px-8 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse flex-shrink-0" />
+            <span className="font-semibold text-cyan-200 flex-shrink-0">
+              Active Question Context:
+            </span>
+            <span className="text-slate-300 truncate max-w-md">
+              {activeQuestionContext.questionText}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              onClick={() => handleSend("Explain this question and diagnose why my answer might be wrong.")}
+              className="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 text-[11px] font-medium transition-colors cursor-pointer"
+            >
+              Diagnose My Answer
+            </button>
+            <button
+              onClick={() => handleSend("Give me a hint for solving this problem step-by-step.")}
+              className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-[11px] font-medium transition-colors cursor-pointer"
+            >
+              Give Me a Hint
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Conversation Area - Centered Layout */}
       <main className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-6">
         <div className="max-w-3xl mx-auto w-full">
@@ -229,7 +322,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
                 How can I help you today?
               </h3>
               <p className="text-slate-400 text-sm max-w-lg mb-8 leading-relaxed">
-                Ask any question about Data Structures, OS, DBMS, Microprocessors, or campus placement rounds.
+                Ask any question about Data Structures, OS, DBMS, Aptitude, or campus placement rounds.
               </p>
 
               {/* Suggestions Grid */}
@@ -304,6 +397,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
                           isSpeaking={isSpeaking}
                           onSpeak={speakText}
                           onStopSpeak={stopSpeaking}
+                          onPromptClick={handleSend}
                         />
                       </div>
                     )}
@@ -334,8 +428,8 @@ export const PrepPilotVoiceModal: React.FC = () => {
               {/* Live Voice Input Transcript */}
               {transcript && (
                 <div className="flex justify-end gap-3 animate-in fade-in">
-                  <div className="p-3 rounded-2xl rounded-tr-sm bg-indigo-950/60 border border-indigo-500/40 text-indigo-200 text-sm italic flex items-center gap-2">
-                    <Mic size={14} className="text-indigo-400 animate-pulse" />
+                  <div className="p-3.5 rounded-2xl rounded-tr-sm bg-indigo-950/80 border border-cyan-500/50 text-cyan-200 text-sm italic flex items-center gap-2 shadow-lg shadow-cyan-500/10">
+                    <Mic size={14} className="text-rose-400 animate-pulse" />
                     <span>"{transcript}..."</span>
                   </div>
                   <div className="w-8 h-8 rounded-xl bg-indigo-600/40 flex items-center justify-center text-white flex-shrink-0">
@@ -366,7 +460,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
       </main>
 
       {/* Centered Capsule Input Bar - Always Responsive & Consecutive */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-xl px-4 sm:px-6 py-3.5 flex-shrink-0 z-20">
+      <footer className="border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-xl px-4 sm:px-6 py-3 flex-shrink-0 z-20">
         <div className="max-w-3xl mx-auto w-full">
           {voiceError && (
             <div className="mb-2 px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center justify-between">
@@ -374,7 +468,11 @@ export const PrepPilotVoiceModal: React.FC = () => {
             </div>
           )}
 
-          <div className="relative flex items-end gap-2 bg-slate-900/90 border border-slate-700/80 hover:border-slate-600 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 rounded-2xl p-2 transition-all shadow-xl">
+          <div className={`relative flex items-end gap-2 bg-slate-900/90 border transition-all shadow-xl rounded-2xl p-2 ${
+            isListening
+              ? 'border-rose-500/70 ring-2 ring-rose-500/20'
+              : 'border-slate-700/80 hover:border-slate-600 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20'
+          }`}>
             {/* Auto-expanding textarea */}
             <textarea
               ref={inputRef}
@@ -384,8 +482,8 @@ export const PrepPilotVoiceModal: React.FC = () => {
               onKeyDown={handleKeyDown}
               placeholder={
                 isListening
-                  ? 'Listening to your voice...'
-                  : 'Ask about concepts, gate questions, or interview topics...'
+                  ? 'Listening to your voice... Speak now'
+                  : 'Ask about concepts, formulas, algorithms, or placement patterns...'
               }
               className="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-400 px-3 py-2 resize-none focus:outline-none max-h-36 min-h-[40px] leading-relaxed"
             />
@@ -396,7 +494,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
               onClick={isListening ? stopListening : startListening}
               disabled={!speechSupported && !isListening}
               aria-label={isListening ? 'Stop listening' : 'Start voice input'}
-              className={`p-2.5 rounded-xl transition-all flex-shrink-0 ${
+              className={`p-2.5 rounded-xl transition-all flex-shrink-0 cursor-pointer ${
                 isListening
                   ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/40 animate-pulse'
                   : speechSupported
@@ -416,7 +514,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
               aria-label="Send message"
               className={`p-2.5 rounded-xl transition-all flex-shrink-0 ${
                 inputVal.trim() && !isProcessing
-                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30'
+                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer'
                   : 'bg-slate-800 text-slate-500 cursor-not-allowed'
               }`}
               title="Send (Enter)"
@@ -426,7 +524,7 @@ export const PrepPilotVoiceModal: React.FC = () => {
           </div>
 
           <div className="flex items-center justify-between mt-2 px-1 text-[11px] text-slate-400">
-            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Enter</kbd> to send, <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Shift+Enter</kbd> for new line</span>
+            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Enter</kbd> to send • <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Alt+V</kbd> toggles voice assistant</span>
             <span className="hidden sm:inline">PrepPilot Placement Mentor</span>
           </div>
         </div>

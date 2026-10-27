@@ -133,7 +133,8 @@ const DEFAULT_ASSESSMENTS: AssessmentCard[] = [
 
 export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ onReturnToDashboard }) => {
   const { user, refreshUser } = useAuth();
-  const { speakText, stopSpeaking, isSpeaking } = useVoice();
+  const { speakText, stopSpeaking, isSpeaking, setActiveQuestionContext } = useVoice();
+
 
   // Test stage: 'catalog' | 'quiz' | 'coding' | 'result'
   const [stage, setStage] = useState<'catalog' | 'quiz' | 'coding' | 'result'>('catalog');
@@ -238,6 +239,34 @@ export const AssessmentPage: React.FC<{ onReturnToDashboard: () => void }> = ({ 
       } catch (e) {}
     }
   }, [stage, user?.id, sessionId, questions, answers, currentIndex, startTime, totalDurationSeconds, selectedAssessment]);
+
+  // Synchronize Active Question Context with Global Voice Assistant
+  useEffect(() => {
+    if (stage !== 'quiz' || questions.length === 0 || currentIndex >= questions.length) {
+      setActiveQuestionContext(null);
+      return;
+    }
+    const currentQ = questions[currentIndex];
+    const chosenKey = answers[currentQ.id];
+    const chosenOpt = currentQ.options?.find(o => o.option_key === chosenKey);
+
+    setActiveQuestionContext({
+      questionId: currentQ.id,
+      sequence: currentIndex + 1,
+      questionText: currentQ.question,
+      topic: currentQ.topic_name,
+      subject: currentQ.subject_name,
+      options: currentQ.options?.map(o => ({ option_key: o.option_key, option_text: o.option_text })),
+      chosenAnswer: chosenKey,
+      chosenText: chosenOpt?.option_text,
+      correctAnswer: currentQ.correct_answer,
+      explanation: currentQ.explanation
+    });
+
+    return () => {
+      setActiveQuestionContext(null);
+    };
+  }, [stage, questions, currentIndex, answers, setActiveQuestionContext]);
 
   // Countdown Timer Hook
   useEffect(() => {

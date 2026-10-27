@@ -29,8 +29,13 @@ export const PrepPilotPage: React.FC = () => {
     speakText,
     stopSpeaking,
     sendQuery,
-    clearConversation
+    clearConversation,
+    audioWaveform,
+    audioLevel,
+    speechRate,
+    setSpeechRate
   } = useVoice();
+
 
   const [inputVal, setInputVal] = useState('');
   const [knowledgeDocs, setKnowledgeDocs] = useState<any[]>([]);
@@ -142,26 +147,37 @@ export const PrepPilotPage: React.FC = () => {
               </div>
 
               {/* Audio Waveform visualization */}
-              <div className="flex items-center gap-1.5 h-8 pt-2">
-                <span className={`w-1.5 rounded-full ${isListening || isSpeaking ? 'bg-cyan-400 wave-bar-1' : 'bg-slate-700 h-2'}`} />
-                <span className={`w-1.5 rounded-full ${isListening || isSpeaking ? 'bg-indigo-400 wave-bar-2' : 'bg-slate-700 h-2'}`} />
-                <span className={`w-1.5 rounded-full ${isListening || isSpeaking ? 'bg-purple-400 wave-bar-3' : 'bg-slate-700 h-2'}`} />
-                <span className={`w-1.5 rounded-full ${isListening || isSpeaking ? 'bg-cyan-400 wave-bar-4' : 'bg-slate-700 h-2'}`} />
-                <span className={`w-1.5 rounded-full ${isListening || isSpeaking ? 'bg-blue-400 wave-bar-5' : 'bg-slate-700 h-2'}`} />
-                <span className={`w-1.5 rounded-full ${isListening || isSpeaking ? 'bg-sky-400 wave-bar-2' : 'bg-slate-700 h-2'}`} />
-                <span className={`w-1.5 rounded-full ${isListening || isSpeaking ? 'bg-indigo-400 wave-bar-3' : 'bg-slate-700 h-2'}`} />
+              <div className="flex items-center gap-1 h-8 pt-2">
+                {audioWaveform.map((bar, i) => (
+                  <span
+                    key={i}
+                    className={`w-1.5 rounded-full transition-all duration-75 ${
+                      isListening
+                        ? 'bg-rose-400'
+                        : isSpeaking
+                        ? 'bg-cyan-400'
+                        : isProcessing
+                        ? 'bg-indigo-400 animate-pulse'
+                        : 'bg-slate-700'
+                    }`}
+                    style={{
+                      height: `${Math.max(4, Math.round(bar * 28))}px`
+                    }}
+                  />
+                ))}
               </div>
             </div>
 
             {isSpeaking && (
               <button
                 onClick={stopSpeaking}
-                className="relative z-10 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5"
+                className="relative z-10 px-3 py-1.5 rounded-lg bg-rose-950/40 border border-rose-800/50 hover:bg-rose-900/60 text-xs font-semibold text-rose-300 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <VolumeX size={14} /> Mute Assistant
               </button>
             )}
           </div>
+
 
           {/* Quick Technical Prompts */}
           <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
@@ -223,8 +239,10 @@ export const PrepPilotPage: React.FC = () => {
                         isSpeaking={isSpeaking}
                         onSpeak={speakText}
                         onStopSpeak={stopSpeaking}
+                        onPromptClick={(p) => sendQuery(p, false)}
                       />
                     )}
+
                   </div>
 
                   <div className="flex items-center gap-2 px-1 text-[11px] text-slate-500">

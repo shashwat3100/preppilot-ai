@@ -119,7 +119,7 @@ interface MistakeVaultPageProps {
 }
 
 export const MistakeVaultPage: React.FC<MistakeVaultPageProps> = ({ onNavigateTab }) => {
-  const { speakText, stopSpeaking, isSpeaking } = useVoice();
+  const { speakText, stopSpeaking, isSpeaking, setActiveQuestionContext } = useVoice();
 
   // Vault state
   const [loading, setLoading] = useState(true);
@@ -138,6 +138,32 @@ export const MistakeVaultPage: React.FC<MistakeVaultPageProps> = ({ onNavigateTa
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [currentlySpeakingId, setCurrentlySpeakingId] = useState<string | null>(null);
+
+  // Synchronize expanded mistake with global Voice Assistant
+  useEffect(() => {
+    if (expandedCards.size > 0) {
+      const firstExpandedId = Array.from(expandedCards)[0];
+      const m = mistakes.find(item => item.vault_id === firstExpandedId || item.question_id === firstExpandedId);
+      if (m) {
+        setActiveQuestionContext({
+          questionId: m.question_id,
+          questionText: m.question,
+          topic: m.topic_name,
+          subject: m.subject_name,
+          options: m.options?.map(o => ({ option_key: o.option_key, option_text: o.option_text })),
+          chosenAnswer: m.last_chosen_answer,
+          chosenText: m.last_chosen_text,
+          correctAnswer: m.correct_answer,
+          correctText: m.correct_text,
+          explanation: m.explanation || m.why_correct,
+          isCorrect: false
+        });
+        return;
+      }
+    }
+    setActiveQuestionContext(null);
+  }, [expandedCards, mistakes, setActiveQuestionContext]);
+
 
   // Revision Drill State
   const [isDrillActive, setIsDrillActive] = useState(false);

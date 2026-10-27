@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import type { PrepPilotChatMessage, AiModelOption } from '../types';
 import api from '../services/api';
 
@@ -39,6 +39,11 @@ export interface ActiveQuestionContext {
   isCorrect?: boolean;
 }
 
+export interface VoiceOption {
+  name: string;
+  lang: string;
+}
+
 interface VoiceContextType {
   isListening: boolean;
   isSpeaking: boolean;
@@ -52,7 +57,7 @@ interface VoiceContextType {
   toggleVoiceModal: () => void;
   startListening: () => void;
   stopListening: () => void;
-  speakText: (text: string, rate?: number) => void;
+  speakText: (text: string, overrideRate?: number) => void;
   stopSpeaking: () => void;
   sendQuery: (queryText: string, isVoice?: boolean, overrideModel?: string) => Promise<string>;
   clearConversation: () => void;
@@ -65,6 +70,14 @@ interface VoiceContextType {
   hasSystemKey: boolean;
   activeQuestionContext: ActiveQuestionContext | null;
   setActiveQuestionContext: (ctx: ActiveQuestionContext | null) => void;
+  // Audio controls & waveform
+  speechRate: number;
+  setSpeechRate: (rate: number) => void;
+  audioLevel: number;
+  audioWaveform: number[];
+  selectedVoice: string;
+  setSelectedVoice: (voiceName: string) => void;
+  availableVoices: VoiceOption[];
 }
 
 const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
@@ -77,6 +90,29 @@ declare global {
   }
 }
 
+// Clean text for speech synthesis and split into natural sentence boundaries
+const splitIntoSentences = (rawText: string): string[] => {
+  if (!rawText) return [];
+
+  // Remove code blocks, urls, markdown markers, and LaTeX blocks
+  let clean = rawText
+    .replace(/```[\s\S]*?```/g, 'Code block omitted.')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\$\$[\s\S]*?\$\$/g, 'Formula omitted.')
+    .replace(/\$([^$]+)\$/g, '$1')
+    .replace(/[#*>\-_~|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!clean) return [];
+
+  // Split on sentence-ending punctuation followed by whitespace or end of string
+  const chunks = clean.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [clean];
+  return chunks
+    .map(c => c.trim())
+    .filter(c => c.length > 0 && !/^[^a-zA-Z0-9]+$/.test(c));
+};
+
 export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -86,6 +122,34 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const [activeQuestionContext, setActiveQuestionContext] = useState<ActiveQuestionContext | null>(null);
+
+  // Audio level (0-100) and 16-band normalized waveform (0-1)
+  const [audioLevel, setAudioLevel] = useState<number>(0);
+  const [audioWaveform, setAudioWaveform] = useState<number[]>(() => Array(16).fill(0.06));
+
+  // Speech synthesis rate (0.8 - 1.5, default 1.05)
+  const [speechRate, setSpeechRateState] = useState<number>(() => {
+    const saved = localStorage.getItem('preppilot_speech_rate');
+    const val = saved ? parseFloat(saved) : 1.05;
+    return isNaN(val) ? 1.05 : Math.max(0.75, Math.min(val, 1.5));
+  });
+
+  const setSpeechRate = (rate: number) => {
+    const clamped = Math.max(0.75, Math.min(rate, 1.5));
+    setSpeechRateState(clamped);
+    localStorage.setItem('preppilot_speech_rate', clamped.toString());
+  };
+
+  // Voices management
+  const [availableVoices, setAvailableVoices] = useState<VoiceOption[]>([]);
+  const [selectedVoice, setSelectedVoiceState] = useState<string>(() => {
+    return localStorage.getItem('preppilot_preferred_voice') || '';
+  });
+
+  const setSelectedVoice = (voiceName: string) => {
+    setSelectedVoiceState(voiceName);
+    localStorage.setItem('preppilot_preferred_voice', voiceName);
+  };
 
   // Model & API configuration
   const [selectedModel, setSelectedModelState] = useState<string>(() => {
@@ -134,16 +198,133 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
-  const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const silenceTimeoutRef = useRef<any>(null);
   const transcriptRef = useRef<string>('');
   const isProcessingRef = useRef<boolean>(false);
+
+  // Chrome speech keep-alive timer reference
+  const keepAliveTimerRef = useRef<any>(null);
+  // Sentence queue for chunked speech playback
+  const speechQueueRef = useRef<string[]>([]);
+  const isSpeakingRef = useRef<boolean>(false);
+
+  // Web Audio API refs for live microphone frequency visualization
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const animFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     isProcessingRef.current = isProcessing;
   }, [isProcessing]);
 
-  // Initialize Speech Recognition & Synthesis
+  useEffect(() => {
+    isSpeakingRef.current = isSpeaking;
+  }, [isSpeaking]);
+
+  // Load and cache browser voices
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      synthRef.current = window.speechSynthesis;
+
+      const updateVoices = () => {
+        try {
+          const voices = window.speechSynthesis.getVoices();
+          const englishVoices = voices
+            .filter(v => v.lang.startsWith('en'))
+            .map(v => ({ name: v.name, lang: v.lang }));
+          setAvailableVoices(englishVoices);
+
+          if (!selectedVoice && englishVoices.length > 0) {
+            const preferred = englishVoices.find(v => 
+              v.name.includes('Natural') || 
+              v.name.includes('Google') || 
+              v.name.includes('Samantha') || 
+              v.name.includes('Zira')
+            ) || englishVoices[0];
+            if (preferred) {
+              setSelectedVoiceState(preferred.name);
+            }
+          }
+        } catch {}
+      };
+
+      updateVoices();
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+    }
+  }, [selectedVoice]);
+
+  // Real-time audio waveform animation loop (handles both mic input and synthetic speech)
+  useEffect(() => {
+    let phase = 0;
+
+    const renderWaveform = () => {
+      if (isListening && analyserRef.current) {
+        // Read actual microphone frequency data
+        const bufferLength = analyserRef.current.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyserRef.current.getByteFrequencyData(dataArray);
+
+        // Calculate average volume
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        const avg = sum / bufferLength;
+        const normalizedLevel = Math.min(100, Math.round((avg / 128) * 100));
+        setAudioLevel(normalizedLevel);
+
+        // Downsample to 16 normalized frequency bins
+        const step = Math.floor(bufferLength / 16);
+        const bars: number[] = [];
+        for (let i = 0; i < 16; i++) {
+          const val = dataArray[i * step] || 0;
+          bars.push(Math.max(0.08, Math.min(1, val / 255)));
+        }
+        setAudioWaveform(bars);
+      } else if (isSpeaking) {
+        // Simulated harmonic voice visualizer wave
+        phase += 0.15;
+        const bars: number[] = [];
+        for (let i = 0; i < 16; i++) {
+          const wave1 = Math.sin(phase + i * 0.4);
+          const wave2 = Math.cos(phase * 0.7 + i * 0.3);
+          const val = 0.2 + 0.6 * Math.abs((wave1 + wave2) / 2);
+          bars.push(Math.max(0.12, Math.min(0.95, val)));
+        }
+        setAudioLevel(Math.round(40 + 35 * Math.sin(phase)));
+        setAudioWaveform(bars);
+      } else {
+        // Subtle resting idle waveform
+        setAudioLevel(0);
+        setAudioWaveform(prev => prev.map(v => Math.max(0.06, v * 0.9)));
+      }
+
+      animFrameRef.current = requestAnimationFrame(renderWaveform);
+    };
+
+    animFrameRef.current = requestAnimationFrame(renderWaveform);
+
+    return () => {
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
+  }, [isListening, isSpeaking]);
+
+  // Global hotkey Alt+V to toggle Voice Assistant modal
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        setIsModalOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
+  // Initialize Speech Recognition
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -222,36 +403,87 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } else {
         setSpeechSupported(false);
       }
-
-      if ('speechSynthesis' in window) {
-        synthRef.current = window.speechSynthesis;
-        window.speechSynthesis.onvoiceschanged = () => {
-          try { window.speechSynthesis.getVoices(); } catch {}
-        };
-      }
     }
   }, []);
 
-  const openVoiceModal = () => setIsModalOpen(true);
-  const closeVoiceModal = () => {
+  const openVoiceModal = useCallback(() => setIsModalOpen(true), []);
+  const closeVoiceModal = useCallback(() => {
     stopListening();
     stopSpeaking();
     setIsModalOpen(false);
+  }, []);
+  const toggleVoiceModal = useCallback(() => {
+    setIsModalOpen(prev => {
+      if (prev) {
+        stopListening();
+        stopSpeaking();
+      }
+      return !prev;
+    });
+  }, []);
+
+  // Web Audio microphone stream initializer for live visualizer
+  const initMicAudio = async () => {
+    try {
+      if (!audioContextRef.current) {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtx) {
+          audioContextRef.current = new AudioCtx();
+        }
+      }
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
+      if (!analyserRef.current && audioContextRef.current) {
+        const analyser = audioContextRef.current.createAnalyser();
+        analyser.fftSize = 64;
+        analyser.smoothingTimeConstant = 0.8;
+        analyserRef.current = analyser;
+      }
+      if (!mediaStreamRef.current && navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        mediaStreamRef.current = stream;
+        if (audioContextRef.current && analyserRef.current) {
+          const source = audioContextRef.current.createMediaStreamSource(stream);
+          source.connect(analyserRef.current);
+        }
+      }
+    } catch (micErr) {
+      // Audio visualization falls back smoothly to animated levels if mic stream access is blocked
+      console.warn('[Mic Audio Visualizer Init]:', micErr);
+    }
   };
-  const toggleVoiceModal = () => {
-    if (isModalOpen) closeVoiceModal();
-    else openVoiceModal();
+
+  const closeMicAudio = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      mediaStreamRef.current = null;
+    }
+    if (analyserRef.current) {
+      analyserRef.current = null;
+    }
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch {}
+      audioContextRef.current = null;
+    }
   };
 
   const startListening = () => {
     setVoiceError('');
+    // Instant Barge-In: silence any ongoing speech playback immediately
     stopSpeaking();
     transcriptRef.current = '';
     setTranscript('');
+
     if (silenceTimeoutRef.current) {
       clearTimeout(silenceTimeoutRef.current);
       silenceTimeoutRef.current = null;
     }
+
+    initMicAudio();
+
     if (recognitionRef.current && speechSupported) {
       try {
         recognitionRef.current.start();
@@ -278,6 +510,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Ignore
       }
     }
+    closeMicAudio();
     setIsListening(false);
     const pending = transcriptRef.current.trim();
     if (pending && !isProcessingRef.current) {
@@ -287,61 +520,114 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const speakText = (text: string, rate: number = 1.05) => {
-    if (!synthRef.current) return;
-    synthRef.current.cancel();
+  // Chrome SpeechSynthesis keep-alive heartbeat runner
+  const startKeepAlive = () => {
+    stopKeepAlive();
+    keepAliveTimerRef.current = setInterval(() => {
+      if (synthRef.current && synthRef.current.speaking) {
+        synthRef.current.pause();
+        synthRef.current.resume();
+      }
+    }, 10000);
+  };
 
-    // Strip code blocks and markdown markers for clean speech playback
-    const cleanSpeech = text
-      .replace(/```[\s\S]*?```/g, 'Code block omitted.')
-      .replace(/[#*`>_]/g, '')
-      .replace(/\n+/g, ' ')
-      .trim();
+  const stopKeepAlive = () => {
+    if (keepAliveTimerRef.current) {
+      clearInterval(keepAliveTimerRef.current);
+      keepAliveTimerRef.current = null;
+    }
+  };
 
-    if (!cleanSpeech) return;
-
-    // Chrome SpeechSynthesis resume fix
-    if (synthRef.current.paused) {
-      synthRef.current.resume();
+  // Chunked queue speaker: delivers fluent speech without 15s browser timeout
+  const playNextInQueue = (rate: number) => {
+    if (!synthRef.current) {
+      setIsSpeaking(false);
+      stopKeepAlive();
+      return;
     }
 
-    let speechToRead = cleanSpeech;
-    // Allow generous speech limit up to 1200 characters without early truncation
-    if (speechToRead.length > 1200) {
-      const sentenceEnd = speechToRead.lastIndexOf('.', 1200);
-      speechToRead = sentenceEnd > 300 ? speechToRead.slice(0, sentenceEnd + 1) : speechToRead.slice(0, 1200);
+    if (speechQueueRef.current.length === 0) {
+      setIsSpeaking(false);
+      stopKeepAlive();
+      return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(speechToRead);
-    activeUtteranceRef.current = utterance;
-    utterance.rate = Math.max(0.8, Math.min(rate, 1.6));
+    const nextSentence = speechQueueRef.current.shift()!;
+    const utterance = new SpeechSynthesisUtterance(nextSentence);
+    utterance.rate = rate;
     utterance.pitch = 1.0;
 
+    // Apply voice selection
     const voices = synthRef.current.getVoices();
-    const englishVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
-    if (englishVoice) {
-      utterance.voice = englishVoice;
+    let voiceToUse = voices.find(v => v.name === selectedVoice);
+    if (!voiceToUse) {
+      voiceToUse = voices.find(v => v.lang.startsWith('en') && (
+        v.name.includes('Natural') || 
+        v.name.includes('Google') || 
+        v.name.includes('Samantha') || 
+        v.name.includes('Zira')
+      )) || voices.find(v => v.lang.startsWith('en'));
+    }
+    if (voiceToUse) {
+      utterance.voice = voiceToUse;
     }
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      activeUtteranceRef.current = null;
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      startKeepAlive();
     };
+
+    utterance.onend = () => {
+      if (speechQueueRef.current.length > 0) {
+        playNextInQueue(rate);
+      } else {
+        setIsSpeaking(false);
+        stopKeepAlive();
+      }
+    };
+
     utterance.onerror = () => {
-      setIsSpeaking(false);
-      activeUtteranceRef.current = null;
+      if (speechQueueRef.current.length > 0) {
+        playNextInQueue(rate);
+      } else {
+        setIsSpeaking(false);
+        stopKeepAlive();
+      }
     };
 
     synthRef.current.speak(utterance);
   };
 
+  const speakText = (text: string, overrideRate?: number) => {
+    if (!synthRef.current) return;
+
+    // Cancel existing audio
+    synthRef.current.cancel();
+    stopKeepAlive();
+
+    const sentences = splitIntoSentences(text);
+    if (sentences.length === 0) {
+      setIsSpeaking(false);
+      return;
+    }
+
+    // Chrome resume fix
+    if (synthRef.current.paused) {
+      synthRef.current.resume();
+    }
+
+    const effectiveRate = overrideRate !== undefined ? overrideRate : speechRate;
+    speechQueueRef.current = sentences;
+    playNextInQueue(effectiveRate);
+  };
+
   const stopSpeaking = () => {
+    speechQueueRef.current = [];
+    stopKeepAlive();
     if (synthRef.current) {
       synthRef.current.cancel();
-      setIsSpeaking(false);
-      activeUtteranceRef.current = null;
     }
+    setIsSpeaking(false);
   };
 
   const getOfflineFallbackResponse = (query: string): { reply: string; speech: string } => {
@@ -401,6 +687,12 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         speech: "Round Robin allocates a cyclic time quantum to each process, balancing interactive response time with low context switching overhead."
       };
     }
+    if (q.includes('solid') || q.includes('single responsibility')) {
+      return {
+        reply: "### SOLID Principles in Object-Oriented Software Design\n- **Single Responsibility (SRP)**: A class should have one, and only one, reason to change.\n- **Open/Closed (OCP)**: Software entities should be open for extension, but closed for modification.\n- **Liskov Substitution (LSP)**: Subtypes must be substitutable for their base types without altering correctness.\n- **Interface Segregation (ISP)**: Clients should not be forced to depend on interfaces they do not use.\n- **Dependency Inversion (DIP)**: Depend upon abstractions, not concretions.",
+        speech: "The SOLID principles stand for Single Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion."
+      };
+    }
     if (q.includes('normalize') || q.includes('normalization') || q.includes('3nf') || q.includes('2nf') || q.includes('bcnf')) {
       return {
         reply: "### Database Normalization (1NF to BCNF)\n- **1NF**: Atomic cell values, no repeating groups.\n- **2NF**: Satisfies 1NF and eliminates partial dependencies.\n- **3NF**: Satisfies 2NF and eliminates transitive dependencies.\n- **BCNF**: For every non-trivial functional dependency X -> Y, X must be a super key.",
@@ -425,31 +717,37 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         speech: "The OSI model has seven layers: Physical, Data Link, Network, Transport, Session, Presentation, and Application."
       };
     }
+    if (q.includes('time and work') || (q.includes('work') && q.includes('day'))) {
+      return {
+        reply: "### Time & Work Aptitude Mechanics\n- **Reciprocal Work Principle**: If a person completes a project in $D$ days, their 1-day rate of work is $\\frac{1}{D}$.\n- **Combined Rate**: If person A takes $A$ days and person B takes $B$ days, together they complete $\\frac{1}{A} + \\frac{1}{B} = \\frac{A+B}{AB}$ parts per day. Total time = $\\frac{AB}{A+B}$ days.\n- **LCM Efficiency Method**: Assume Total Work = $\\text{LCM}(A, B)$ units.",
+        speech: "In Time and Work, work rate is the reciprocal of total days. When working together, add their unit rates or use the LCM efficiency method."
+      };
+    }
     if (q.includes('array')) {
       return {
         reply: "### What is an Array?\nAn **array** is a fundamental linear data structure that stores homogeneous elements in **contiguous memory locations**.\n\n- **Access**: $O(1)$ constant time via index arithmetic.\n- **Search**: $O(n)$ linear / $O(\\log n)$ binary search on sorted data.\n- **Insert/Delete**: $O(n)$ due to element shifting.",
-        speech: "An array is a linear data structure that stores elements of the same data type in contiguous memory locations with O(1) random access."
+        speech: "An array is a linear data structure that stores elements of the same data type in contiguous memory locations with O of 1 random access."
       };
     }
     if (q.includes('linked list')) {
       return {
         reply: "### What is a Linked List?\nA **linked list** is a linear data structure composed of nodes containing data and pointers to the next node, stored non-contiguously on the heap.\n\n- **Head Insertion/Deletion**: $O(1)$ without memory shifting.\n- **Search/Access**: $O(n)$ sequential traversal.",
-        speech: "A linked list consists of nodes with data and pointers stored non-contiguously, allowing O(1) insertions at the head."
+        speech: "A linked list consists of nodes with data and pointers stored non-contiguously, allowing O of 1 insertions at the head."
       };
     }
     if (q.includes('stack')) {
       return {
         reply: "### What is a Stack?\nA **stack** is a linear LIFO (Last-In, First-Out) data structure where elements are pushed and popped from the same end (top) in $O(1)$ time.",
-        speech: "A stack is a linear data structure following the Last-In First-Out principle with O(1) push and pop operations."
+        speech: "A stack is a linear data structure following the Last-In First-Out principle with O of 1 push and pop operations."
       };
     }
     if (q.includes('queue')) {
       return {
         reply: "### What is a Queue?\nA **queue** is a linear FIFO (First-In, First-Out) data structure where elements are enqueued at the rear and dequeued from the front in $O(1)$ time.",
-        speech: "A queue is a linear data structure following the First-In First-Out principle with O(1) enqueue and dequeue operations."
+        speech: "A queue is a linear data structure following the First-In First-Out principle with O of 1 enqueue and dequeue operations."
       };
     }
-    if (q.includes('tree')) {
+    if (q.includes('tree') || q.includes('bst')) {
       return {
         reply: "### Binary Search Tree (BST)\nA **BST** is a hierarchical data structure where every node has at most two children, satisfying: Left < Root < Right. Average search, insert, and delete take $O(\\log n)$ time.",
         speech: "A Binary Search Tree is a hierarchical structure where left children are smaller and right children are larger than the root."
@@ -516,7 +814,8 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         lowerQuery.includes('diagnos') ||
         lowerQuery.includes('help') ||
         lowerQuery.includes('this question') ||
-        lowerQuery.includes('option')
+        lowerQuery.includes('option') ||
+        lowerQuery.includes('hint')
       );
 
       if (isQuestionQuery && activeQuestionContext) {
@@ -539,8 +838,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             const diag = res.diagnosis;
             replyText = `### ${activeQuestionContext.topic || 'Aptitude'} Mentor Diagnostic\n\n` +
               `**Problem:** ${activeQuestionContext.questionText}\n\n` +
-              `❌ **Your Choice (Option ${diag.chosen_answer}):** ${diag.chosen_text}\n` +
-              `*${diag.why_chosen_wrong}*\n\n` +
+              (diag.chosen_answer ? `❌ **Your Choice (Option ${diag.chosen_answer}):** ${diag.chosen_text || ''}\n*${diag.why_chosen_wrong || 'Incorrect choice'}*\n\n` : '') +
               `✅ **Exact Correct Answer (Option ${diag.correct_answer}):** ${diag.correct_text}\n` +
               `*${diag.why_correct}*\n\n` +
               (diag.speed_shortcut ? `> ⚡ **${diag.speed_shortcut}**\n\n` : '') +
@@ -648,7 +946,14 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         availableModels,
         hasSystemKey,
         activeQuestionContext,
-        setActiveQuestionContext
+        setActiveQuestionContext,
+        speechRate,
+        setSpeechRate,
+        audioLevel,
+        audioWaveform,
+        selectedVoice,
+        setSelectedVoice,
+        availableVoices
       }}
     >
       {children}
