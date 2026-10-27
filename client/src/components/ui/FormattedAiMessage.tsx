@@ -254,9 +254,12 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
 
       const trimmed = line.trim();
 
-      // Empty line spacer
+      // Empty line spacer - collapse consecutive blank lines into single clean subtle margin
       if (!trimmed) {
-        elements.push(<div key={`space-${i}`} className="h-1.5" />);
+        while (i + 1 < rawLines.length && !rawLines[i + 1].trim()) {
+          i++;
+        }
+        elements.push(<div key={`space-${i}`} className="h-2" />);
         continue;
       }
 
@@ -321,31 +324,120 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
         continue;
       }
 
-      // Callout / Blockquote / Highlights
+      // Callout / Multi-line Blockquote Block (> ...)
       if (trimmed.startsWith('>')) {
-        const quote = trimmed.replace(/^>\s*/, '');
-        const isNote = quote.toLowerCase().startsWith('[!note]') || quote.toLowerCase().startsWith('note:');
-        const isTip = quote.toLowerCase().startsWith('[!tip]') || quote.toLowerCase().startsWith('tip:') || quote.toLowerCase().startsWith('interview tip:');
-        const cleanQuote = quote.replace(/^\[!(note|tip|important|warning)\]\s*/i, '');
+        const quoteLines: string[] = [];
+        let cur = i;
+        while (cur < rawLines.length && rawLines[cur].trim().startsWith('>')) {
+          quoteLines.push(rawLines[cur].trim().replace(/^>\s?/, ''));
+          cur++;
+        }
+        i = cur - 1; // Advance the outer loop counter
+
+        const firstLine = quoteLines[0] || '';
+        const isNote = /^\[!(note|info)\]/i.test(firstLine) || firstLine.toLowerCase().startsWith('note:');
+        const isTip = /^\[!(tip|hint)\]/i.test(firstLine) || firstLine.toLowerCase().startsWith('tip:') || firstLine.toLowerCase().startsWith('interview tip:');
+        const isWarning = /^\[!(warning|caution|important)\]/i.test(firstLine);
+
+        // Strip the alert tag line if present
+        if (/^\[!(note|tip|hint|info|warning|caution|important)\]/i.test(firstLine)) {
+          quoteLines.shift();
+        } else if (isNote) {
+          quoteLines[0] = firstLine.replace(/^note:\s*/i, '');
+        } else if (isTip) {
+          quoteLines[0] = firstLine.replace(/^(tip|interview tip):\s*/i, '');
+        }
+
+        // Clean out leading / trailing empty lines
+        while (quoteLines.length > 0 && !quoteLines[0].trim()) {
+          quoteLines.shift();
+        }
+        while (quoteLines.length > 0 && !quoteLines[quoteLines.length - 1].trim()) {
+          quoteLines.pop();
+        }
+
+        if (quoteLines.length === 0) continue;
+
+        // Render contents of this unified callout box without fragmented nested cards
+        const cardElements: React.ReactNode[] = [];
+        for (let qIdx = 0; qIdx < quoteLines.length; qIdx++) {
+          const qLine = quoteLines[qIdx].trim();
+          if (!qLine) {
+            // Internal subtle paragraph spacing, NOT an empty card!
+            cardElements.push(<div key={`q-space-${qIdx}`} className="h-1.5" />);
+            continue;
+          }
+
+          // Bullet item inside quote
+          if (qLine.match(/^[-*•]\s+/)) {
+            const bulletText = qLine.replace(/^[-*•]\s+/, '');
+            cardElements.push(
+              <div key={`q-li-${qIdx}`} className="flex items-start gap-2 my-1 pl-1 text-xs sm:text-sm leading-relaxed">
+                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70 mt-2 shrink-0" />
+                <div className="flex-1">{formatInline(bulletText)}</div>
+              </div>
+            );
+            continue;
+          }
+
+          // Numbered item inside quote
+          if (qLine.match(/^\d+\.\s+/)) {
+            const numMatch = qLine.match(/^(\d+)\.\s+(.*)/);
+            if (numMatch) {
+              cardElements.push(
+                <div key={`q-num-${qIdx}`} className="flex items-start gap-2 my-1 pl-1 text-xs sm:text-sm leading-relaxed">
+                  <span className="font-semibold opacity-85 shrink-0 text-cyan-300">{numMatch[1]}.</span>
+                  <div className="flex-1">{formatInline(numMatch[2])}</div>
+                </div>
+              );
+              continue;
+            }
+          }
+
+          // Bold title line inside quote
+          if (qLine.startsWith('**') && qLine.endsWith('**')) {
+            cardElements.push(
+              <div key={`q-bold-${qIdx}`} className="font-bold text-xs sm:text-sm my-1 text-white">
+                {formatInline(qLine.slice(2, -2))}
+              </div>
+            );
+            continue;
+          }
+
+          // Normal paragraph inside callout
+          cardElements.push(
+            <p key={`q-p-${qIdx}`} className="text-xs sm:text-sm leading-relaxed my-0.5">
+              {formatInline(qLine)}
+            </p>
+          );
+        }
 
         elements.push(
           <div
-            key={`quote-${i}`}
-            className={`my-3 p-3.5 rounded-xl border text-xs sm:text-sm shadow-sm leading-relaxed ${
+            key={`quote-block-${i}`}
+            className={`my-3 p-4 rounded-xl border text-xs sm:text-sm shadow-sm leading-relaxed ${
               isTip
-                ? 'bg-amber-950/20 border-amber-500/40 text-amber-200'
+                ? 'bg-amber-950/20 border-amber-500/40 text-amber-100'
                 : isNote
-                ? 'bg-indigo-950/20 border-indigo-500/40 text-indigo-200'
-                : 'bg-slate-900/90 border-l-2 border-indigo-400 text-slate-200'
+                ? 'bg-indigo-950/20 border-indigo-500/40 text-indigo-100'
+                : isWarning
+                ? 'bg-rose-950/20 border-rose-500/40 text-rose-100'
+                : 'bg-slate-900/90 border-l-4 border-indigo-500 text-slate-200'
             }`}
           >
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-3">
               {isTip ? (
-                <Lightbulb size={15} className="text-amber-400 mt-0.5 shrink-0" />
+                <div className="p-1 rounded-lg bg-amber-500/10 text-amber-400 mt-0.5 shrink-0">
+                  <Lightbulb size={16} />
+                </div>
               ) : isNote ? (
-                <Sparkles size={15} className="text-indigo-400 mt-0.5 shrink-0" />
+                <div className="p-1 rounded-lg bg-indigo-500/10 text-indigo-400 mt-0.5 shrink-0">
+                  <Sparkles size={16} />
+                </div>
               ) : null}
-              <div className="flex-1">{formatInline(cleanQuote)}</div>
+              <div className="flex-1 space-y-1">
+                {cardElements}
+              </div>
             </div>
           </div>
         );

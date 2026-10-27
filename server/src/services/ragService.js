@@ -847,7 +847,7 @@ ${gapsTable}`;
     for (const wt of data.weakTopics.slice(0, 2)) {
       const tipObj = getTipForTopic(wt.name);
       tipsMarkdown += `> [!TIP]\n> **Genuine Pedagogical Tip: ${tipObj.title}**\n>\n` +
-        tipObj.strategy.map(s => `> - ${s}`).join('\n') + `\n>\n` +
+        tipObj.strategy.map(s => `> ${s}`).join('\n>\n') + `\n>\n` +
         `> **Viva Key:** ${tipObj.vivaKey}\n\n`;
     }
 
