@@ -8,7 +8,8 @@ import {
   BookOpen,
   Sparkles,
   ArrowRight,
-  Lightbulb
+  Lightbulb,
+  Layers
 } from 'lucide-react';
 
 interface FormattedAiMessageProps {
@@ -135,11 +136,33 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
         } else {
           const currentIdx = codeBlockIdx++;
           const codeString = codeBuffer.join('\n');
+          const isDiagram = codeLanguage.toLowerCase() === 'mermaid' || codeLanguage.toLowerCase() === 'diagram';
+
+          // Extract connections from mermaid text: Node["Label"] --> Child["Label"]
+          const diagramConnections: { from: string; fromLabel: string; to: string; toLabel: string }[] = [];
+          if (isDiagram) {
+            const diagLines = codeString.split('\n');
+            for (const dLine of diagLines) {
+              const trimmed = dLine.trim();
+              if (!trimmed || trimmed.startsWith('graph')) continue;
+              const connMatch = trimmed.match(/([a-zA-Z0-9_]+)\["([^"]+)"\]\s*-->\s*([a-zA-Z0-9_]+)\["([^"]+)"\]/);
+              if (connMatch) {
+                diagramConnections.push({
+                  from: connMatch[1],
+                  fromLabel: connMatch[2],
+                  to: connMatch[3],
+                  toLabel: connMatch[4]
+                });
+              }
+            }
+          }
+
           elements.push(
-            <div key={`code-${currentIdx}-${i}`} className="my-3 rounded-xl overflow-hidden border border-slate-750 bg-slate-950 shadow-md">
+            <div key={`code-${currentIdx}-${i}`} className={`my-3 rounded-xl overflow-hidden border shadow-md ${isDiagram ? 'border-indigo-500/40 bg-slate-950' : 'border-slate-750 bg-slate-950'}`}>
               <div className="flex items-center justify-between px-3.5 py-1.5 bg-slate-900 border-b border-slate-800 text-xs text-slate-400">
                 <span className="flex items-center gap-1.5 font-mono text-[11px] font-medium text-cyan-300 uppercase">
-                  <Terminal size={12} /> {codeLanguage}
+                  {isDiagram ? <Layers size={13} className="text-cyan-400" /> : <Terminal size={12} />}
+                  {isDiagram ? 'Visual Architecture Flowchart' : codeLanguage}
                 </span>
                 <button
                   onClick={() => handleCopyText(codeString, currentIdx)}
@@ -158,9 +181,65 @@ export const FormattedAiMessage: React.FC<FormattedAiMessageProps> = ({
                   )}
                 </button>
               </div>
-              <pre className="p-3.5 text-xs font-mono text-slate-200 overflow-x-auto leading-relaxed">
-                <code>{codeString}</code>
-              </pre>
+
+              {isDiagram && diagramConnections.length > 0 ? (
+                <div className="p-4 bg-slate-950/95 flex flex-col items-center gap-3">
+                  {/* Root Node */}
+                  <div className="w-full max-w-md p-3 rounded-xl bg-gradient-to-r from-indigo-950/90 via-slate-900 to-indigo-950/90 border border-indigo-500/60 text-center shadow-lg shadow-indigo-950/50">
+                    <div className="text-[10px] font-mono uppercase tracking-wider text-cyan-300 font-semibold mb-0.5 flex items-center justify-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> Institutional Cohort Telemetry
+                    </div>
+                    <div className="font-bold text-xs sm:text-sm text-white">
+                      {diagramConnections[0]?.fromLabel?.replace(/\\n/g, ' — ')}
+                    </div>
+                  </div>
+
+                  {/* Flow Arrow */}
+                  <div className="flex flex-col items-center my-0.5">
+                    <div className="w-0.5 h-3 bg-indigo-500/50" />
+                    <div className="text-indigo-400 text-[10px]">▼</div>
+                  </div>
+
+                  {/* Child Tier Nodes */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+                    {diagramConnections.map((conn, cIdx) => {
+                      const parts = conn.toLabel.split(/\\n|\n/);
+                      const title = parts[0] || conn.toLabel;
+                      const details = parts.slice(1).join(' • ');
+
+                      const isTier1 = title.toLowerCase().includes('tier 1') || title.toLowerCase().includes('high');
+                      const isTier2 = title.toLowerCase().includes('tier 2') || title.toLowerCase().includes('proficient');
+                      const isTier3 = title.toLowerCase().includes('tier 3') || title.toLowerCase().includes('developing');
+
+                      const borderClass = isTier1
+                        ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200'
+                        : isTier2
+                        ? 'border-cyan-500/40 bg-cyan-950/20 text-cyan-200'
+                        : isTier3
+                        ? 'border-amber-500/40 bg-amber-950/20 text-amber-200'
+                        : 'border-rose-500/40 bg-rose-950/20 text-rose-200';
+
+                      return (
+                        <div key={cIdx} className={`p-2.5 rounded-xl border ${borderClass} shadow-xs`}>
+                          <div className="text-[11px] font-bold mb-0.5 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                            {title}
+                          </div>
+                          {details && (
+                            <div className="text-[11px] text-slate-300 leading-relaxed font-sans">
+                              {details}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <pre className="p-3.5 text-xs font-mono text-slate-200 overflow-x-auto leading-relaxed">
+                  <code>{codeString}</code>
+                </pre>
+              )}
             </div>
           );
           inCodeBlock = false;

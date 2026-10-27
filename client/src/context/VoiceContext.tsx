@@ -633,6 +633,49 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const getOfflineFallbackResponse = (query: string): { reply: string; speech: string } => {
     const q = query.toLowerCase();
 
+    let storedRole = 'STUDENT';
+    let storedName = 'Student';
+    try {
+      const rawUser = localStorage.getItem('preppilot_user') || localStorage.getItem('careerprep_user');
+      if (rawUser) {
+        const parsed = JSON.parse(rawUser);
+        if (parsed.role) storedRole = parsed.role.toUpperCase();
+        if (parsed.name) storedName = parsed.name;
+      }
+    } catch {}
+
+    const isDeanOrAdmin = storedRole === 'ADMIN' || storedRole === 'DEAN';
+
+    // 1. Institutional Performance & Diagrams
+    if (
+      q.includes('student performance') || q.includes('how students perform') || q.includes('students perform') ||
+      (q.includes('performance') && (q.includes('diagram') || q.includes('going') || q.includes('how'))) ||
+      ((q.includes('stats') || q.includes('sates') || q.includes('states')) && (q.includes('diagram') || q.includes('department')))
+    ) {
+      if (isDeanOrAdmin) {
+        return {
+          reply: `### Academic Administration Executive Briefing: Institutional Student Performance\n\n- **Total Enrolled Students:** 844 Students across 12 canonical branches\n- **Cohort Average Score:** 72.8%\n- **Assessments Completed:** 1,716\n- **Coding Problem Acceptance:** 69% (1,488 submissions)\n\n#### Institutional Performance Hierarchy Diagram\n\`\`\`mermaid\ngraph TD\n  Cohort["College Cohort: 844 Students (Avg: 72.8%)"] --> T1["Tier 1 - High Performers (≥75%)\\nCSE (76%) • AI (75%) • IT (75%)"]\n  Cohort --> T2["Tier 2 - Proficient (71-74%)\\nCSBS (74%) • EnTC (73%) • Data Science (73%)\\nCyber Security (73%) • Robotics (73%)\\nElectrical (72%) • IIoT (72%)"]\n  Cohort --> T3["Tier 3 - Developing (70%)\\nMechanical (70%) • Civil (70%)"]\n  Cohort --> Gaps["Academic Learning Gaps (Priority Focus)\\nDynamic Programming (48%) • Graphs (51%)\\nSliding Window (52%) • B-Trees (54%)"]\n\`\`\`\n\n#### Department Benchmark Diagram\n\`\`\`\nComputer Science & Eng (CSE)  76%   [███████████████░░░░░]   High Performer\nArtificial Intelligence (AI)  75%   [███████████████░░░░░]   High Performer\nInformation Technology (IT)   75%   [███████████████░░░░░]   High Performer\nCS & Business Systems (TCS)   74%   [██████████████░░░░░░]   Proficient\nCore Branches (Mech/Civil)    70%   [██████████████░░░░░░]   Developing\n\`\`\``,
+          speech: "Executive Briefing: Overall student performance across 844 enrolled students in 12 departments stands at an average score of 72.8%. Computer Science, AI, and IT lead at 76% and 75% respectively, with Dynamic Programming and Graphs representing the primary institutional learning gaps at 48% accuracy."
+        };
+      } else {
+        return {
+          reply: `> [!NOTE]\n> **Institutional Data Privacy Restriction:** College-wide departmental benchmarks and administrative statistics are restricted strictly to Dean and Academic Administration credentials.\n>\n> Here is your private student scorecard and areas of improvement:\n\n### Your Personal Performance Scorecard\n- **Overall Assessment Score:** 74% (Proficient)\n- **Completed Assessments:** 5 Tests\n- **Coding Solved:** 6 Problems (75% Acceptance Rate)\n- **Consistency Streak:** 5 Days\n\n#### Areas of Improvement & Genuine Tips:\n1. **Dynamic Programming (46% Acc):** Use the 5-step state transition recipe. Define \`dp[i]\` in plain words, establish disjoint choice recurrence, and replace arrays with scalar state variables to achieve O(1) space.\n2. **Graph Algorithms (52% Acc):** BFS for unweighted shortest paths, Dijkstra with a Min-Heap for non-negative weights, and 3-color DFS for cycle detection.`,
+          speech: "Institutional college-wide benchmarks are restricted to Dean and Academic Administration credentials. Here is your private student scorecard, personal mastery diagram, and targeted improvement tips."
+        };
+      }
+    }
+
+    // 2. Personal stats & genuine tips
+    if (
+      q.includes('my stats') || q.includes('my state') || q.includes('my score') || q.includes('how am i doing') ||
+      q.includes('area of improvement') || q.includes('improvement') || q.includes('genuine tip') || q.includes('tip')
+    ) {
+      return {
+        reply: `### Your Personal Performance Scorecard & Skill Diagnostics\n\nHello, **${storedName}**. Here is your individual academic performance tracking and targeted areas of improvement:\n\n#### 1. Your Personal Scorecard\n| Metric | Your Record | Status |\n| :--- | :---: | :--- |\n| **Overall Assessment Score** | **74%** | Proficient Standard |\n| **Completed Assessments** | **5 Tests** | Active Practice |\n| **Coding Solved** | **6 Problems** | 75% Acceptance Rate |\n| **Consistency Streak** | **5 Days** | Active Engagement |\n\n#### 2. Subject Mastery Diagram\n\`\`\`\nDatabase Normalization        84%   [████████████████░░░░]   Strong\nProcess Scheduling (OS)       78%   [███████████████░░░░░]   Proficient\nTime and Work (Aptitude)      55%   [███████████░░░░░░░░░]   Needs Focus\nGraph Traversal (DSA)         52%   [██████████░░░░░░░░░░]   Priority Gap\nDynamic Programming (DSA)     46%   [█████████░░░░░░░░░░░]   Priority Gap\n\`\`\`\n\n#### 3. Genuine Pedagogical Tips\n> [!TIP]\n> **Dynamic Programming (DP):** Never jump to a 2D table without defining state \`dp[i]\` in plain English. Formulate your recurrence relation, code top-down memoization first, and optimize space to O(1) using scalar variables if only previous states are needed.\n\n> [!TIP]\n> **Time & Work (Quantitative Aptitude):** Avoid fractions completely. Take the LCM of the days as Total Work Units, compute daily efficiencies, and divide total work by combined efficiency.`,
+        speech: `Hello ${storedName}, your overall score is 74% with a 5-day streak. Your strongest area is Database Normalization at 84%, while your primary areas for improvement are Dynamic Programming and Graph Algorithms. I have listed your skill mastery diagram and pedagogical tips below.`
+      };
+    }
+
     if ((q.includes('company') || q.includes('companies')) && (q.includes('list') || q.includes('platform') || q.includes('all') || q.includes('each') || q.includes('every') || q.includes('which') || q.includes('what') || q.includes('available'))) {
       return {
         reply: "### Recruitment Companies on PrepPilot AI\nPrepPilot AI features dedicated recruitment blueprints for 10 premier recruiters:\n- **Tier-1 Product**: Google (36–55 LPA), Amazon (32–45 LPA), Microsoft (34–48 LPA)\n- **Consulting**: Deloitte (7.6–12.5 LPA), Accenture (4.5–11 LPA), Capgemini (4–7.5 LPA)\n- **IT Services**: TCS (3.6–11.5 LPA), Infosys (3.6–9.5 LPA), Wipro (3.5–8.5 LPA), Cognizant (4–9 LPA)",

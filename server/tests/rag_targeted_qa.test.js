@@ -1,5 +1,6 @@
 import assert from 'assert';
 import RagService from '../src/services/ragService.js';
+import db from '../src/database/db.js';
 
 async function runRagQATests() {
   console.log('==================================================================');
@@ -198,8 +199,42 @@ async function runRagQATests() {
   assert(qSys.speechText.includes('System design'), 'SpeechText explains system design');
   console.log('  ✓ Query "explain system design..." returns load balancing, caching, and CAP theorem');
 
+  // Test 29: Dean/Admin Institutional Performance & Diagrams
+  const deanUser = db.find('users', u => u.role === 'DEAN')[0] || { id: 'dean-01', role: 'DEAN', name: 'Dean' };
+  const qDeanDiagram = await RagService.answerStudentQuery('how students performace is going on with diagram', deanUser);
+  assert(qDeanDiagram.answer.includes('Institutional Student Performance'), 'Dean receives institutional performance report');
+  assert(qDeanDiagram.answer.includes('```mermaid'), 'Dean report includes Mermaid diagram');
+  assert(qDeanDiagram.answer.includes('Department Performance Benchmark'), 'Dean report includes 12 department benchmarks');
+  assert(qDeanDiagram.answer.includes('844'), 'Dean report monitors full 844 student cohort');
+  assert(qDeanDiagram.speechText.includes('Dean and Academic Administrator Briefing'), 'Dean speech provides executive oral briefing');
+  console.log('  ✓ Query "how students performace is going on with diagram" delivers institutional metrics & diagram for Dean');
+
+  // Test 30: Student Personal Stats & Genuine Tips
+  const stdUser = db.find('users', u => u.role === 'STUDENT' && u.email === 'student@preppilot.ai')[0] || { id: 'std-01', role: 'STUDENT', name: 'Aditya Sharma', email: 'student@preppilot.ai' };
+  const qStudentPersonal = await RagService.answerStudentQuery('show my states and area of improvement with geniun tip', stdUser);
+  assert(qStudentPersonal.answer.includes('Your Personal Performance Scorecard'), 'Student receives private scorecard');
+  assert(qStudentPersonal.answer.includes('Your Subject Mastery Diagram'), 'Student receives personal mastery progress bar diagram');
+  assert(qStudentPersonal.answer.includes('Identified Areas of Improvement'), 'Student receives identified learning gaps');
+  assert(qStudentPersonal.answer.includes('Genuine Pedagogical Tip:'), 'Student receives concrete genuine tips');
+  assert(qStudentPersonal.answer.includes('Recommended 7-Day Action Plan'), 'Student receives recommended study plan');
+  assert(!qStudentPersonal.answer.includes('844 enrolled students'), 'Student is isolated from institutional department benchmarks');
+  console.log('  ✓ Query "show my states and area of improvement with geniun tip" delivers private stats & genuine tips for Student');
+
+  // Test 31: Student Restricted from Institutional Data (Strict Data Isolation)
+  const qStudentBlocked = await RagService.answerStudentQuery('how students performace is going on with diagram', stdUser);
+  assert(qStudentBlocked.answer.includes('Institutional Data Privacy Restriction'), 'Student privacy notice triggered on institutional query');
+  assert(qStudentBlocked.answer.includes('restricted strictly to Dean and Academic Administration credentials'), 'Clarifies credential segregation');
+  assert(qStudentBlocked.answer.includes('Your Personal Performance Scorecard'), 'Pivots to student private scorecard');
+  assert(qStudentBlocked.speechText.includes('restricted to Dean and Academic Administration credentials'), 'Speech clarifies data isolation');
+  console.log('  ✓ Query "how students performace is going on with diagram" strictly isolates student from college-wide data');
+
+  // Test 32: Unauthenticated Query Access Guidance
+  const qGuest = await RagService.answerStudentQuery('show my stats and area of improvement with genuine tip', null);
+  assert(qGuest.answer.includes('Student Performance & Scorecard Access'), 'Guest receives login prompt for personal scorecard');
+  console.log('  ✓ Unauthenticated query provides clear login guidance for scorecard access');
+
   console.log('\n==================================================================');
-  console.log('ALL 28 RAG TARGETED QA TESTS PASSED CLEANLY (100%)');
+  console.log('ALL 32 RAG TARGETED QA TESTS PASSED CLEANLY (100%)');
   console.log('==================================================================\n');
 }
 

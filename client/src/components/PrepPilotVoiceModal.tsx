@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useVoice } from '../context/VoiceContext';
+import { useAuth } from '../context/AuthContext';
 import { PrepPilotLogo } from './Logo';
 import FormattedAiMessage from './ui/FormattedAiMessage';
 import {
@@ -22,7 +23,14 @@ import {
   HelpCircle,
   Activity,
   Sliders,
-  Check
+  Check,
+  BarChart3,
+  TrendingUp,
+  AlertCircle,
+  GraduationCap,
+  UserCheck,
+  Target,
+  Lightbulb
 } from 'lucide-react';
 
 const SUGGESTIONS = [
@@ -82,6 +90,11 @@ export const PrepPilotVoiceModal: React.FC = () => {
     speechRate,
     setSpeechRate
   } = useVoice();
+
+  const { user } = useAuth();
+  const role = (user?.role || '').toUpperCase();
+  const isDeanOrAdmin = role === 'ADMIN' || role === 'DEAN';
+  const isStudent = role === 'STUDENT';
 
   const [inputVal, setInputVal] = useState('');
   const [showSettings, setShowSettings] = useState(false);
@@ -319,15 +332,73 @@ export const PrepPilotVoiceModal: React.FC = () => {
               </div>
 
               <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
-                How can I help you today?
+                {isDeanOrAdmin
+                  ? "Academic Executive AI Briefing"
+                  : isStudent
+                  ? `Welcome, ${user?.name?.split(' ')[0] || 'Candidate'}`
+                  : "How can I help you today?"}
               </h3>
               <p className="text-slate-400 text-sm max-w-lg mb-8 leading-relaxed">
-                Ask any question about Data Structures, OS, DBMS, Aptitude, or campus placement rounds.
+                {isDeanOrAdmin
+                  ? "Institutional Academic Telemetry: Monitor 844 students across 12 departments, analyze performance diagrams, and inspect learning gaps."
+                  : isStudent
+                  ? "Your Private Academic Copilot: Track your personal scorecard, identify areas of improvement, and receive genuine technical study tips."
+                  : "Ask any question about Data Structures, OS, DBMS, Aptitude, or campus placement rounds."}
               </p>
 
               {/* Suggestions Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl text-left">
-                {SUGGESTIONS.map((item, idx) => {
+                {(isDeanOrAdmin ? [
+                  {
+                    icon: BarChart3,
+                    title: 'Student Performance & Diagrams',
+                    subtitle: '12-branch benchmarks & visual flowchart',
+                    prompt: 'How is student performance going across departments? Show me student stats with diagram.'
+                  },
+                  {
+                    icon: TrendingUp,
+                    title: 'Department Benchmarks',
+                    subtitle: 'Compare scores & coding acceptance',
+                    prompt: 'Compare departmental average scores and coding acceptance rates across all 12 branches.'
+                  },
+                  {
+                    icon: AlertCircle,
+                    title: 'Institutional Learning Gaps',
+                    subtitle: 'Dynamic Programming, Graphs & B-Trees',
+                    prompt: 'What are the primary institutional learning gaps and weak topics across the college?'
+                  },
+                  {
+                    icon: GraduationCap,
+                    title: 'Placement Readiness Distribution',
+                    subtitle: 'Day-1 ready vs remedial cohorts',
+                    prompt: 'Show student placement readiness distribution diagram and cohort breakdown.'
+                  }
+                ] : isStudent ? [
+                  {
+                    icon: UserCheck,
+                    title: 'My Performance Scorecard',
+                    subtitle: 'Your accuracy, assessments & streak',
+                    prompt: 'How am I doing and what are my performance stats?'
+                  },
+                  {
+                    icon: Target,
+                    title: 'Areas of Improvement',
+                    subtitle: 'Identify your weakest curriculum topics',
+                    prompt: 'What are my areas of improvement and weakest topics?'
+                  },
+                  {
+                    icon: Lightbulb,
+                    title: 'Genuine Study Tips',
+                    subtitle: 'Actionable problem-solving strategies',
+                    prompt: 'Give me genuine pedagogical tips to improve my weakest topics.'
+                  },
+                  {
+                    icon: Database,
+                    title: 'Database Normalization',
+                    subtitle: '1NF, 2NF, 3NF & BCNF anomalies',
+                    prompt: 'Explain Database Normalization: 1NF, 2NF, 3NF, and BCNF with real-world examples and why candidate keys matter.'
+                  }
+                ] : SUGGESTIONS).map((item, idx) => {
                   const Icon = item.icon;
                   return (
                     <button
