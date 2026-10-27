@@ -641,10 +641,11 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     if (q.includes('branch') || q.includes('branches')) {
       return {
-        reply: "### Supported Engineering Branches\nPrepPilot AI supports 9 engineering branches:\n- **Computing**: Computer Science (CSE), Information Technology (IT), AI & Data Science (AIDS), AI & Machine Learning (AIML)\n- **Circuits**: Electronics & Telecommunication (ECE), Electrical Engineering (EE)\n- **Core Engineering**: Mechanical (ME), Civil (CE), Chemical (CHE)",
-        speech: "PrepPilot AI supports 9 engineering branches including Computer Science, IT, Electronics and Telecommunication, Electrical, Mechanical, Civil, Chemical, and AI Data Science."
+        reply: "### Supported Engineering Branches\nPrepPilot AI supports 12 engineering branches:\n- **Computing & AI**: Computer Science and Engineering (CSE), Information Technology, Artificial Intelligence (AI), Computer Science & Engineering (Data Science), Computer Science & Engineering (Cyber Security), Computer Science and Business Systems (in partnership with TCS)\n- **Circuits & Smart Automation**: Electronics & Telecommunication Engineering, Electrical Engineering, Industrial IoT, Robotics and Artificial Intelligence\n- **Core Engineering**: Civil Engineering, Mechanical Engineering",
+        speech: "PrepPilot AI supports 12 engineering branches including Civil, Computer Science and Engineering, Electronics and Telecommunication, Electrical, Information Technology, Mechanical, Artificial Intelligence, Data Science, Cyber Security, CSBS in partnership with TCS, Industrial IoT, and Robotics and Artificial Intelligence."
       };
     }
+
     if (q.includes('coding') || q.includes('arena')) {
       return {
         reply: "### PrepPilot Coding Arena\nThe Coding Arena features 18 curated algorithmic problems across arrays, strings, two pointers, trees, and dynamic programming, with browser execution and automated test cases in C++, Java, Python, and JavaScript.",

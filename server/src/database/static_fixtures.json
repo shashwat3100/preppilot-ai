@@ -1,58 +1,76 @@
 {
   "branches": [
     {
+      "id": "branch-ce",
+      "name": "Civil Engineering",
+      "code": "CE",
+      "description": "Structural Analysis, Geotechnical Engineering, Environmental Infrastructure & Transportation"
+    },
+    {
       "id": "branch-cse",
-      "name": "Computer Science Engineering (CSE)",
+      "name": "Computer Science and Engineering (CSE)",
       "code": "CSE",
-      "description": "Core Computing, Algorithms, Systems & Software"
+      "description": "Core Computing, Data Structures & Algorithms, Operating Systems, Database Systems & Software Engineering"
     },
     {
-      "id": "branch-it",
-      "name": "Information Technology (IT)",
-      "code": "IT",
-      "description": "Enterprise Software, Networks, Web & Database Systems"
-    },
-    {
-      "id": "branch-ece",
-      "name": "Electronics & Telecommunication (ENTC/ECE)",
-      "code": "ECE",
-      "description": "Digital/Analog Circuits, VLSI, Embedded & Signals"
+      "id": "branch-etc",
+      "name": "Electronics & Telecommunication Engineering",
+      "code": "ETC",
+      "description": "Signal Processing, Embedded Systems, VLSI Design, Telecommunications & Microprocessors"
     },
     {
       "id": "branch-ee",
-      "name": "Electrical Engineering (EE)",
+      "name": "Electrical Engineering",
       "code": "EE",
-      "description": "Power Systems, Control Systems, Machines & Power Electronics"
+      "description": "Power Systems, Electrical Machines, Control Systems, Power Electronics & Smart Grids"
+    },
+    {
+      "id": "branch-it",
+      "name": "Information Technology",
+      "code": "IT",
+      "description": "Cloud Computing, Full-Stack Web Technologies, Enterprise Networks & Database Systems"
     },
     {
       "id": "branch-me",
-      "name": "Mechanical Engineering (ME)",
+      "name": "Mechanical Engineering",
       "code": "ME",
-      "description": "Thermodynamics, Fluid Mechanics, Design & Manufacturing"
+      "description": "Thermodynamics, Fluid Mechanics, Kinematics, CAD/CAM, Manufacturing & Mechatronics"
     },
     {
-      "id": "branch-ce",
-      "name": "Civil Engineering (CE)",
-      "code": "CE",
-      "description": "Structural Engineering, Geotechnical, Transportation & Concrete"
+      "id": "branch-ai",
+      "name": "Artificial Intelligence (AI)",
+      "code": "AI",
+      "description": "Machine Learning, Deep Learning, Neural Networks, Natural Language Processing & Computer Vision"
     },
     {
-      "id": "branch-che",
-      "name": "Chemical Engineering (CHE)",
-      "code": "CHE",
-      "description": "Reaction Engineering, Mass Transfer & Process Operations"
+      "id": "branch-cs-ds",
+      "name": "Computer Science & Engineering (Data Science)",
+      "code": "CSE-DS",
+      "description": "Big Data Analytics, Predictive Modeling, Statistical Inference & Data Engineering"
     },
     {
-      "id": "branch-aids",
-      "name": "AI & Data Science (AIDS)",
-      "code": "AIDS",
-      "description": "Machine Learning, Deep Learning, Big Data & Analytics"
+      "id": "branch-cs-cyber",
+      "name": "Computer Science & Engineering (Cyber Security)",
+      "code": "CSE-CY",
+      "description": "Network Defense, Cryptography, Ethical Hacking, Threat Intelligence & Cloud Security"
     },
     {
-      "id": "branch-aiml",
-      "name": "AI & Machine Learning (AIML)",
-      "code": "AIML",
-      "description": "Applied AI, Neural Networks, Computer Vision & NLP"
+      "id": "branch-csbs",
+      "name": "Computer Science and Business Systems (in partnership with TCS)",
+      "code": "CSBS",
+      "description": "Enterprise Systems, Business Intelligence, Corporate IT Strategy & FinTech Systems"
+    },
+    {
+      "id": "branch-iiot",
+      "name": "Industrial IoT",
+      "code": "IIOT",
+      "description": "Sensors & Actuators, SCADA/PLC Systems, Edge Computing, Smart Industry 4.0 & Industrial Automation"
+    },
+    {
+      "id": "branch-robotics-ai",
+      "name": "Robotics and Artificial Intelligence",
+      "code": "ROBOTICS-AI",
+      "description": "Autonomous Robotics, Kinematics & Dynamics, Computer Vision, ROS & Reinforcement Learning"
     }
   ],
   "companies": [
@@ -690,13 +708,13 @@
     {
       "id": "role-data-eng",
       "title": "Data Engineer / Analyst",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-ds",
       "description": "Data pipelines, SQL data warehouses, ETL processes and analytical dashboards."
     },
     {
       "id": "role-embedded",
       "title": "Embedded Systems Engineer",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-etc",
       "description": "Firmware development, microcontroller programming and hardware-software interfacing."
     },
     {
@@ -714,8 +732,61 @@
     {
       "id": "role-ai-engineer",
       "title": "AI/ML Engineer",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-ai",
       "description": "Model training, neural network deployment, feature engineering and evaluation."
+    },
+    {
+      "id": "role-cyber-analyst",
+      "title": "Cyber Security Analyst",
+      "branch_id": "branch-cs-cyber",
+      "description": "Identify threats, conduct penetration tests, and secure cloud/enterprise perimeters.",
+      "expected_skills": [
+        "Network Security",
+        "Cryptography",
+        "SIEM",
+        "Linux",
+        "Vulnerability Assessment"
+      ]
+    },
+    {
+      "id": "role-csbs-consultant",
+      "title": "Business Systems Consultant",
+      "branch_id": "branch-csbs",
+      "description": "Bridge business requirements with enterprise technology architectures.",
+      "expected_skills": [
+        "ERP Systems",
+        "Business Intelligence",
+        "SQL",
+        "Process Modeling",
+        "Cloud Platforms"
+      ]
+    },
+    {
+      "id": "role-iiot-engineer",
+      "title": "Industrial IoT & Automation Engineer",
+      "branch_id": "branch-iiot",
+      "description": "Design and deploy connected industrial smart factory systems and telemetry pipelines.",
+      "expected_skills": [
+        "Embedded C",
+        "MQTT",
+        "PLC/SCADA",
+        "Sensors",
+        "Edge Computing"
+      ]
+    },
+    {
+      "id": "role-robotics-eng",
+      "title": "Robotics & Autonomous Systems Engineer",
+      "branch_id": "branch-robotics-ai",
+      "description": "Develop autonomous mobile robots, manipulation algorithms, and perception pipelines.",
+      "expected_skills": [
+        "ROS 2",
+        "C++",
+        "Python",
+        "Kinematics",
+        "Computer Vision",
+        "Control Theory"
+      ]
     }
   ],
   "subjects": [
@@ -771,7 +842,7 @@
       "id": "sub-digital-elec",
       "name": "Digital Electronics",
       "code": "EC-DE",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-etc",
       "icon": "Binary",
       "description": "Logic Gates, Flip-Flops, Combinational & Sequential Circuits, Karnaugh Maps"
     },
@@ -779,7 +850,7 @@
       "id": "sub-microproc",
       "name": "Microprocessors & Embedded Systems",
       "code": "EC-MP",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-etc",
       "icon": "Microchip",
       "description": "8085/8086 Architecture, Interrupts, Timers, Embedded C"
     },
@@ -822,6 +893,48 @@
       "branch_id": "branch-ce",
       "icon": "Building",
       "description": "Concrete Technology, Trusses, RCC Design, Soil Mechanics"
+    },
+    {
+      "id": "sub-ai-ml",
+      "name": "Machine Learning & Artificial Intelligence",
+      "code": "AIML",
+      "branch_id": "branch-ai",
+      "description": "Supervised & Unsupervised Learning, Deep Neural Networks, Model Optimization"
+    },
+    {
+      "id": "sub-data-science",
+      "name": "Data Science & Big Data Analytics",
+      "code": "DSBDA",
+      "branch_id": "branch-cs-ds",
+      "description": "Exploratory Data Analysis, Feature Engineering, Distributed Data Processing"
+    },
+    {
+      "id": "sub-cyber-sec",
+      "name": "Cyber Security & Network Defense",
+      "code": "CSND",
+      "branch_id": "branch-cs-cyber",
+      "description": "Cryptographic Protocols, Penetration Testing, Zero Trust Architecture"
+    },
+    {
+      "id": "sub-csbs-systems",
+      "name": "Business Analytics & Enterprise Systems",
+      "code": "BAES",
+      "branch_id": "branch-csbs",
+      "description": "TCS Industry Curriculum, Enterprise Resource Planning, Financial Analytics"
+    },
+    {
+      "id": "sub-iiot-sensors",
+      "name": "Industrial IoT & Sensor Networks",
+      "code": "IIOTSN",
+      "branch_id": "branch-iiot",
+      "description": "Industry 4.0, Wireless Sensor Networks, MQTT/CoAP Protocols & Edge Processing"
+    },
+    {
+      "id": "sub-robotics-ai",
+      "name": "Robotics & Autonomous Systems",
+      "code": "RAS",
+      "branch_id": "branch-robotics-ai",
+      "description": "Kinematics, Trajectory Planning, ROS, SLAM & Robot Vision"
     }
   ],
   "topics": [
@@ -66887,7 +67000,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-db41e1e3-53ed-4670-b1b8-c9b5849cb8c4",
@@ -66920,7 +67033,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-3ee3558a-158f-4a5f-a7ac-cbfccbbe56e6",
@@ -66953,7 +67066,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-75b1f772-badf-45e4-9ca6-f9baf47a0132",
@@ -66986,7 +67099,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-dc78dbdd-4fc4-4873-b82e-2ac53414d871",
@@ -67019,7 +67132,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-1ba5af07-cc74-4ad2-acb8-05852585c21e",
@@ -67052,7 +67165,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-2a7f228b-e60f-4739-9adf-eedd1e146b5d",
@@ -67085,7 +67198,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-fbea7c72-b5c9-474d-94a2-5e0f5cea836b",
@@ -67118,7 +67231,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-8c920c4a-bbbb-487d-bba7-6701b623ac6f",
@@ -67151,7 +67264,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-871eb289-337c-4818-94ac-aeb2edcf8f62",
@@ -67184,7 +67297,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-3aa51633-a663-4fbd-9064-54585593e8c8",
@@ -67217,7 +67330,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-756e9a61-f69d-4b76-bf00-84b83b4ddb8b",
@@ -67250,7 +67363,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-62befd3d-5b68-413f-9534-0d710d7cdc59",
@@ -67283,7 +67396,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-7f1a478b-e75b-44e3-bac8-fa17cd66ebe9",
@@ -67317,7 +67430,7 @@
       "status": "ACTIVE",
       "designation": "Dean",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-e240aa3d-57a3-44fe-a160-6290fd3b8e7e",
@@ -67350,7 +67463,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch_name": "Computer Science and Engineering (CSE)"
     },
     {
       "id": "user-07fc7e24-72a8-428d-96bf-0c6386310ca0",
@@ -67358,7 +67471,7 @@
       "email": "tanmay.agarwal.16@college.edu",
       "password_hash": "$2b$10$XnOEu7l9rrLNvpmFAz6vYejTxLV6V9dPW3aFywP6Ux.NXhMpieSTG",
       "role": "STUDENT",
-      "branch_id": "branch-cse",
+      "branch_id": "branch-it",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67382,8 +67495,8 @@
       "updated_at": "2026-10-18T07:20:44.672Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch": "branch-it",
+      "branch_name": "Information Technology"
     },
     {
       "id": "user-c43ca61b-c84b-4a0d-851d-2c487cbe464b",
@@ -67391,7 +67504,7 @@
       "email": "nikhil.sen.17@college.edu",
       "password_hash": "$2b$10$lDzM2dnTX/AWdFElNQMzX.A8Iq2H5TLh13ku2St.1NHyY9Rw6Lc3S",
       "role": "STUDENT",
-      "branch_id": "branch-cse",
+      "branch_id": "branch-it",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67415,8 +67528,8 @@
       "updated_at": "2026-10-18T07:20:46.190Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch": "branch-it",
+      "branch_name": "Information Technology"
     },
     {
       "id": "user-06a842d5-cc78-482d-b456-a6ceb9d10e55",
@@ -67424,7 +67537,7 @@
       "email": "kunal.mukherjee.18@college.edu",
       "password_hash": "$2b$10$ZdifVK.u8i6x5gB1bG18jeefOSSG7j9Sb2wE0ihVBdTUd4DTLYhh2",
       "role": "STUDENT",
-      "branch_id": "branch-cse",
+      "branch_id": "branch-it",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67448,8 +67561,8 @@
       "updated_at": "2026-10-18T07:20:47.937Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch": "branch-it",
+      "branch_name": "Information Technology"
     },
     {
       "id": "user-582aac8f-6c25-45de-893f-e34f2bd7819a",
@@ -67457,7 +67570,7 @@
       "email": "rishabh.reddy.19@college.edu",
       "password_hash": "$2b$10$6pi7rwvTHygzk3YMs39XYOvYG2ERd7nuZNC1w9kPxeWSZlPn/1o.W",
       "role": "STUDENT",
-      "branch_id": "branch-cse",
+      "branch_id": "branch-it",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67481,8 +67594,8 @@
       "updated_at": "2026-10-18T07:20:49.405Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch": "branch-it",
+      "branch_name": "Information Technology"
     },
     {
       "id": "user-1f37620b-df76-4596-9fe8-d44d332ee7ea",
@@ -67490,7 +67603,7 @@
       "email": "shaurya.nambiar.20@college.edu",
       "password_hash": "$2b$10$FlqcREmeX1NfEKMzvikyJO/vKvsvmb0OGZjaUSMMyoBwwefP7mN7G",
       "role": "STUDENT",
-      "branch_id": "branch-cse",
+      "branch_id": "branch-it",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67514,8 +67627,8 @@
       "updated_at": "2026-10-18T07:20:51.953Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-cse",
-      "branch_name": "Computer Science Engineering (CSE)"
+      "branch": "branch-it",
+      "branch_name": "Information Technology"
     },
     {
       "id": "user-d7443290-318e-432b-8310-274e5fae1157",
@@ -67548,7 +67661,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch_name": "Information Technology"
     },
     {
       "id": "user-9a000b20-74ca-4bca-a9e8-a440e4e137a2",
@@ -67581,7 +67694,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch_name": "Information Technology"
     },
     {
       "id": "user-b6ab6033-962a-46ee-a5fb-a0d12205151e",
@@ -67614,7 +67727,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch_name": "Information Technology"
     },
     {
       "id": "user-f115a132-76cc-4e37-b8ae-5ab1a4b1d9f4",
@@ -67647,7 +67760,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch_name": "Information Technology"
     },
     {
       "id": "user-ca71698f-936c-46ef-a482-3f862234f8d2",
@@ -67680,7 +67793,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch_name": "Information Technology"
     },
     {
       "id": "user-affb7826-d5bd-4a6f-8f1c-ae3a99ee6777",
@@ -67688,7 +67801,7 @@
       "email": "aniket.chatterjee.26@college.edu",
       "password_hash": "$2b$10$XGY02nRp95VTdA0lCKE11OxDgCCFs5Z0eJKQAGMW7EQuYwI1QPwge",
       "role": "STUDENT",
-      "branch_id": "branch-it",
+      "branch_id": "branch-ai",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67712,8 +67825,8 @@
       "updated_at": "2026-10-18T07:21:12.508Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch": "branch-ai",
+      "branch_name": "Artificial Intelligence (AI)"
     },
     {
       "id": "user-6f452dde-2eb8-4f96-8d7c-240ad2c8cea7",
@@ -67721,7 +67834,7 @@
       "email": "tejas.patil.27@college.edu",
       "password_hash": "$2b$10$N36d2JtJCXmC64DMTAMmnuMkCrqKoBo9a0MypI7HhYMmo.ZZe5DGu",
       "role": "STUDENT",
-      "branch_id": "branch-it",
+      "branch_id": "branch-ai",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67745,8 +67858,8 @@
       "updated_at": "2026-10-18T07:21:16.923Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch": "branch-ai",
+      "branch_name": "Artificial Intelligence (AI)"
     },
     {
       "id": "user-6d9a30da-4d99-410b-b4c3-60a2dbfc743f",
@@ -67754,7 +67867,7 @@
       "email": "varun.bhatia.28@college.edu",
       "password_hash": "$2b$10$zcqnLmJUmLlNVDVI9/Wk7.HXYJZcrGlCTZIvxAauTkgEcerMihwtC",
       "role": "STUDENT",
-      "branch_id": "branch-it",
+      "branch_id": "branch-ai",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67778,8 +67891,8 @@
       "updated_at": "2026-10-18T07:21:18.331Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch": "branch-ai",
+      "branch_name": "Artificial Intelligence (AI)"
     },
     {
       "id": "user-73884a7b-2270-4d11-940b-23058484194e",
@@ -67787,7 +67900,7 @@
       "email": "tushar.chawla.29@college.edu",
       "password_hash": "$2b$10$REDDHlyYfTw.N7RBPogFUu8epZ5WpIy0XvJPuNtrT2KWknewUMoSi",
       "role": "STUDENT",
-      "branch_id": "branch-it",
+      "branch_id": "branch-ai",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67811,8 +67924,8 @@
       "updated_at": "2026-10-18T07:21:24.230Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch": "branch-ai",
+      "branch_name": "Artificial Intelligence (AI)"
     },
     {
       "id": "user-89608e8f-4b77-4aaf-935e-bcff8721c356",
@@ -67820,7 +67933,7 @@
       "email": "chirag.oberoi.30@college.edu",
       "password_hash": "$2b$10$W9CgRgedb4oNLUncQxlVUukh3wOe2yHFg6N0L99yt8VP44PU02M0e",
       "role": "STUDENT",
-      "branch_id": "branch-it",
+      "branch_id": "branch-ai",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67844,8 +67957,8 @@
       "updated_at": "2026-10-18T07:21:30.535Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch": "branch-ai",
+      "branch_name": "Artificial Intelligence (AI)"
     },
     {
       "id": "user-a9361946-cdc9-4bda-a45d-f7fbe67ec105",
@@ -67853,7 +67966,7 @@
       "email": "yashvardhan.rathore.31@college.edu",
       "password_hash": "$2b$10$ytEw8Cn4Pmdex4TQYtuCp.Z7M6BudbHJgoftvdMYCkcXK6Y760ayG",
       "role": "STUDENT",
-      "branch_id": "branch-it",
+      "branch_id": "branch-ai",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67877,8 +67990,8 @@
       "updated_at": "2026-10-18T07:21:31.987Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch": "branch-ai",
+      "branch_name": "Artificial Intelligence (AI)"
     },
     {
       "id": "user-fbc05f2f-a6ce-4512-8f58-38893c6aa2d2",
@@ -67886,7 +67999,7 @@
       "email": "neil.goswami.32@college.edu",
       "password_hash": "$2b$10$0aJ3adfqGzTNW3ps6Gyo1Or2DpwlPwphIDPCKWhZxvJzyjnNqdl3O",
       "role": "STUDENT",
-      "branch_id": "branch-it",
+      "branch_id": "branch-ai",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67910,8 +68023,8 @@
       "updated_at": "2026-10-18T07:21:33.246Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch": "branch-ai",
+      "branch_name": "Artificial Intelligence (AI)"
     },
     {
       "id": "user-35876e28-222a-4747-a678-ea6d01d33fc2",
@@ -67919,7 +68032,7 @@
       "email": "abhinav.kashyap.33@college.edu",
       "password_hash": "$2b$10$9dnGDLmxS.MSMqwqccbB9.sfbjvtW7l548/mLGuOufCKtgTSNYqY2",
       "role": "STUDENT",
-      "branch_id": "branch-it",
+      "branch_id": "branch-ai",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67943,8 +68056,8 @@
       "updated_at": "2026-10-18T07:21:34.989Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch": "branch-ai",
+      "branch_name": "Artificial Intelligence (AI)"
     },
     {
       "id": "user-a2536058-70c4-4b04-9ecb-50033559ae77",
@@ -67952,7 +68065,7 @@
       "email": "mayank.sethi.34@college.edu",
       "password_hash": "$2b$10$VbqBLNV5wHnZrIb7l4i5CeC.Z2MDCn4Stv1SBREOAeYDGJDez9VtW",
       "role": "STUDENT",
-      "branch_id": "branch-it",
+      "branch_id": "branch-cs-ds",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -67976,8 +68089,8 @@
       "updated_at": "2026-10-18T07:21:37.352Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-it",
-      "branch_name": "Information Technology (IT)"
+      "branch": "branch-cs-ds",
+      "branch_name": "Computer Science & Engineering (Data Science)"
     },
     {
       "id": "user-2d28a8b7-a694-4401-ab69-334d8a303d94",
@@ -67985,7 +68098,7 @@
       "email": "hrithik.kaul.35@college.edu",
       "password_hash": "$2b$10$DtHzXy4kKiKDpYAUtRrktu2iWqRJnWWSLNNPkfnZhSfQe3GbY53xy",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-ds",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68009,8 +68122,8 @@
       "updated_at": "2026-10-18T07:21:38.683Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-ds",
+      "branch_name": "Computer Science & Engineering (Data Science)"
     },
     {
       "id": "user-95f4291f-0928-44f7-a811-9fecc2a6a641",
@@ -68018,7 +68131,7 @@
       "email": "gautam.mathur.36@college.edu",
       "password_hash": "$2b$10$YqcJpmguE1TXa7W1qFFfbOsOTVOve.IvI3eBMuYqzJ9gMsQCpJSh2",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-ds",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68042,8 +68155,8 @@
       "updated_at": "2026-10-18T07:21:40.097Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-ds",
+      "branch_name": "Computer Science & Engineering (Data Science)"
     },
     {
       "id": "user-b84037c1-a4e8-44a0-8af1-c7edeb86bd2a",
@@ -68051,7 +68164,7 @@
       "email": "ritwik.sundaram.37@college.edu",
       "password_hash": "$2b$10$Di8blcrzFflsPRkZSetpzuZikQqyL9I5TLSAR1BHDCbKzwM.oyj9y",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-ds",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68075,8 +68188,8 @@
       "updated_at": "2026-10-18T07:21:41.575Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-ds",
+      "branch_name": "Computer Science & Engineering (Data Science)"
     },
     {
       "id": "user-a2657bed-5a06-435f-9df3-3e85ee03e5a6",
@@ -68084,7 +68197,7 @@
       "email": "sourav.das.38@college.edu",
       "password_hash": "$2b$10$yXr4UC1kq3T.fCUwACzj/.p75otNZQJPvcVlbeFFRpERayuLYw.My",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-ds",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68108,8 +68221,8 @@
       "updated_at": "2026-10-18T07:21:44.225Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-ds",
+      "branch_name": "Computer Science & Engineering (Data Science)"
     },
     {
       "id": "user-f2e4df60-f53f-4b92-a621-56411b8693de",
@@ -68117,7 +68230,7 @@
       "email": "madhav.vashisht.39@college.edu",
       "password_hash": "$2b$10$Dl21GZ/LOlO1CuT74EY7LOtQS.7QCAVtxHu3mh48o8R67osq6Kpp2",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-ds",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68141,8 +68254,8 @@
       "updated_at": "2026-10-18T07:21:45.901Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-ds",
+      "branch_name": "Computer Science & Engineering (Data Science)"
     },
     {
       "id": "user-17dadf12-4b6f-4c08-bfdd-36508bca7be2",
@@ -68150,7 +68263,7 @@
       "email": "daksh.mittal.40@college.edu",
       "password_hash": "$2b$10$A.PJbfNhVCfUYhkwcDU25.7ki.BY6lGLkvw6b.nwULPCUG1if2kfG",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-ds",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68174,8 +68287,8 @@
       "updated_at": "2026-10-18T07:21:47.563Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-ds",
+      "branch_name": "Computer Science & Engineering (Data Science)"
     },
     {
       "id": "user-9d5403f9-0d22-44f6-85ff-0e0bcef62d53",
@@ -68183,7 +68296,7 @@
       "email": "ananya.verma.41@college.edu",
       "password_hash": "$2b$10$3NjGSylxkC.0/hieTanLMuqMGxgMsaScKGFMXk12JqFTVCUf79TJC",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-ds",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68207,8 +68320,8 @@
       "updated_at": "2026-10-18T07:21:50.929Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-ds",
+      "branch_name": "Computer Science & Engineering (Data Science)"
     },
     {
       "id": "user-c91625d0-4177-495d-a0dd-2b5348f6529c",
@@ -68216,7 +68329,7 @@
       "email": "diya.sen.42@college.edu",
       "password_hash": "$2b$10$IKeufQHNLmvJKdOh9OO2jezSRQKMjsa.szMbBAkeB9imBJjPejLqe",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-cyber",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68240,8 +68353,8 @@
       "updated_at": "2026-10-18T07:21:52.407Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-cyber",
+      "branch_name": "Computer Science & Engineering (Cyber Security)"
     },
     {
       "id": "user-d3056475-02c3-43e5-b057-0e37c11958cf",
@@ -68249,7 +68362,7 @@
       "email": "tanvi.deshmukh.43@college.edu",
       "password_hash": "$2b$10$lAdV.HXEnDq0EJRjGv.w1ushtgiJ12gUgg27qwHfqSg0pJkhi8542",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-cyber",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68273,8 +68386,8 @@
       "updated_at": "2026-10-18T07:21:53.927Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-cyber",
+      "branch_name": "Computer Science & Engineering (Cyber Security)"
     },
     {
       "id": "user-e24b5ad4-e3dd-4f56-a910-31e6528e6abc",
@@ -68282,7 +68395,7 @@
       "email": "priya.patel.44@college.edu",
       "password_hash": "$2b$10$4tvFJ5hHmhvwOmmyWuFzBO5Yce244t/INqNZJ8DEcQn6Ej2CFzftO",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-cyber",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68306,8 +68419,8 @@
       "updated_at": "2026-10-18T07:21:55.407Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-cyber",
+      "branch_name": "Computer Science & Engineering (Cyber Security)"
     },
     {
       "id": "user-8fa0b05a-44dd-4761-82ac-a36b15c83254",
@@ -68315,7 +68428,7 @@
       "email": "meera.reddy.45@college.edu",
       "password_hash": "$2b$10$m5cKg3tZwySLzgk1VgR4M.Acj90141z2s6GQoAK/yU50eVPGarNye",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-cyber",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68339,8 +68452,8 @@
       "updated_at": "2026-10-18T07:21:57.067Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-cyber",
+      "branch_name": "Computer Science & Engineering (Cyber Security)"
     },
     {
       "id": "user-a68ca8d0-46be-43b8-9077-947dc3df3f56",
@@ -68348,7 +68461,7 @@
       "email": "sneha.mukherjee.46@college.edu",
       "password_hash": "$2b$10$RO8S5recNErw8ArYJft7tOcpozlbPQ2/l1VsemFS6hladtwJS689.",
       "role": "STUDENT",
-      "branch_id": "branch-aids",
+      "branch_id": "branch-cs-cyber",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68372,8 +68485,8 @@
       "updated_at": "2026-10-18T07:21:58.583Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aids",
-      "branch_name": "AI & Data Science (AIDS)"
+      "branch": "branch-cs-cyber",
+      "branch_name": "Computer Science & Engineering (Cyber Security)"
     },
     {
       "id": "user-4303ff0c-8cab-4a03-ba8a-aad2265758fc",
@@ -68381,7 +68494,7 @@
       "email": "riya.banerjee.47@college.edu",
       "password_hash": "$2b$10$PheWIjEJa1Qy1AotTqVTr.NwrrmjsIIxXNY15vAUBsAMpurwjqje6",
       "role": "STUDENT",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-cs-cyber",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68405,8 +68518,8 @@
       "updated_at": "2026-10-18T07:21:59.990Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aiml",
-      "branch_name": "AI & Machine Learning (AIML)"
+      "branch": "branch-cs-cyber",
+      "branch_name": "Computer Science & Engineering (Cyber Security)"
     },
     {
       "id": "user-8d0c3667-a611-41f6-9efd-461c0352bf38",
@@ -68414,7 +68527,7 @@
       "email": "ishita.rao.48@college.edu",
       "password_hash": "$2b$10$vHEegtFcILnlAdBbh1pQFuz5ISY5eUZmDoh/RPnnSGX.Y/6HgqzY.",
       "role": "STUDENT",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-cs-cyber",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68438,8 +68551,8 @@
       "updated_at": "2026-10-18T07:22:01.546Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aiml",
-      "branch_name": "AI & Machine Learning (AIML)"
+      "branch": "branch-cs-cyber",
+      "branch_name": "Computer Science & Engineering (Cyber Security)"
     },
     {
       "id": "user-de5c1381-a294-447c-bc36-b478b4495abc",
@@ -68447,7 +68560,7 @@
       "email": "kavya.pillai.49@college.edu",
       "password_hash": "$2b$10$01hvQqCYrv8Z/ZfMbNUnwe7UhmSCPWSPZbDQ80TABMk51Ineh9Ytq",
       "role": "STUDENT",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-csbs",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68471,8 +68584,8 @@
       "updated_at": "2026-10-18T07:22:03.178Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aiml",
-      "branch_name": "AI & Machine Learning (AIML)"
+      "branch": "branch-csbs",
+      "branch_name": "Computer Science and Business Systems (in partnership with TCS)"
     },
     {
       "id": "user-de79a69b-bbba-4a36-8a3c-20cbe2bc76fd",
@@ -68480,7 +68593,7 @@
       "email": "natasha.saxena.50@college.edu",
       "password_hash": "$2b$10$Ac3zHHdcZXTgk2XmwrcLI.jdX2qwJIWyIlVjcEJX2aFq1vB1aXHpq",
       "role": "STUDENT",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-csbs",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68504,8 +68617,8 @@
       "updated_at": "2026-10-18T07:22:07.435Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aiml",
-      "branch_name": "AI & Machine Learning (AIML)"
+      "branch": "branch-csbs",
+      "branch_name": "Computer Science and Business Systems (in partnership with TCS)"
     },
     {
       "id": "user-e8f3dede-3d1a-4892-80a3-9c706cc6222b",
@@ -68513,7 +68626,7 @@
       "email": "anika.nair.51@college.edu",
       "password_hash": "$2b$10$LYP762t5X.7I1RiI9QVPeOUDfRxf6yRQ1mJlBj6/QM3fYGOZaVbtu",
       "role": "STUDENT",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-csbs",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68537,8 +68650,8 @@
       "updated_at": "2026-10-18T07:22:08.952Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aiml",
-      "branch_name": "AI & Machine Learning (AIML)"
+      "branch": "branch-csbs",
+      "branch_name": "Computer Science and Business Systems (in partnership with TCS)"
     },
     {
       "id": "user-e92efcc4-5452-479f-ab4f-537f284a55aa",
@@ -68546,7 +68659,7 @@
       "email": "tara.sengupta.52@college.edu",
       "password_hash": "$2b$10$Vh48wqD9vSFKNN/shjAiKeT964uMbPjIxzB75oPNzgs.HCsAVfrIe",
       "role": "STUDENT",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-csbs",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68570,8 +68683,8 @@
       "updated_at": "2026-10-18T07:22:10.483Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aiml",
-      "branch_name": "AI & Machine Learning (AIML)"
+      "branch": "branch-csbs",
+      "branch_name": "Computer Science and Business Systems (in partnership with TCS)"
     },
     {
       "id": "user-871b3de9-bbb9-4fc7-9b9b-bc6ae3823db1",
@@ -68579,7 +68692,7 @@
       "email": "aditi.kulkarni.53@college.edu",
       "password_hash": "$2b$10$IP3x1lhaySngovwg8cPp9uFzggMS.QN4wS4z0ETWO/yWWfWJFi0VC",
       "role": "STUDENT",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-csbs",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68604,8 +68717,8 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "designation": "Dean",
-      "branch": "branch-aiml",
-      "branch_name": "AI & Machine Learning (AIML)"
+      "branch": "branch-csbs",
+      "branch_name": "Computer Science and Business Systems (in partnership with TCS)"
     },
     {
       "id": "user-0a571356-7570-4a7a-bfa5-fc21158f59cc",
@@ -68613,7 +68726,7 @@
       "email": "simran.bhatia.54@college.edu",
       "password_hash": "$2b$10$P2xMyvrxDGTlQtkJ25lh2ec4TpIEURF.5l1G5KkAktisFEcaJ/rQy",
       "role": "STUDENT",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-csbs",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68637,8 +68750,8 @@
       "updated_at": "2026-10-18T07:22:13.383Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aiml",
-      "branch_name": "AI & Machine Learning (AIML)"
+      "branch": "branch-csbs",
+      "branch_name": "Computer Science and Business Systems (in partnership with TCS)"
     },
     {
       "id": "user-daf6ba80-ac51-4ec5-9e21-37a58c97b147",
@@ -68646,7 +68759,7 @@
       "email": "shreya.choudhury.55@college.edu",
       "password_hash": "$2b$10$mAZStv.f7VyaJMcEiYbuhuYRHdp/CqZL667OOq3c57aQEuhG0emxW",
       "role": "STUDENT",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-csbs",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68670,8 +68783,8 @@
       "updated_at": "2026-10-18T07:22:14.934Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aiml",
-      "branch_name": "AI & Machine Learning (AIML)"
+      "branch": "branch-csbs",
+      "branch_name": "Computer Science and Business Systems (in partnership with TCS)"
     },
     {
       "id": "user-467252ef-0327-4aee-b424-e62976497a3f",
@@ -68679,7 +68792,7 @@
       "email": "pooja.agarwal.56@college.edu",
       "password_hash": "$2b$10$K1dgW3L7Czi2vuHYnQHcGuz9KJjwOM2lMuzJiKrjzfdnMDx8ovC1e",
       "role": "STUDENT",
-      "branch_id": "branch-aiml",
+      "branch_id": "branch-etc",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68703,8 +68816,8 @@
       "updated_at": "2026-10-18T07:22:16.315Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-aiml",
-      "branch_name": "AI & Machine Learning (AIML)"
+      "branch": "branch-etc",
+      "branch_name": "Electronics & Telecommunication Engineering"
     },
     {
       "id": "user-827af76d-6e16-466b-8fc1-073f8dfe34ba",
@@ -68712,7 +68825,7 @@
       "email": "kriti.sharma.57@college.edu",
       "password_hash": "$2b$10$2uYbxizSQQnrmk52YfW.U.rFZB4vk7Kix6L/CtlUyNhuLSHa0fLMy",
       "role": "STUDENT",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-etc",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68736,8 +68849,8 @@
       "updated_at": "2026-10-18T07:22:17.932Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ece",
-      "branch_name": "Electronics & Telecommunication (ENTC/ECE)"
+      "branch": "branch-etc",
+      "branch_name": "Electronics & Telecommunication Engineering"
     },
     {
       "id": "user-144472f8-7018-4d9e-ab6e-9024eaa6ae91",
@@ -68745,7 +68858,7 @@
       "email": "avani.joshi.58@college.edu",
       "password_hash": "$2b$10$Z5ImkEY1ukjKMfROVw6URu0DRdqNra4Z9eIJgoLFgYgoJbxD2T9Fy",
       "role": "STUDENT",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-etc",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68769,8 +68882,8 @@
       "updated_at": "2026-10-18T07:22:19.527Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ece",
-      "branch_name": "Electronics & Telecommunication (ENTC/ECE)"
+      "branch": "branch-etc",
+      "branch_name": "Electronics & Telecommunication Engineering"
     },
     {
       "id": "user-61ff977a-3d0c-4811-96bf-100cdede3615",
@@ -68778,7 +68891,7 @@
       "email": "navya.oberoi.59@college.edu",
       "password_hash": "$2b$10$e53/MVHb6vwleEJROdvR9OhhfLkBFrhUx1prDkqKt1nL9TpYFbU7a",
       "role": "STUDENT",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-etc",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68802,8 +68915,8 @@
       "updated_at": "2026-10-18T07:22:21.017Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ece",
-      "branch_name": "Electronics & Telecommunication (ENTC/ECE)"
+      "branch": "branch-etc",
+      "branch_name": "Electronics & Telecommunication Engineering"
     },
     {
       "id": "user-df60c09c-e7eb-4c27-91cf-8053155e02ee",
@@ -68811,7 +68924,7 @@
       "email": "divya.malhotra.60@college.edu",
       "password_hash": "$2b$10$32yvnQaufGV4aARSaDtEF.FAXVAYCvOJnW0CpvvQ0QBoELTZpFTsm",
       "role": "STUDENT",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-etc",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68835,8 +68948,8 @@
       "updated_at": "2026-10-18T07:22:22.737Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ece",
-      "branch_name": "Electronics & Telecommunication (ENTC/ECE)"
+      "branch": "branch-etc",
+      "branch_name": "Electronics & Telecommunication Engineering"
     },
     {
       "id": "user-2a79d01a-29a7-43a3-8116-97da340ecf9a",
@@ -68844,7 +68957,7 @@
       "email": "swara.menon.61@college.edu",
       "password_hash": "$2b$10$fCzgScPmBF1xXagHvICpPuLzrU.Tevjvs5y47rNc3QumSMY901kn.",
       "role": "STUDENT",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-etc",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68868,8 +68981,8 @@
       "updated_at": "2026-10-18T07:22:24.369Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ece",
-      "branch_name": "Electronics & Telecommunication (ENTC/ECE)"
+      "branch": "branch-etc",
+      "branch_name": "Electronics & Telecommunication Engineering"
     },
     {
       "id": "user-36e4a313-402c-4fb4-b886-196cd4025e5f",
@@ -68877,7 +68990,7 @@
       "email": "ira.bhattacharya.62@college.edu",
       "password_hash": "$2b$10$/2Ybxm7jBKqX8qngw1hTz./gMUu0o/hBryAD7i3HegPsSH2MBs1my",
       "role": "STUDENT",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-etc",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68901,8 +69014,8 @@
       "updated_at": "2026-10-18T07:22:25.968Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ece",
-      "branch_name": "Electronics & Telecommunication (ENTC/ECE)"
+      "branch": "branch-etc",
+      "branch_name": "Electronics & Telecommunication Engineering"
     },
     {
       "id": "user-319c1541-e2df-4adb-b45a-74dee34d04a0",
@@ -68910,7 +69023,7 @@
       "email": "sanjana.kapoor.63@college.edu",
       "password_hash": "$2b$10$M7BKOz1gizUB/Tkj8CQql.Wa//3PcQLaQQXbrL2CPcC043yp579aW",
       "role": "STUDENT",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-ee",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68934,8 +69047,8 @@
       "updated_at": "2026-10-18T07:22:27.470Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ece",
-      "branch_name": "Electronics & Telecommunication (ENTC/ECE)"
+      "branch": "branch-ee",
+      "branch_name": "Electrical Engineering"
     },
     {
       "id": "user-f1f8da00-cd42-459d-be96-120a0d484161",
@@ -68943,7 +69056,7 @@
       "email": "disha.trivedi.64@college.edu",
       "password_hash": "$2b$10$LOfciiam.Gtw0yFB5yo.M.ZSD0XRdllAnrzhOdpwMPtZRdpdb1Dqu",
       "role": "STUDENT",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-ee",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -68967,8 +69080,8 @@
       "updated_at": "2026-10-18T07:22:29.088Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ece",
-      "branch_name": "Electronics & Telecommunication (ENTC/ECE)"
+      "branch": "branch-ee",
+      "branch_name": "Electrical Engineering"
     },
     {
       "id": "user-b77c0257-38c4-4793-9967-6f295cbbf745",
@@ -68976,7 +69089,7 @@
       "email": "riddhi.singhania.65@college.edu",
       "password_hash": "$2b$10$tqM5DHiYPSMAkVMDfYWZwOtUSOjwvxNrh.WqwBPIpEYOSU6qUmT9O",
       "role": "STUDENT",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-ee",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69000,8 +69113,8 @@
       "updated_at": "2026-10-18T07:22:30.606Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ece",
-      "branch_name": "Electronics & Telecommunication (ENTC/ECE)"
+      "branch": "branch-ee",
+      "branch_name": "Electrical Engineering"
     },
     {
       "id": "user-6617161f-b5e1-49e6-adee-a26f31a2cc7d",
@@ -69009,7 +69122,7 @@
       "email": "anvi.goswami.66@college.edu",
       "password_hash": "$2b$10$V.Z/sSFINQA7FOmz.rEZHuJkPV8TdY7gAui6OdKICYXkAKMVrA90.",
       "role": "STUDENT",
-      "branch_id": "branch-ece",
+      "branch_id": "branch-ee",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69033,8 +69146,8 @@
       "updated_at": "2026-10-18T07:22:32.362Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ece",
-      "branch_name": "Electronics & Telecommunication (ENTC/ECE)"
+      "branch": "branch-ee",
+      "branch_name": "Electrical Engineering"
     },
     {
       "id": "user-238032c0-3639-4577-8fdc-8972f0f95a9f",
@@ -69067,7 +69180,7 @@
       "is_blocked": false,
       "status": "ACTIVE",
       "branch": "branch-ee",
-      "branch_name": "Electrical Engineering (EE)"
+      "branch_name": "Electrical Engineering"
     },
     {
       "id": "user-1a97ece3-ac89-4191-b780-939fcdb1102f",
@@ -69075,7 +69188,7 @@
       "email": "megha.sundaram.68@college.edu",
       "password_hash": "$2b$10$uIWq6Ob9VIge.87fwz.zZ.J7NbSY5NNlOYrFgPeloYXaTjtMDQwA.",
       "role": "STUDENT",
-      "branch_id": "branch-ee",
+      "branch_id": "branch-me",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69099,8 +69212,8 @@
       "updated_at": "2026-10-18T07:22:35.701Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ee",
-      "branch_name": "Electrical Engineering (EE)"
+      "branch": "branch-me",
+      "branch_name": "Mechanical Engineering"
     },
     {
       "id": "user-9fc89ed4-5e9b-4b78-812a-9f1c5aab3bfa",
@@ -69108,7 +69221,7 @@
       "email": "radhika.das.69@college.edu",
       "password_hash": "$2b$10$ZjiJxejKJ.Snnpb7ilYEDOExmLUvx2WhvpP.p.JJPGcwfQQkHyPaa",
       "role": "STUDENT",
-      "branch_id": "branch-ee",
+      "branch_id": "branch-me",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69132,8 +69245,8 @@
       "updated_at": "2026-10-18T07:22:40.299Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ee",
-      "branch_name": "Electrical Engineering (EE)"
+      "branch": "branch-me",
+      "branch_name": "Mechanical Engineering"
     },
     {
       "id": "user-020733d4-644b-4c4d-8891-b53f99b3a222",
@@ -69141,7 +69254,7 @@
       "email": "lavanya.nambiar.70@college.edu",
       "password_hash": "$2b$10$00v2G.VcqR57UmX0GOKDsuIS1/usaKFH2N9PXdUkEX2lUnr6hfcE2",
       "role": "STUDENT",
-      "branch_id": "branch-ee",
+      "branch_id": "branch-me",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69165,8 +69278,8 @@
       "updated_at": "2026-10-18T07:22:41.768Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ee",
-      "branch_name": "Electrical Engineering (EE)"
+      "branch": "branch-me",
+      "branch_name": "Mechanical Engineering"
     },
     {
       "id": "user-8053c2d0-1485-4b6b-a72f-83df4e5f539f",
@@ -69174,7 +69287,7 @@
       "email": "shalini.kaul.71@college.edu",
       "password_hash": "$2b$10$MDiLK31ChVCFlp21edz7.uOuuXRJhIOpVfBzKHxr4VNflQ.9B6EHu",
       "role": "STUDENT",
-      "branch_id": "branch-ee",
+      "branch_id": "branch-me",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69198,8 +69311,8 @@
       "updated_at": "2026-10-18T07:22:43.137Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ee",
-      "branch_name": "Electrical Engineering (EE)"
+      "branch": "branch-me",
+      "branch_name": "Mechanical Engineering"
     },
     {
       "id": "user-ded660ae-5fbf-4537-bb9f-03cd165c814a",
@@ -69207,7 +69320,7 @@
       "email": "vidhi.mathur.72@college.edu",
       "password_hash": "$2b$10$tS/VK3FTyNWre8YhhQiKFeAQDYBu0Y54GWCVQwszNgdbKPEwW6hty",
       "role": "STUDENT",
-      "branch_id": "branch-ee",
+      "branch_id": "branch-me",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69231,8 +69344,8 @@
       "updated_at": "2026-10-18T07:22:44.780Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ee",
-      "branch_name": "Electrical Engineering (EE)"
+      "branch": "branch-me",
+      "branch_name": "Mechanical Engineering"
     },
     {
       "id": "user-b0577db5-cde2-49bb-b283-1cd9b5ee5e56",
@@ -69240,7 +69353,7 @@
       "email": "pallavi.vashisht.73@college.edu",
       "password_hash": "$2b$10$/4OsIr8k3JI3oqrqsyegzuFzT6/0AL7X5YtIR2DlQ7OvnaVtyQNNO",
       "role": "STUDENT",
-      "branch_id": "branch-me",
+      "branch_id": "branch-ce",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69264,8 +69377,8 @@
       "updated_at": "2026-10-18T07:22:50.255Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-me",
-      "branch_name": "Mechanical Engineering (ME)"
+      "branch": "branch-ce",
+      "branch_name": "Civil Engineering"
     },
     {
       "id": "user-3d9bb7ac-7b09-4686-a957-e186bcfa2a70",
@@ -69273,7 +69386,7 @@
       "email": "jhanvi.mittal.74@college.edu",
       "password_hash": "$2b$10$XykfZsoEO8g5WEFCWJpCaOobN2ppOB0w3e2RZ6/mBX9/9OjM61ojK",
       "role": "STUDENT",
-      "branch_id": "branch-me",
+      "branch_id": "branch-ce",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69297,8 +69410,8 @@
       "updated_at": "2026-10-18T07:22:51.696Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-me",
-      "branch_name": "Mechanical Engineering (ME)"
+      "branch": "branch-ce",
+      "branch_name": "Civil Engineering"
     },
     {
       "id": "user-ced5cbc6-0cf0-49a0-bead-a23be107537c",
@@ -69306,7 +69419,7 @@
       "email": "ahana.chatterjee.75@college.edu",
       "password_hash": "$2b$10$p6MhQ2so5M/VJ1huP8zi3.DHFY8pZ7o5ZTwhVatOxSo5JHTJ5XI6C",
       "role": "STUDENT",
-      "branch_id": "branch-me",
+      "branch_id": "branch-ce",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69330,8 +69443,8 @@
       "updated_at": "2026-10-18T07:22:53.280Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-me",
-      "branch_name": "Mechanical Engineering (ME)"
+      "branch": "branch-ce",
+      "branch_name": "Civil Engineering"
     },
     {
       "id": "user-690cf1db-0248-44c9-9366-bdb08d9c14b6",
@@ -69339,7 +69452,7 @@
       "email": "shruti.rathore.76@college.edu",
       "password_hash": "$2b$10$yXI7bfcaV7Ewsn9mBb.m/extj4/Srj9geeUrsCBtFFcSsCGjxntXO",
       "role": "STUDENT",
-      "branch_id": "branch-me",
+      "branch_id": "branch-iiot",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69363,8 +69476,8 @@
       "updated_at": "2026-10-18T07:22:54.894Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-me",
-      "branch_name": "Mechanical Engineering (ME)"
+      "branch": "branch-iiot",
+      "branch_name": "Industrial IoT"
     },
     {
       "id": "user-2465a788-8ac3-49f7-bed7-5ebf15a1b9fc",
@@ -69372,7 +69485,7 @@
       "email": "niharika.kashyap.77@college.edu",
       "password_hash": "$2b$10$bBXO4xKeRysrzTi1QMipruE4/VLBc82edeKLeS4uuCM4najeq./Ri",
       "role": "STUDENT",
-      "branch_id": "branch-me",
+      "branch_id": "branch-iiot",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69396,8 +69509,8 @@
       "updated_at": "2026-10-18T07:22:59.581Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-me",
-      "branch_name": "Mechanical Engineering (ME)"
+      "branch": "branch-iiot",
+      "branch_name": "Industrial IoT"
     },
     {
       "id": "user-6e26d590-be94-4f69-a316-07e0bc3a7cdf",
@@ -69405,7 +69518,7 @@
       "email": "anushree.chawla.78@college.edu",
       "password_hash": "$2b$10$8BFf5VvVVTqHo7XPRC1JFeJN6lc7LpeoSVx535SLCd.ToPszqGt4m",
       "role": "STUDENT",
-      "branch_id": "branch-ce",
+      "branch_id": "branch-iiot",
       "year": "3rd Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69429,8 +69542,8 @@
       "updated_at": "2026-10-18T07:23:01.192Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ce",
-      "branch_name": "Civil Engineering (CE)"
+      "branch": "branch-iiot",
+      "branch_name": "Industrial IoT"
     },
     {
       "id": "user-98ab9230-67d2-4b9d-b8f2-4b13215e88c8",
@@ -69438,7 +69551,7 @@
       "email": "bhavna.patil.79@college.edu",
       "password_hash": "$2b$10$3UTEVF4PwbPrJmfceJQDKu/dydVLF3sJb.vnnt72CHa7Lpnsfo8ZC",
       "role": "STUDENT",
-      "branch_id": "branch-ce",
+      "branch_id": "branch-robotics-ai",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69462,8 +69575,8 @@
       "updated_at": "2026-10-18T07:23:02.823Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ce",
-      "branch_name": "Civil Engineering (CE)"
+      "branch": "branch-robotics-ai",
+      "branch_name": "Robotics and Artificial Intelligence"
     },
     {
       "id": "user-0c100fb4-df5c-45e3-afdf-02c5dda8d05d",
@@ -69471,7 +69584,7 @@
       "email": "mansi.bhatt.80@college.edu",
       "password_hash": "$2b$10$6c2lf9gyOP4LvT3NlsvhTefyJIGDGZWbJ33YFhSLFovrj2BO1dvrO",
       "role": "STUDENT",
-      "branch_id": "branch-ce",
+      "branch_id": "branch-robotics-ai",
       "year": "4th Year",
       "graduation_year": 2026,
       "preferred_job_role_id": "role-sde",
@@ -69495,8 +69608,8 @@
       "updated_at": "2026-10-18T07:23:08.725Z",
       "is_blocked": false,
       "status": "ACTIVE",
-      "branch": "branch-ce",
-      "branch_name": "Civil Engineering (CE)"
+      "branch": "branch-robotics-ai",
+      "branch_name": "Robotics and Artificial Intelligence"
     },
     {
       "id": "user-65a78394-2374-456d-8069-ab52c39e9db1",

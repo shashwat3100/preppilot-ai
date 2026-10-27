@@ -9,23 +9,32 @@ const __dirname = path.dirname(__filename);
 const FIXTURES_FILE = path.join(__dirname, '../src/database/static_fixtures.json');
 
 const DEPARTMENT_DISTRIBUTION = [
-  // 1..20 (20 students) -> CSE
-  ...Array.from({ length: 20 }, (_, i) => ({ index: i + 1, branchId: 'branch-cse' })),
-  // 21..34 (14 students) -> IT
-  ...Array.from({ length: 14 }, (_, i) => ({ index: i + 21, branchId: 'branch-it' })),
-  // 35..46 (12 students) -> AIDS
-  ...Array.from({ length: 12 }, (_, i) => ({ index: i + 35, branchId: 'branch-aids' })),
-  // 47..56 (10 students) -> AIML
-  ...Array.from({ length: 10 }, (_, i) => ({ index: i + 47, branchId: 'branch-aiml' })),
-  // 57..66 (10 students) -> ECE
-  ...Array.from({ length: 10 }, (_, i) => ({ index: i + 57, branchId: 'branch-ece' })),
-  // 67..72 (6 students) -> EE
-  ...Array.from({ length: 6 }, (_, i) => ({ index: i + 67, branchId: 'branch-ee' })),
-  // 73..77 (5 students) -> ME
-  ...Array.from({ length: 5 }, (_, i) => ({ index: i + 73, branchId: 'branch-me' })),
-  // 78..80 (3 students) -> CE
-  ...Array.from({ length: 3 }, (_, i) => ({ index: i + 78, branchId: 'branch-ce' }))
+  // 1..15 (15 students) -> Computer Science and Engineering (CSE)
+  ...Array.from({ length: 15 }, (_, i) => ({ index: i + 1, branchId: 'branch-cse' })),
+  // 16..25 (10 students) -> Information Technology
+  ...Array.from({ length: 10 }, (_, i) => ({ index: i + 16, branchId: 'branch-it' })),
+  // 26..33 (8 students) -> Artificial Intelligence (AI)
+  ...Array.from({ length: 8 }, (_, i) => ({ index: i + 26, branchId: 'branch-ai' })),
+  // 34..41 (8 students) -> Computer Science & Engineering (Data Science)
+  ...Array.from({ length: 8 }, (_, i) => ({ index: i + 34, branchId: 'branch-cs-ds' })),
+  // 42..48 (7 students) -> Computer Science & Engineering (Cyber Security)
+  ...Array.from({ length: 7 }, (_, i) => ({ index: i + 42, branchId: 'branch-cs-cyber' })),
+  // 49..55 (7 students) -> Computer Science and Business Systems (in partnership with TCS)
+  ...Array.from({ length: 7 }, (_, i) => ({ index: i + 49, branchId: 'branch-csbs' })),
+  // 56..62 (7 students) -> Electronics & Telecommunication Engineering
+  ...Array.from({ length: 7 }, (_, i) => ({ index: i + 56, branchId: 'branch-etc' })),
+  // 63..67 (5 students) -> Electrical Engineering
+  ...Array.from({ length: 5 }, (_, i) => ({ index: i + 63, branchId: 'branch-ee' })),
+  // 68..72 (5 students) -> Mechanical Engineering
+  ...Array.from({ length: 5 }, (_, i) => ({ index: i + 68, branchId: 'branch-me' })),
+  // 73..75 (3 students) -> Civil Engineering
+  ...Array.from({ length: 3 }, (_, i) => ({ index: i + 73, branchId: 'branch-ce' })),
+  // 76..78 (3 students) -> Industrial IoT
+  ...Array.from({ length: 3 }, (_, i) => ({ index: i + 76, branchId: 'branch-iiot' })),
+  // 79..80 (2 students) -> Robotics and Artificial Intelligence
+  ...Array.from({ length: 2 }, (_, i) => ({ index: i + 79, branchId: 'branch-robotics-ai' }))
 ];
+
 
 const distributionMap = new Map();
 DEPARTMENT_DISTRIBUTION.forEach(d => distributionMap.set(d.index, d.branchId));

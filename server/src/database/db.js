@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import { EXTENDED_KNOWLEDGE_DOCS } from './extendedKnowledgeDocs.js';
+import { CANONICAL_BRANCHES } from './canonicalBranches.js';
 
 let DatabaseSync = null;
 let sqliteImportAttempted = false;
@@ -258,11 +259,13 @@ export const initDb = async () => {
         for (const [table, items] of Object.entries(fixtures)) {
           memoryStore[table] = Array.isArray(items) ? [...items] : [];
         }
+        memoryStore.branches = [...CANONICAL_BRANCHES];
         console.log('[Memory Database] Populated educational content from static fixtures.');
       } catch (err) {
         console.error('[Memory Database] Error loading fixtures:', err.message);
       }
     }
+    memoryStore.branches = [...CANONICAL_BRANCHES];
     return memoryStore;
   }
 
@@ -430,9 +433,24 @@ export const initDb = async () => {
     console.warn('[Knowledge Documents Sync Warning]:', kSyncErr.message);
   }
 
+  // 4. Ensure canonical 12 engineering branches are synced and exclusive in SQLite
+  try {
+
+    ensureTable('branches');
+    sqlite.exec('DELETE FROM branches;');
+    for (const branch of CANONICAL_BRANCHES) {
+      insertRow('branches', branch);
+    }
+    memoryStore.branches = [...CANONICAL_BRANCHES];
+  } catch (bSyncErr) {
+    console.warn('[Branch Sync Warning]:', bSyncErr.message);
+  }
+
   console.log(`[SQLite Database] Embedded SQLite engine initialized at: ${dbFile}`);
   return sqlite;
 };
+
+export { CANONICAL_BRANCHES };
 
 /**
  * Checkpoint WAL to main SQLite file safely.

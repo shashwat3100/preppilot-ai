@@ -141,10 +141,13 @@ async function runRagQATests() {
   // Test 20: Supported engineering branches query ("what branches are supported")
   const qBranches = await RagService.answerStudentQuery('what branches are supported on this platform');
   assert(qBranches.answer.includes('Supported Engineering Branches on PrepPilot AI'), 'Returns branches');
-  assert(qBranches.answer.includes('Computer Science Engineering (CSE)'), 'Includes CSE');
-  assert(qBranches.answer.includes('Mechanical Engineering (ME)'), 'Includes ME');
-  assert(qBranches.speechText.includes('9 engineering branches'), 'SpeechText mentions 9 branches');
-  console.log('  ✓ Query "what branches are supported..." returns 9 engineering disciplines');
+  assert(qBranches.answer.includes('Computer Science and Engineering (CSE)'), 'Includes CSE');
+  assert(qBranches.answer.includes('Mechanical Engineering'), 'Includes Mechanical Engineering');
+  assert(qBranches.answer.includes('Civil Engineering'), 'Includes Civil Engineering');
+  assert(qBranches.answer.includes('Robotics and Artificial Intelligence'), 'Includes Robotics and AI');
+  assert(qBranches.speechText.includes('12 engineering branches'), 'SpeechText mentions 12 branches');
+  console.log('  ✓ Query "what branches are supported..." returns 12 engineering disciplines');
+
 
   // Test 21: Coding arena query ("tell me about the coding arena")
   const qCoding = await RagService.answerStudentQuery('tell me about the coding arena and what problems can I practice');

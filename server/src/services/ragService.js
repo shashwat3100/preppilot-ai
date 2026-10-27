@@ -598,30 +598,33 @@ PrepPilot AI features dedicated recruitment blueprints, hiring pipelines, and te
 
     if (isBranchesQuery) {
       const allBranches = db.getAll('branches') || [];
-      const branchesMarkdown = `### Supported Engineering Branches on PrepPilot AI (9 Disciplines)
+      const branchesMarkdown = `### Supported Engineering Branches on PrepPilot AI (12 Disciplines)
 
-PrepPilot AI provides customized curriculum alignment, viva preparation, and technical assessment questions for **9 B.Tech & Engineering branches**:
+PrepPilot AI provides customized curriculum alignment, viva preparation, and placement assessment tracks for **12 B.Tech & Engineering branches**:
 
-#### 1. Software & Computing:
-- **Computer Science Engineering (CSE):** Core computing, Data Structures, Algorithms, Operating Systems, DBMS, and Systems Architecture.
-- **Information Technology (IT):** Enterprise software, Computer Networks, Database Administration, Web Systems, and Cloud Infrastructure.
-- **AI & Data Science (AIDS):** Machine Learning, Deep Learning, Statistical Analytics, and Big Data Engineering.
-- **AI & Machine Learning (AIML):** Neural Networks, Computer Vision, Natural Language Processing, and Applied AI Models.
+#### 1. Computing, AI & Emerging Systems:
+- **Computer Science and Engineering (CSE):** Core computing, Algorithms, Operating Systems, Database Systems, Computer Networks & Software Architecture.
+- **Information Technology:** Cloud computing, Enterprise Networks, Web Technologies, Database Administration & Systems Security.
+- **Artificial Intelligence (AI):** Machine Learning, Deep Neural Networks, Natural Language Processing, Computer Vision & Generative AI.
+- **Computer Science & Engineering (Data Science):** Big Data Analytics, Predictive Modeling, Statistical Inference & Data Engineering.
+- **Computer Science & Engineering (Cyber Security):** Network Defense, Cryptography, Penetration Testing, Threat Intelligence & Cloud Perimeter Security.
+- **Computer Science and Business Systems (in partnership with TCS):** Enterprise IT Systems, Business Analytics, Corporate Strategy & FinTech Architectures.
 
-#### 2. Electronics & Electrical:
-- **Electronics & Telecommunication (ENTC/ECE):** Digital & Analog Circuits, VLSI Design, 8085/8086 Microprocessors, Embedded C, and Signal Processing.
-- **Electrical Engineering (EE):** Power Systems, Control Systems, Electrical Machines, Transformers, and Power Electronics.
+#### 2. Electrical, Electronics & Smart Automation:
+- **Electronics & Telecommunication Engineering:** Signal Processing, Embedded Systems, VLSI Design, Telecommunications & Microprocessors.
+- **Electrical Engineering:** Power Systems, Electrical Machines, Control Systems, Power Electronics & Smart Grids.
+- **Industrial IoT:** Sensors & Actuators, SCADA/PLC Systems, Edge Computing, Smart Industry 4.0 & Industrial Telemetry.
+- **Robotics and Artificial Intelligence:** Autonomous Mobile Robots, Kinematics & Dynamics, ROS, Computer Vision & Reinforcement Learning.
 
 #### 3. Core Engineering & Infrastructure:
-- **Mechanical Engineering (ME):** Laws of Thermodynamics, Heat Transfer, Fluid Mechanics, Strength of Materials, and Mechanical Design.
-- **Civil Engineering (CE):** Structural Engineering, Concrete Technology, Geotechnical Analysis, and Transportation Systems.
-- **Chemical Engineering (CHE):** Chemical Reaction Engineering, Mass Transfer Operations, and Process Optimization.
+- **Civil Engineering:** Structural Engineering, Concrete Technology, Geotechnical Analysis & Transportation Systems.
+- **Mechanical Engineering:** Laws of Thermodynamics, Heat Transfer, Fluid Mechanics, Strength of Materials & CAD/CAM Mechatronics.
 
-> **Placement Insight:** Non-CS students (ECE, EE, ME, CE) can practice both core engineering viva concepts and IT placement coding tracks (TCS Ninja/Digital, Infosys, Wipro).`;
+> **Placement Insight:** Students across all 12 branches can practice both branch-specific viva concepts and multi-tier IT placement coding tracks (TCS Ninja/Digital/Prime, Infosys, Wipro, Accenture, Google, and Amazon).`;
 
       return {
         answer: branchesMarkdown,
-        speechText: "PrepPilot AI supports 9 engineering branches including Computer Science, IT, Electronics and Telecommunication, Electrical, Mechanical, Civil, Chemical, and AI Data Science, complete with core subject viva guides and placement assessments.",
+        speechText: "PrepPilot AI supports 12 engineering branches including Civil Engineering, Computer Science and Engineering, Electronics and Telecommunication, Electrical, Information Technology, Mechanical, Artificial Intelligence, Data Science, Cyber Security, CSBS in partnership with TCS, Industrial IoT, and Robotics and Artificial Intelligence.",
         retrievedDocuments: [],
         sources: ['PrepPilot Engineering Curriculum Guide'],
         model: validModel,
@@ -687,7 +690,7 @@ PrepPilot AI is a comprehensive engineering mentorship platform engineered to gu
 2. **Curated Question Bank (98+ Questions):** High-yield multiple choice questions with line-by-line explanations covering 13 technical and branch-specific subjects.
 3. **Interactive Coding Arena (18 Problems):** Write, execute, and submit code in Python, C++, Java, and JavaScript with automated test case evaluation.
 4. **10 Company Recruitment Blueprints:** In-depth hiring pipelines, package ranges, and test patterns for TCS, Infosys, Wipro, Accenture, Capgemini, Cognizant, Deloitte, Amazon, Microsoft, and Google.
-5. **9 Engineering Branches:** Dedicated viva revision guides for CSE, IT, ECE, EE, ME, CE, Chemical, AIDS, and AIML.
+5. **12 Engineering Branches:** Dedicated curriculum and placement tracks for Civil, CSE, ETC, Electrical, IT, Mechanical, AI, Data Science, Cyber Security, CSBS (in partnership with TCS), Industrial IoT, and Robotics & AI.
 6. **Student Placement Readiness Radar:** Dynamic radar chart tracking your mastery across technical topics, difficulty levels, and speed benchmarks.
 
 > **Get Started:** Choose a subject to study, start practicing coding in the Arena, or speak into the microphone to ask any technical question!`;
