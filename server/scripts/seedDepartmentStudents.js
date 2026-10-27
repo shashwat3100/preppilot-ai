@@ -280,8 +280,9 @@ export async function seedAllDepartmentStudents() {
           updated_at: sessionDate
         });
 
-        // Generate sample question attempts for this session
-        const sessionQuestions = questionsPool.slice(0, 10);
+        // Generate sample question attempts for this session from diverse topics
+        const startIdx = ((i * 7 + sIdx * 11 + bIdx * 13) % Math.max(1, questionsPool.length - 10));
+        const sessionQuestions = questionsPool.slice(startIdx, startIdx + 10);
         sessionQuestions.forEach((q, qIndex) => {
           const isCorrect = qIndex < Math.round(10 * (correctQ / totalQ));
           newAttempts.push({
@@ -297,30 +298,61 @@ export async function seedAllDepartmentStudents() {
         });
       }
 
-      // Generate StudentPerformance metrics across 3 core topics with distinct accuracy
+      // Generate StudentPerformance metrics across core curriculum topics
       const studentTopics = [
-        { id: 'top-normalization', sub: 'sub-dbms', name: 'Database Normalization' },
-        { id: 'top-deadlocks', sub: 'sub-os', name: 'Deadlock Handling & Synchronization' },
-        { id: 'top-trees', sub: 'sub-dsa', name: 'Trees & Graph Traversal' }
+        // Known challenge areas (legitimate learning gaps with lower cohort accuracy)
+        { id: 'top-dp', sub: 'sub-dsa', name: 'Dynamic Programming', delta: -0.22 },
+        { id: 'top-graphs', sub: 'sub-dsa', name: 'Graphs & BFS/DFS', delta: -0.19 },
+        { id: 'top-sliding-window', sub: 'sub-dsa', name: 'Sliding Window & Subarray Algorithms', delta: -0.17 },
+        { id: 'top-indexing', sub: 'sub-dbms', name: 'B-Trees & Database Indexing', delta: -0.15 },
+        { id: 'top-verbal', sub: 'sub-aptitude', name: 'Verbal Ability', delta: -0.13 },
+        { id: 'top-memory-mgmt', sub: 'sub-os', name: 'Virtual Memory & Paging', delta: -0.11 },
+        { id: 'top-deadlocks', sub: 'sub-os', name: 'Deadlock Detection & Prevention', delta: -0.09 },
+        { id: 'top-routing', sub: 'sub-cn', name: 'IP Addressing & Subnetting', delta: -0.07 },
+
+        // Core foundational topics (moderate accuracy 64% - 72%)
+        { id: 'top-arrays', sub: 'sub-dsa', name: 'Arrays & Two Pointers', delta: -0.04 },
+        { id: 'top-stack-queue', sub: 'sub-dsa', name: 'Stacks & Queues', delta: -0.03 },
+        { id: 'top-quant', sub: 'sub-aptitude', name: 'Quantitative Aptitude', delta: -0.02 },
+        { id: 'top-searching-sorting', sub: 'sub-dsa', name: 'Searching & Sorting', delta: -0.01 },
+        { id: 'top-trees', sub: 'sub-dsa', name: 'Binary Trees & BSTs', delta: +0.00 },
+        { id: 'top-linked-lists', sub: 'sub-dsa', name: 'Linked Lists & Pointers', delta: +0.01 },
+        { id: 'top-hashing', sub: 'sub-dsa', name: 'Hashing & Hash Tables', delta: +0.02 },
+        { id: 'top-logic', sub: 'sub-aptitude', name: 'Logical Reasoning', delta: +0.02 },
+        { id: 'top-heaps-priority', sub: 'sub-dsa', name: 'Heaps & Priority Queues', delta: +0.01 },
+        { id: 'top-strings', sub: 'sub-dsa', name: 'Strings & Two-Pointers', delta: +0.02 },
+        { id: 'top-asymptotic', sub: 'sub-dsa', name: 'Asymptotic Analysis', delta: +0.02 },
+        { id: 'top-di', sub: 'sub-aptitude', name: 'Data Interpretation', delta: +0.03 },
+
+        // High mastery topics (strength areas 74% - 85%)
+        { id: 'top-cpu-sched', sub: 'sub-os', name: 'CPU Scheduling Algorithms', delta: +0.04 },
+        { id: 'top-osi-tcp', sub: 'sub-cn', name: 'OSI vs TCP/IP Protocol Suite', delta: +0.04 },
+        { id: 'top-pillars', sub: 'sub-oop', name: 'Core Pillars (Polymorphism & Abstraction)', delta: +0.05 },
+        { id: 'top-design-pat', sub: 'sub-oop', name: 'Creational & Structural Patterns', delta: +0.04 },
+        { id: 'top-normalization', sub: 'sub-dbms', name: 'Normalization (1NF to BCNF)', delta: +0.05 },
+        { id: 'top-acid', sub: 'sub-dbms', name: 'Transactions & ACID Properties', delta: +0.06 },
+        { id: 'top-sql-queries', sub: 'sub-dbms', name: 'SQL Queries & Joins', delta: +0.08 }
       ];
 
-      studentTopics.forEach((topic, tIdx) => {
-        const topicAttempts = 5 + ((i + tIdx) % 6);
-        const topicVar = (tIdx === 0 ? +0.04 : tIdx === 1 ? -0.05 : +0.01);
-        const topicAccBase = Math.max(0.30, Math.min(0.98, accuracyBase + topicVar));
+      // Each student has practice records across all challenge topics plus rotated curriculum topics
+      const studentSubsetTopics = studentTopics.filter((_, tIdx) => tIdx < 8 || (tIdx + i) % 2 === 0);
+
+      studentSubsetTopics.forEach((topic, tIdx) => {
+        const topicAttempts = 6 + ((i + tIdx) % 8);
+        const topicAccBase = Math.max(0.35, Math.min(0.96, accuracyBase + topic.delta + (((i + tIdx) % 5) * 0.02 - 0.04)));
         const topicCorrect = Math.max(1, Math.min(topicAttempts, Math.round(topicAttempts * topicAccBase)));
         const topicAccuracy = Math.round((topicCorrect / topicAttempts) * 100);
 
         newStudentPerformance.push({
-          id: `perf-${userId}-${tIdx}`,
+          id: `perf-${userId}-${topic.id}`,
           user_id: userId,
           topic_id: topic.id,
           subject_id: topic.sub,
           attempts_count: topicAttempts,
           correct_count: topicCorrect,
           accuracy_rate: topicAccuracy,
-          weakness_score: Math.max(0.05, ((100 - topicAccuracy) / 100)),
-          last_attempted_at: new Date(now - (daysAgo + 1) * 24 * 3600 * 1000).toISOString()
+          weakness_score: parseFloat(((100 - topicAccuracy) / 100).toFixed(2)),
+          last_attempted_at: new Date(now - (daysAgo + (tIdx % 3)) * 24 * 3600 * 1000).toISOString()
         });
       });
 

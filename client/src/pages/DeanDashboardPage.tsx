@@ -600,10 +600,12 @@ export const DeanDashboardPage: React.FC<DeanDashboardPageProps> = ({
                       </div>
                       <div className="text-right flex-shrink-0">
                         <span className="text-xs font-black text-rose-400 block">
-                          {gap.accuracy_rate !== null ? `${gap.accuracy_rate}% Acc` : 'Needs Baseline'}
+                          {gap.accuracy_rate !== null && gap.accuracy_rate !== undefined && !isNaN(gap.accuracy_rate)
+                            ? `${gap.accuracy_rate}% Acc`
+                            : 'Needs Baseline'}
                         </span>
                         <span className="text-[10px] text-[var(--text-muted)] block">
-                          Weakness Score: {gap.weakness_score}
+                          Weakness Score: {typeof gap.weakness_score === 'number' ? gap.weakness_score.toFixed(2) : (gap.weakness_score || '0.50')}
                         </span>
                       </div>
                     </div>
