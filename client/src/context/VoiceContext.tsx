@@ -646,12 +646,29 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const isDeanOrAdmin = storedRole === 'ADMIN' || storedRole === 'DEAN';
 
+    const normQ = q
+      .replace(/performace/g, 'performance')
+      .replace(/sates/g, 'stats')
+      .replace(/states/g, 'stats')
+      .replace(/imrpovement/g, 'improvement')
+      .replace(/geniun/g, 'genuine');
+
+    const hasPerf = normQ.includes('performance') || normQ.includes('performing');
+    const hasStudent = normQ.includes('student') || normQ.includes('students') || normQ.includes('candidate') || normQ.includes('cohort');
+    const hasInstitutional = normQ.includes('college') || normQ.includes('department') || normQ.includes('branch') || normQ.includes('dean') || normQ.includes('admin') || normQ.includes('all student');
+    const hasStats = normQ.includes('stats') || normQ.includes('scorecard') || normQ.includes('metrics');
+    const hasDiagram = normQ.includes('diagram') || normQ.includes('chart') || normQ.includes('flowchart');
+
+    const isInstitutionalPerformanceQuery = (
+      (hasPerf && (hasStudent || hasInstitutional || hasDiagram || normQ.includes('what') || normQ.includes('how') || normQ.includes('going'))) ||
+      (hasStats && (hasStudent || hasInstitutional || hasDiagram || normQ.includes('show') || normQ.includes('what') || normQ.includes('how'))) ||
+      (hasDiagram && (hasPerf || hasStats || hasStudent || hasInstitutional)) ||
+      normQ.includes('student performance') || normQ.includes('performance of the student') || normQ.includes('performance of students') ||
+      normQ.includes('how are students performing') || normQ.includes('how students performance')
+    );
+
     // 1. Institutional Performance & Diagrams
-    if (
-      q.includes('student performance') || q.includes('how students perform') || q.includes('students perform') ||
-      (q.includes('performance') && (q.includes('diagram') || q.includes('going') || q.includes('how'))) ||
-      ((q.includes('stats') || q.includes('sates') || q.includes('states')) && (q.includes('diagram') || q.includes('department')))
-    ) {
+    if (isInstitutionalPerformanceQuery) {
       if (isDeanOrAdmin) {
         return {
           reply: `### Academic Administration Executive Briefing: Institutional Student Performance\n\n- **Total Enrolled Students:** 844 Students across 12 canonical branches\n- **Cohort Average Score:** 72.8%\n- **Assessments Completed:** 1,716\n- **Coding Problem Acceptance:** 69% (1,488 submissions)\n\n#### Institutional Performance Hierarchy Diagram\n\`\`\`mermaid\ngraph TD\n  Cohort["College Cohort: 844 Students (Avg: 72.8%)"] --> T1["Tier 1 - High Performers (≥75%)\\nCSE (76%) • AI (75%) • IT (75%)"]\n  Cohort --> T2["Tier 2 - Proficient (71-74%)\\nCSBS (74%) • EnTC (73%) • Data Science (73%)\\nCyber Security (73%) • Robotics (73%)\\nElectrical (72%) • IIoT (72%)"]\n  Cohort --> T3["Tier 3 - Developing (70%)\\nMechanical (70%) • Civil (70%)"]\n  Cohort --> Gaps["Academic Learning Gaps (Priority Focus)\\nDynamic Programming (48%) • Graphs (51%)\\nSliding Window (52%) • B-Trees (54%)"]\n\`\`\`\n\n#### Department Benchmark Diagram\n\`\`\`\nComputer Science & Eng (CSE)  76%   [███████████████░░░░░]   High Performer\nArtificial Intelligence (AI)  75%   [███████████████░░░░░]   High Performer\nInformation Technology (IT)   75%   [███████████████░░░░░]   High Performer\nCS & Business Systems (TCS)   74%   [██████████████░░░░░░]   Proficient\nCore Branches (Mech/Civil)    70%   [██████████████░░░░░░]   Developing\n\`\`\``,

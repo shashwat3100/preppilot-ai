@@ -233,8 +233,33 @@ async function runRagQATests() {
   assert(qGuest.answer.includes('Student Performance & Scorecard Access'), 'Guest receives login prompt for personal scorecard');
   console.log('  ✓ Unauthenticated query provides clear login guidance for scorecard access');
 
+  // Test 33: User's exact query "what is performance of the student" - DEAN
+  const qDeanExact = await RagService.answerStudentQuery('what is performance of the student', deanUser);
+  assert(qDeanExact.answer.includes('Academic Administration Executive Briefing: Institutional Student Performance'), 'Dean receives institutional briefing');
+  assert(qDeanExact.answer.includes('graph TD'), 'Dean receives Mermaid flowchart diagram');
+  assert(qDeanExact.answer.includes('Total Enrolled Students'), 'Dean receives total enrolled students metric');
+  assert(!qDeanExact.answer.includes('Technical Assessment: What is performance of the student'), 'Never falls back to generic conceptual template');
+  console.log('  ✓ Query "what is performance of the student" returns institutional briefing with diagrams for Dean');
+
+  // Test 34: User's exact query "what is performance of the student" - STUDENT
+  const qStudentExact = await RagService.answerStudentQuery('what is performance of the student', stdUser);
+  assert(qStudentExact.answer.includes('Institutional Data Privacy Restriction'), 'Student receives data privacy restriction');
+  assert(qStudentExact.answer.includes('Your Personal Performance Scorecard'), 'Student receives personal scorecard');
+  assert(qStudentExact.answer.includes('Your Subject Mastery Diagram'), 'Student receives personal mastery progress bars');
+  assert(qStudentExact.answer.includes('Genuine Pedagogical Tip:'), 'Student receives genuine tips');
+  assert(!qStudentExact.answer.includes('Technical Assessment: What is performance of the student'), 'Never falls back to generic conceptual template');
+  console.log('  ✓ Query "what is performance of the student" returns isolated personal scorecard & tips for Student');
+
+  // Test 35: User's exact query "what is performance of the student" - GUEST
+  const qGuestExact = await RagService.answerStudentQuery('what is performance of the student', null);
+  assert(qGuestExact.answer.includes('Student Performance & Placement Analytics'), 'Guest receives dual-portal guidance');
+  assert(qGuestExact.answer.includes('Academic Administration & Dean Portal'), 'Guest learns about Dean portal');
+  assert(qGuestExact.answer.includes('Student Portal (Private Scorecard & Growth Diagnostics)'), 'Guest learns about Student portal');
+  assert(!qGuestExact.answer.includes('Technical Assessment: What is performance of the student'), 'Never falls back to generic conceptual template');
+  console.log('  ✓ Query "what is performance of the student" returns dual-portal guidance for Guest');
+
   console.log('\n==================================================================');
-  console.log('ALL 32 RAG TARGETED QA TESTS PASSED CLEANLY (100%)');
+  console.log('ALL 35 RAG TARGETED QA TESTS PASSED CLEANLY (100%)');
   console.log('==================================================================\n');
 }
 
