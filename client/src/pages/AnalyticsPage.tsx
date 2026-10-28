@@ -12,7 +12,8 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  CartesianGrid
+  CartesianGrid,
+  ComposedChart
 } from 'recharts';
 import {
   BarChart3,
@@ -528,35 +529,71 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
 
       {/* Visual Analytics Graphs: Weekly Progression + Subject Accuracy */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
-        {/* Weekly Trend Line Chart */}
+        {/* Weekly Trend Composed Chart */}
         <div className="lg:col-span-7 p-5 sm:p-6 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">7-Day Study & Accuracy Progression</h3>
-              <p className="text-xs text-[var(--text-muted)]">Tracking daily questions answered and accuracy rate</p>
+              <p className="text-xs text-[var(--text-muted)]">Daily practice volume (bars) and ongoing performance (trend line)</p>
             </div>
-            <span className="text-xs font-semibold text-indigo-400 flex items-center gap-1">
-              <TrendingUp size={14} /> Weekly Trend
-            </span>
+            <div className="flex items-center gap-3 text-xs font-semibold self-start sm:self-auto">
+              <span className="flex items-center gap-1.5 text-indigo-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" /> Accuracy Rate
+              </span>
+              <span className="flex items-center gap-1.5 text-cyan-400">
+                <span className="w-2.5 h-2.5 rounded-xs bg-cyan-500/60" /> Solved
+              </span>
+            </div>
           </div>
 
           <div className="h-56 sm:h-64 w-full pt-2 sm:pt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data?.weekly_progress || []}>
+              <ComposedChart data={data?.weekly_progress || []}>
                 <defs>
                   <linearGradient id="colorAcc" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6558F5" stopOpacity={0.4} />
+                    <stop offset="5%" stopColor="#6558F5" stopOpacity={0.35} />
                     <stop offset="95%" stopColor="#6558F5" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
                 <XAxis dataKey="day" stroke={axisStroke} textAnchor="end" tick={{ fontSize: 11 }} />
-                <YAxis stroke={axisStroke} tick={{ fontSize: 11 }} domain={[0, 100]} />
+                <YAxis yAxisId="left" stroke={axisStroke} tick={{ fontSize: 11 }} domain={[0, 100]} />
+                <YAxis yAxisId="right" orientation="right" stroke={axisStroke} tick={{ fontSize: 11 }} allowDecimals={false} hide />
                 <Tooltip
-                  contentStyle={{ backgroundColor: tooltipBg, borderColor: tooltipBorder, color: tooltipText, borderRadius: '12px', fontSize: '12px' }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload || !payload.length) return null;
+                    const item = payload[0].payload;
+                    const hasPractice = (item.questionsAttempted || 0) > 0;
+                    return (
+                      <div
+                        className="p-3 rounded-xl border shadow-xl space-y-2 backdrop-blur-md"
+                        style={{ backgroundColor: tooltipBg, borderColor: tooltipBorder, color: tooltipText }}
+                      >
+                        <div className="flex items-center justify-between gap-4 border-b pb-1.5" style={{ borderColor: tooltipBorder }}>
+                          <span className="font-bold text-xs">{item.day} ({item.date})</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${hasPractice ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-slate-500/15 text-slate-400 border border-slate-500/20'}`}>
+                            {hasPractice ? 'Active Practice' : 'Rest Day'}
+                          </span>
+                        </div>
+                        <div className="text-xs space-y-1">
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-[var(--text-muted)]">Questions Solved:</span>
+                            <span className="font-bold text-cyan-400">{item.questionsAttempted || 0}</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-[var(--text-muted)]">{hasPractice ? 'Day Accuracy:' : 'Ongoing Baseline:'}</span>
+                            <span className="font-bold text-indigo-400">
+                              {item.accuracy}% {hasPractice && item.correctCount !== undefined ? `(${item.correctCount}/${item.questionsAttempted} correct)` : ''}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }}
                 />
-                <Area type="monotone" dataKey="accuracy" stroke="#6558F5" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAcc)" name="Accuracy (%)" />
-              </AreaChart>
+                <Bar yAxisId="right" dataKey="questionsAttempted" fill="#06b6d4" fillOpacity={0.4} radius={[4, 4, 0, 0]} name="Questions Solved" barSize={16} />
+                <Area yAxisId="left" type="monotone" dataKey="accuracy" stroke="#6558F5" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAcc)" name="Accuracy (%)" dot={{ r: 3, fill: '#6558F5' }} activeDot={{ r: 5 }} />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>

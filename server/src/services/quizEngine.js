@@ -514,7 +514,17 @@ export class QuizEngine {
       const chosenAnswer = userSubmission?.answer || userSubmission?.selected_option || userSubmission?.chosen_answer || '';
       const timeSpent = userSubmission?.time_spent || 30;
 
-      const isCorrect = chosenAnswer.trim().toUpperCase() === q.correct_answer.trim().toUpperCase();
+      const isKeyMatch = Boolean(chosenAnswer && (chosenAnswer.trim().toUpperCase() === (q.correct_answer || '').trim().toUpperCase()));
+      let isTextMatch = false;
+      if (!isKeyMatch && chosenAnswer) {
+        const qOptions = db.find('questionOptions', opt => opt.question_id === q.id) || [];
+        const chosenOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === chosenAnswer.trim().toUpperCase());
+        const correctOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === (q.correct_answer || '').trim().toUpperCase());
+        if (chosenOpt && correctOpt && chosenOpt.option_text && correctOpt.option_text) {
+          isTextMatch = chosenOpt.option_text.trim().toLowerCase() === correctOpt.option_text.trim().toLowerCase();
+        }
+      }
+      const isCorrect = isKeyMatch || isTextMatch;
       let questionXp = 0;
 
       if (isCorrect) {
@@ -530,16 +540,20 @@ export class QuizEngine {
 
       // Record in attempts table
       const attemptId = `att-${crypto.randomUUID()}`;
+      const nowIso = new Date().toISOString();
       db.insert('attempts', {
         id: attemptId,
         user_id: userId,
         question_id: q.id,
         session_id: sessionId,
         user_answer: chosenAnswer,
+        chosen_answer: chosenAnswer,
         is_correct: isCorrect,
         time_spent_seconds: timeSpent,
         xp_gained: questionXp,
-        attempted_at: new Date().toISOString()
+        xp_awarded: questionXp,
+        attempted_at: nowIso,
+        created_at: nowIso
       });
 
       // Track in Mistake Vault for personalized spaced repetition

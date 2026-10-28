@@ -121,20 +121,50 @@ router.get('/', authenticate, (req, res) => {
     // Weekly Trend (Past 7 days)
     const weeklyProgress = [];
     const now = new Date();
+
+    // Chronologically sorted attempts for cumulative tracking
+    const sortedAttempts = [...attempts].sort((a, b) => {
+      const ta = new Date(a.attempted_at || a.created_at || 0).getTime();
+      const tb = new Date(b.attempted_at || b.created_at || 0).getTime();
+      return ta - tb;
+    });
+
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
       const dateString = d.toISOString().split('T')[0];
       const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
 
-      const dayAttempts = attempts.filter(a => a.attempted_at && a.attempted_at.startsWith(dateString));
+      const dayAttempts = attempts.filter(a => {
+        const ts = a.attempted_at || a.created_at;
+        return ts && ts.startsWith(dateString);
+      });
       const dayCorrect = dayAttempts.filter(a => a.is_correct).length;
+      const dayAccuracy = dayAttempts.length > 0 
+        ? Math.round((dayCorrect / dayAttempts.length) * 100) 
+        : null;
+
+      // Cumulative accuracy up to and including this day
+      const cutoffTime = new Date(`${dateString}T23:59:59.999Z`).getTime();
+      const attemptsUpToDay = sortedAttempts.filter(a => {
+        const ts = new Date(a.attempted_at || a.created_at || 0).getTime();
+        return ts <= cutoffTime;
+      });
+      const correctUpToDay = attemptsUpToDay.filter(a => a.is_correct).length;
+      const cumulativeAccuracy = attemptsUpToDay.length > 0 
+        ? Math.round((correctUpToDay / attemptsUpToDay.length) * 100) 
+        : overallAccuracy;
 
       weeklyProgress.push({
         date: dateString,
         day: dayLabel,
         questionsAttempted: dayAttempts.length,
-        accuracy: dayAttempts.length > 0 ? Math.round((dayCorrect / dayAttempts.length) * 100) : 0
+        correctCount: dayCorrect,
+        // If the day had practice, reflect that day's accuracy; if rest day, preserve ongoing baseline instead of falsely plunging to 0%
+        accuracy: dayAccuracy !== null ? dayAccuracy : cumulativeAccuracy,
+        dailyAccuracy: dayAccuracy,
+        cumulativeAccuracy: cumulativeAccuracy,
+        hasActivity: dayAttempts.length > 0
       });
     }
 

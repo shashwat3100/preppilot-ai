@@ -237,7 +237,16 @@ export interface AnalyticsData {
   topic_accuracy: Array<{ name: string; attempted: number; accuracy: number }>;
   company_accuracy: Array<{ name: string; attempted: number; available: number; accuracy: number }>;
   difficulty_accuracy: Array<{ difficulty: string; attempted: number; correct: number; accuracy: number }>;
-  weekly_progress: Array<{ date: string; day: string; questionsAttempted: number; accuracy: number }>;
+  weekly_progress: Array<{
+    date: string;
+    day: string;
+    questionsAttempted: number;
+    accuracy: number;
+    correctCount?: number;
+    dailyAccuracy?: number | null;
+    cumulativeAccuracy?: number;
+    hasActivity?: boolean;
+  }>;
   weakest_topics: Array<{ topic: string; subject: string; accuracy: number; weakness: number }>;
   strongest_topics: Array<{ topic: string; subject: string; accuracy: number; strength: number }>;
   coding?: {

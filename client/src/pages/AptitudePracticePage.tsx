@@ -304,13 +304,30 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
     setSelectedOption(key);
   };
 
-  // Keyboard shortcut listener for options (1,2,3,4 or A,B,C,D)
+  // Keyboard shortcut listener for options (1,2,3,4 or A,B,C,D) in both Practice & Timed Test Mode
   useEffect(() => {
-    if (isTestActive || answerSubmitted || !currentQuestion) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
       const key = e.key.toUpperCase();
+
+      if (isTestActive && testQuestions.length > 0 && !testSubmitted) {
+        const currentTestQ = testQuestions[currentIndex];
+        if (!currentTestQ) return;
+        if (['A', 'B', 'C', 'D'].includes(key)) {
+          handleSelectTestOption(currentTestQ.id, key);
+        } else if (['1', '2', '3', '4'].includes(key)) {
+          const map = ['A', 'B', 'C', 'D'];
+          handleSelectTestOption(currentTestQ.id, map[parseInt(key) - 1]);
+        } else if (e.key === 'ArrowRight' && currentIndex < testQuestions.length - 1) {
+          setCurrentIndex(prev => prev + 1);
+        } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+          setCurrentIndex(prev => prev - 1);
+        }
+        return;
+      }
+
+      if (answerSubmitted || !currentQuestion) return;
+
       if (['A', 'B', 'C', 'D'].includes(key)) {
         handleSelectOption(key);
       } else if (['1', '2', '3', '4'].includes(key)) {
@@ -323,7 +340,7 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentQuestion, selectedOption, answerSubmitted, isTestActive]);
+  }, [currentQuestion, selectedOption, answerSubmitted, isTestActive, testSubmitted, currentIndex, testQuestions]);
 
   // Aptitude Voice Mistake Mentor: Fetch and narrate detailed mathematical/logical derivation
   const handleExplainQuestionWithVoice = async (
@@ -598,10 +615,10 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
 
     setSubmittingTest(true);
     try {
-      const formattedAnswers = Object.entries(testAnswers).map(([qid, chosen]) => ({
-        question_id: qid,
-        chosen_option: chosen,
-        time_spent: 45
+      const formattedAnswers = testQuestions.map(q => ({
+        question_id: q.id,
+        chosen_option: testAnswers[q.id] || null,
+        time_spent: Math.max(10, Math.round((testTotalTime - testTimeRemaining) / Math.max(1, testQuestions.length)))
       }));
 
       const timeTaken = testTotalTime - testTimeRemaining;
@@ -1152,13 +1169,23 @@ export const AptitudePracticePage: React.FC<AptitudePracticePageProps> = ({
                       <ChevronLeft size={14} /> Previous
                     </button>
 
-                    <button
-                      onClick={() => setCurrentIndex(prev => Math.min(prev + 1, testQuestions.length - 1))}
-                      disabled={currentIndex === testQuestions.length - 1}
-                      className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-xs font-bold text-white flex items-center gap-1 cursor-pointer shadow-xs"
-                    >
-                      Next <ChevronRight size={14} />
-                    </button>
+                    {currentIndex < testQuestions.length - 1 ? (
+                      <button
+                        onClick={() => setCurrentIndex(prev => Math.min(prev + 1, testQuestions.length - 1))}
+                        className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white flex items-center gap-1 cursor-pointer shadow-xs"
+                      >
+                        Next <ChevronRight size={14} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleSubmitTest}
+                        disabled={submittingTest}
+                        className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/20"
+                      >
+                        <CheckCircle2 size={14} />
+                        <span>{submittingTest ? 'Grading Test...' : 'Submit Test'}</span>
+                      </button>
+                    )}
                   </div>
                 </>
               )}

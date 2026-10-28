@@ -369,21 +369,34 @@ router.post('/check-answer', authenticate, (req, res) => {
     }
 
     const allOptions = db.find('questionOptions', o => o.question_id === question_id) || [];
-    const isCorrect = (question.correct_answer || '').toUpperCase() === (chosen_option || '').toUpperCase();
+    const isKeyMatch = Boolean(chosen_option && ((question.correct_answer || '').trim().toUpperCase() === chosen_option.trim().toUpperCase()));
+    let isTextMatch = false;
+    if (!isKeyMatch && chosen_option) {
+      const chosenOpt = allOptions.find(o => (o.option_key || '').toUpperCase() === chosen_option.trim().toUpperCase());
+      const correctOpt = allOptions.find(o => (o.option_key || '').toUpperCase() === (question.correct_answer || '').trim().toUpperCase());
+      if (chosenOpt && correctOpt && chosenOpt.option_text && correctOpt.option_text) {
+        isTextMatch = chosenOpt.option_text.trim().toLowerCase() === correctOpt.option_text.trim().toLowerCase();
+      }
+    }
+    const isCorrect = isKeyMatch || isTextMatch;
     const xpGained = isCorrect ? (question.xp_value || 25) : 5;
 
     // Record attempt for student progress tracking
     const attemptId = `att-apt-${crypto.randomUUID()}`;
+    const nowIso = new Date().toISOString();
     db.insert('attempts', {
       id: attemptId,
       user_id: userId,
       question_id: question.id,
       session_id: null,
       chosen_answer: chosen_option,
+      user_answer: chosen_option,
       is_correct: isCorrect,
       time_spent_seconds: time_spent,
       xp_awarded: xpGained,
-      created_at: new Date().toISOString()
+      xp_gained: xpGained,
+      attempted_at: nowIso,
+      created_at: nowIso
     });
 
     // Track in Mistake Vault
@@ -639,7 +652,17 @@ router.post('/session/:id/submit', authenticate, (req, res) => {
       const chosenOptionKey = userAnsObj?.chosen_option || qq.user_answer || null;
       const timeSpent = userAnsObj?.time_spent || qq.time_spent_seconds || 30;
 
-      const isCorr = chosenOptionKey && (chosenOptionKey.toUpperCase() === (q.correct_answer || '').toUpperCase());
+      const isKeyMatch = Boolean(chosenOptionKey && (chosenOptionKey.trim().toUpperCase() === (q.correct_answer || '').trim().toUpperCase()));
+      let isTextMatch = false;
+      if (!isKeyMatch && chosenOptionKey) {
+        const qOptions = allOptions.filter(o => o.question_id === q.id);
+        const chosenOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === chosenOptionKey.trim().toUpperCase());
+        const correctOpt = qOptions.find(o => (o.option_key || '').toUpperCase() === (q.correct_answer || '').trim().toUpperCase());
+        if (chosenOpt && correctOpt && chosenOpt.option_text && correctOpt.option_text) {
+          isTextMatch = chosenOpt.option_text.trim().toLowerCase() === correctOpt.option_text.trim().toLowerCase();
+        }
+      }
+      const isCorr = isKeyMatch || isTextMatch;
       if (isCorr) {
         correctCount++;
         earnedXp += (q.xp_value || 25);
@@ -655,16 +678,20 @@ router.post('/session/:id/submit', authenticate, (req, res) => {
 
       // Save user attempt
       const attemptId = `att-apt-test-${crypto.randomUUID()}`;
+      const nowIso = new Date().toISOString();
       db.insert('attempts', {
         id: attemptId,
         user_id: userId,
         question_id: q.id,
         session_id: sessionId,
         chosen_answer: chosenOptionKey,
+        user_answer: chosenOptionKey,
         is_correct: Boolean(isCorr),
         time_spent_seconds: timeSpent,
         xp_awarded: isCorr ? (q.xp_value || 25) : 5,
-        created_at: new Date().toISOString()
+        xp_gained: isCorr ? (q.xp_value || 25) : 5,
+        attempted_at: nowIso,
+        created_at: nowIso
       });
 
       // Track in Mistake Vault
