@@ -456,7 +456,7 @@ export const api = {
     return safeJson(res);
   },
 
-  resetPassword: async (data: { email: string; verification_pin: string; new_password: string }) => {
+  resetPassword: async (data: { email: string; verification_pin: string; new_password: string; reset_token?: string }) => {
     const res = await fetch(`${API_BASE}/auth/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

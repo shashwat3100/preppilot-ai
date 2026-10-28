@@ -1,10 +1,11 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 import db from '../database/db.js';
-import { generateToken, authenticate } from '../middleware/auth.js';
+import { generateToken, authenticate, EFFECTIVE_JWT_SECRET } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
-import { isPostgresConfigured, queryPostgresUserByEmail, savePostgresUser } from '../database/postgres.js';
+import { isPostgresConfigured, queryPostgresUser, queryPostgresUserByEmail, savePostgresUser } from '../database/postgres.js';
 
 const router = express.Router();
 
@@ -501,6 +502,18 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
       used: false
     });
 
+    // Cryptographic signed token ensuring serverless state persistence across ephemeral instances
+    const resetToken = jwt.sign(
+      {
+        email: cleanEmail,
+        userId: user.id,
+        codeHash,
+        purpose: 'password_reset'
+      },
+      EFFECTIVE_JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
     const isEmailConfigured = Boolean(
       process.env.SMTP_HOST || process.env.SENDGRID_API_KEY || process.env.EMAIL_TRANSPORT
     );
@@ -519,6 +532,7 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
         ? `Password reset instructions have been dispatched to ${cleanEmail}.`
         : `Verification PIN generated successfully: ${resetCode} (Valid for 15 minutes).`,
       preview_pin: previewPin,
+      reset_token: resetToken,
       email_delivery_configured: isEmailConfigured
     });
   } catch (err) {
@@ -527,10 +541,10 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
   }
 });
 
-// POST /api/auth/reset-password (SECURE: Expiry, attempt limits, single-use, policy check)
+// POST /api/auth/reset-password (SECURE: Expiry, attempt limits, single-use, policy check, stateless serverless support)
 router.post('/reset-password', authLimiter, async (req, res) => {
   try {
-    const { email, verification_pin, new_password } = req.body;
+    const { email, verification_pin, new_password, reset_token } = req.body;
 
     if (!email || !verification_pin || !new_password) {
       return res.status(400).json({
@@ -540,11 +554,52 @@ router.post('/reset-password', authLimiter, async (req, res) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    let user = db.findOne('users', u => (u.email || '').toLowerCase() === cleanEmail);
+    let searchEmail = cleanEmail;
+    if (searchEmail === 'admin@careerprep.ai') searchEmail = 'admin@preppilot.ai';
+    if (searchEmail === 'student@careerprep.ai') searchEmail = 'student@preppilot.ai';
+
+    let user = db.findOne('users', u => {
+      const uEmail = (u.email || '').toLowerCase();
+      return uEmail === cleanEmail || uEmail === searchEmail;
+    });
+
     if (!user && isPostgresConfigured()) {
-      user = await queryPostgresUserByEmail(cleanEmail);
+      user = await queryPostgresUserByEmail(cleanEmail) || await queryPostgresUserByEmail(searchEmail);
       if (user) {
         db.insert('users', user);
+      }
+    }
+
+    // Decode signed reset_token if provided (stateless serverless verification)
+    let tokenData = null;
+    if (reset_token) {
+      try {
+        const decoded = jwt.verify(reset_token, EFFECTIVE_JWT_SECRET);
+        if (
+          decoded &&
+          decoded.purpose === 'password_reset' &&
+          (decoded.email?.toLowerCase() === cleanEmail || decoded.email?.toLowerCase() === searchEmail)
+        ) {
+          tokenData = decoded;
+        }
+      } catch (tokenErr) {
+        if (tokenErr.name === 'TokenExpiredError') {
+          return res.status(400).json({
+            success: false,
+            message: 'Verification PIN has expired (15 minute validity). Please request a new one.'
+          });
+        }
+      }
+    }
+
+    // If user is not yet in local cache, attempt lookup by tokenData.userId
+    if (!user && tokenData?.userId) {
+      user = db.get('users', tokenData.userId);
+      if (!user && isPostgresConfigured()) {
+        user = await queryPostgresUser(tokenData.userId);
+        if (user) {
+          db.insert('users', user);
+        }
       }
     }
 
@@ -559,35 +614,71 @@ router.post('/reset-password', authLimiter, async (req, res) => {
       });
     }
 
-    const record = passwordResets.get(cleanEmail);
-    if (!record || record.used) {
+    const inMemoryRecord = passwordResets.get(cleanEmail) || passwordResets.get(searchEmail);
+
+    // If neither active memory record nor valid reset token is present
+    if (!inMemoryRecord && !tokenData) {
       return res.status(400).json({
         success: false,
         message: 'No active password reset request found or code already used. Please request a new PIN.'
       });
     }
 
-    if (Date.now() > record.expiresAt) {
+    if (inMemoryRecord?.used) {
+      return res.status(400).json({
+        success: false,
+        message: 'No active password reset request found or code already used. Please request a new PIN.'
+      });
+    }
+
+    if (inMemoryRecord && Date.now() > inMemoryRecord.expiresAt) {
       passwordResets.delete(cleanEmail);
+      passwordResets.delete(searchEmail);
       return res.status(400).json({
         success: false,
         message: 'Verification PIN has expired (15 minute validity). Please request a new one.'
       });
     }
 
-    // Attempt limiting
-    record.attempts += 1;
-    if (record.attempts > record.maxAttempts) {
-      passwordResets.delete(cleanEmail);
-      return res.status(429).json({
-        success: false,
-        message: 'Maximum verification attempts exceeded. Reset request invalidated for security. Please request a new code.'
-      });
+    // Cross-container single-use protection via user.updated_at timestamp check
+    if (tokenData && user.updated_at && !inMemoryRecord) {
+      const userUpdatedTime = new Date(user.updated_at).getTime();
+      if (tokenData.iat && userUpdatedTime > (tokenData.iat * 1000 + 1500)) {
+        return res.status(400).json({
+          success: false,
+          message: 'No active password reset request found or code already used. Please request a new PIN.'
+        });
+      }
     }
 
-    const isCodeValid = await bcrypt.compare(verification_pin.trim(), record.codeHash);
+    // Attempt limiting
+    if (inMemoryRecord) {
+      inMemoryRecord.attempts = (inMemoryRecord.attempts || 0) + 1;
+      if (inMemoryRecord.attempts > inMemoryRecord.maxAttempts) {
+        passwordResets.delete(cleanEmail);
+        passwordResets.delete(searchEmail);
+        return res.status(429).json({
+          success: false,
+          message: 'Maximum verification attempts exceeded. Reset request invalidated for security. Please request a new code.'
+        });
+      }
+    }
+
+    const codeHashToVerify = inMemoryRecord ? inMemoryRecord.codeHash : tokenData.codeHash;
+    const isCodeValid = await bcrypt.compare(verification_pin.trim(), codeHashToVerify);
     if (!isCodeValid) {
-      const remaining = record.maxAttempts - record.attempts;
+      if (!inMemoryRecord && tokenData) {
+        // Track failed attempt in current container memory
+        passwordResets.set(cleanEmail, {
+          codeHash: tokenData.codeHash,
+          userId: user.id,
+          expiresAt: Date.now() + 15 * 60 * 1000,
+          attempts: 1,
+          maxAttempts: 5,
+          used: false
+        });
+      }
+      const remaining = inMemoryRecord ? (inMemoryRecord.maxAttempts - inMemoryRecord.attempts) : 4;
       return res.status(400).json({
         success: false,
         message: `Invalid verification PIN. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`
@@ -601,13 +692,18 @@ router.post('/reset-password', authLimiter, async (req, res) => {
     }
 
     // Invalidate reset code single-use
-    record.used = true;
-    passwordResets.delete(cleanEmail);
+    if (inMemoryRecord) {
+      inMemoryRecord.used = true;
+      passwordResets.delete(cleanEmail);
+      passwordResets.delete(searchEmail);
+    }
+    passwordResets.set(cleanEmail, { used: true, expiresAt: Date.now() + 15 * 60 * 1000 });
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(new_password, salt);
+    const targetUserId = user.id || inMemoryRecord?.userId || tokenData?.userId;
 
-    const updatedUser = db.update('users', record.userId, {
+    const updatedUser = db.update('users', targetUserId, {
       password_hash: passwordHash,
       updated_at: new Date().toISOString()
     });

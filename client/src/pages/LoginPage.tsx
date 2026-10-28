@@ -54,6 +54,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
   const [forgotStep, setForgotStep] = useState<1 | 2>(1);
   const [generatedPin, setGeneratedPin] = useState('');
   const [inputPin, setInputPin] = useState('');
+  const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [forgotError, setForgotError] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -297,6 +298,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
           setGeneratedPin(res.preview_pin);
           setInputPin(res.preview_pin);
         }
+        if (res.reset_token) {
+          setResetToken(res.reset_token);
+        }
         setForgotStep(2);
       } else {
         const errorMsg = res.message || 'Failed to verify email address.';
@@ -332,7 +336,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
       const res = await api.resetPassword({
         email: forgotEmail.trim(),
         verification_pin: inputPin.trim(),
-        new_password: newPassword
+        new_password: newPassword,
+        reset_token: resetToken
       });
 
       if (res.success) {
@@ -342,6 +347,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
         setForgotStep(1);
         setGeneratedPin('');
         setInputPin('');
+        setResetToken('');
         setNewPassword('');
         setSuccessMsg('Password has been successfully updated! You can now sign in.');
       } else {
@@ -977,6 +983,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                   setShowForgotModal(false);
                   setForgotStep(1);
                   setForgotError('');
+                  setResetToken('');
                 }}
                 className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
               >
@@ -1009,7 +1016,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <button
                     type="button"
-                    onClick={() => setShowForgotModal(false)}
+                    onClick={() => {
+                      setShowForgotModal(false);
+                      setResetToken('');
+                    }}
                     className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold"
                   >
                     Cancel
@@ -1087,7 +1097,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <button
                     type="button"
-                    onClick={() => setForgotStep(1)}
+                    onClick={() => {
+                      setForgotStep(1);
+                      setResetToken('');
+                    }}
                     className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold"
                   >
                     Back
