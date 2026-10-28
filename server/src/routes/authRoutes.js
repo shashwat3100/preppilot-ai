@@ -503,11 +503,13 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
     });
 
     // Cryptographic signed token ensuring serverless state persistence across ephemeral instances
+    const pwdHashPrefix = user.password_hash ? user.password_hash.substring(0, 16) : '';
     const resetToken = jwt.sign(
       {
         email: cleanEmail,
         userId: user.id,
         codeHash,
+        pwdHashPrefix,
         purpose: 'password_reset'
       },
       EFFECTIVE_JWT_SECRET,
@@ -640,10 +642,11 @@ router.post('/reset-password', authLimiter, async (req, res) => {
       });
     }
 
-    // Cross-container single-use protection via user.updated_at timestamp check
-    if (tokenData && user.updated_at && !inMemoryRecord) {
-      const userUpdatedTime = new Date(user.updated_at).getTime();
-      if (tokenData.iat && userUpdatedTime > (tokenData.iat * 1000 + 1500)) {
+    // Single-use protection across all serverless containers:
+    // If the account password has already been changed since this reset_token was issued, reject reuse.
+    if (tokenData && tokenData.pwdHashPrefix !== undefined) {
+      const currentPrefix = user.password_hash ? user.password_hash.substring(0, 16) : '';
+      if (currentPrefix !== tokenData.pwdHashPrefix) {
         return res.status(400).json({
           success: false,
           message: 'No active password reset request found or code already used. Please request a new PIN.'

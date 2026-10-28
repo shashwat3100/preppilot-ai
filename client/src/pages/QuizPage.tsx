@@ -10,6 +10,9 @@ import {
   XCircle,
   Zap,
   ArrowRight,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   RotateCcw,
   Award,
   AlertTriangle,
@@ -36,16 +39,18 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
   const { refreshUser } = useAuth();
   const { speakText, stopSpeaking, isSpeaking, openVoiceModal, setActiveQuestionContext } = useVoice();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<string>('');
-  const [answers, setAnswers] = useState<Array<{ question_id: string; answer: string; time_spent: number }>>([]);
+
+  // Key: questionId -> Value: chosenOptionKey (e.g. 'A', 'B', 'C', 'D')
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  // Per-question elapsed time tracking
+  const [questionTimes, setQuestionTimes] = useState<Record<string, number>>({});
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
   const [overallStartTime] = useState<number>(Date.now());
   const [elapsedTimer, setElapsedTimer] = useState<number>(0);
 
-
-  const [submittedCurrent, setSubmittedCurrent] = useState(false);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [finalResult, setFinalResult] = useState<QuizResult | null>(null);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
   // Voice Diagnostic State
   const [isDiagnosing, setIsDiagnosing] = useState(false);
@@ -83,6 +88,10 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
 
   const questions = quizSession.questions || [];
   const currentQ = questions[currentIndex];
+  const currentAnswer = currentQ ? (answers[currentQ.id] || '') : '';
+  const totalQuestions = questions.length;
+  const answeredCount = Object.keys(answers).filter(id => Boolean(answers[id])).length;
+  const isLastQuestion = currentIndex === totalQuestions - 1;
 
   // Global quiz timer
   useEffect(() => {
@@ -92,21 +101,14 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
     return () => clearInterval(timer);
   }, [overallStartTime]);
 
-  // Reset state when advancing question
-  useEffect(() => {
-    setSelectedOption('');
-    setSubmittedCurrent(false);
-    setQuestionStartTime(Date.now());
-  }, [currentIndex]);
-
   // Synchronize Active Question Context with Global Voice Assistant
   useEffect(() => {
     if (!currentQ) {
       setActiveQuestionContext(null);
       return;
     }
-    const chosenOpt = currentQ.options?.find((o: any) => o.option_key === selectedOption);
-    const correctOpt = currentQ.options?.find((o: any) => o.option_key === currentQ.correct_answer);
+    const chosenKey = answers[currentQ.id];
+    const chosenOpt = currentQ.options?.find((o: any) => o.option_key === chosenKey);
 
     setActiveQuestionContext({
       questionId: currentQ.id,
@@ -115,64 +117,162 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
       topic: currentQ.topic_name,
       subject: currentQ.subject_name,
       options: currentQ.options?.map((o: any) => ({ option_key: o.option_key, option_text: o.option_text })),
-      chosenAnswer: selectedOption || undefined,
-      chosenText: chosenOpt?.option_text || undefined,
-      correctAnswer: submittedCurrent ? currentQ.correct_answer : undefined,
-      correctText: submittedCurrent ? correctOpt?.option_text : undefined,
-      explanation: submittedCurrent ? currentQ.explanation : undefined,
-      isCorrect: submittedCurrent ? selectedOption === currentQ.correct_answer : undefined
+      chosenAnswer: chosenKey || undefined,
+      chosenText: chosenOpt?.option_text || undefined
     });
 
     return () => {
       setActiveQuestionContext(null);
     };
-  }, [currentQ, currentIndex, selectedOption, submittedCurrent, setActiveQuestionContext]);
+  }, [currentQ, currentIndex, answers, setActiveQuestionContext]);
 
-
+  // Auto-record answer immediately upon clicking an option
   const handleSelectOption = (key: string) => {
-    if (submittedCurrent) return;
-    setSelectedOption(key);
+    if (!currentQ) return;
+
+    // Track question time elapsed
+    const timeSpentNow = Math.max(1, Math.floor((Date.now() - questionStartTime) / 1000));
+    setQuestionTimes(prev => ({
+      ...prev,
+      [currentQ.id]: (prev[currentQ.id] || 0) + timeSpentNow
+    }));
+    setQuestionStartTime(Date.now());
+
+    // Record or switch selected answer automatically
+    setAnswers(prev => ({
+      ...prev,
+      [currentQ.id]: key
+    }));
   };
 
-  const handleConfirmAnswer = () => {
-    if (!selectedOption || submittedCurrent) return;
-    const timeSpent = Math.max(1, Math.floor((Date.now() - questionStartTime) / 1000));
-
-    setAnswers(prev => [
-      ...prev.filter(a => a.question_id !== currentQ.id),
-      { question_id: currentQ.id, answer: selectedOption, time_spent: timeSpent }
-    ]);
-    setSubmittedCurrent(true);
+  // Option to clear answer for current question
+  const handleClearAnswer = (qId: string) => {
+    setAnswers(prev => {
+      const next = { ...prev };
+      delete next[qId];
+      return next;
+    });
   };
 
-  const handleNextOrFinish = async () => {
+  // Navigate directly to any question via palette or controls
+  const handleJumpToQuestion = (targetIndex: number) => {
+    if (targetIndex < 0 || targetIndex >= questions.length || targetIndex === currentIndex) return;
+
+    if (currentQ) {
+      const timeSpentNow = Math.max(1, Math.floor((Date.now() - questionStartTime) / 1000));
+      setQuestionTimes(prev => ({
+        ...prev,
+        [currentQ.id]: (prev[currentQ.id] || 0) + timeSpentNow
+      }));
+    }
+    setQuestionStartTime(Date.now());
+    setCurrentIndex(targetIndex);
+  };
+
+  const handlePrevQuestion = () => {
+    if (currentIndex > 0) {
+      handleJumpToQuestion(currentIndex - 1);
+    }
+  };
+
+  const handleNextQuestion = () => {
     if (currentIndex < questions.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      // Complete Quiz Submission
-      setIsEvaluating(true);
-      const totalTime = Math.floor((Date.now() - overallStartTime) / 1000);
+      handleJumpToQuestion(currentIndex + 1);
+    }
+  };
 
-      try {
-        const res = await api.submitQuiz(quizSession.session_id, answers, totalTime);
-        if (res.success && res.result) {
-          setFinalResult(res.result);
-          await refreshUser(); // Update XP & streak in navbar
+  // Keyboard navigation & rapid option selection hotkeys
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (!currentQ || finalResult) return;
 
-          // Trigger festive confetti if passed
-          if (res.result.accuracy_rate >= 60) {
-            confetti({
-              particleCount: 80,
-              spread: 70,
-              origin: { y: 0.6 }
-            });
-          }
+      // 1-4 Number keys for instant option selection
+      if (['1', '2', '3', '4'].includes(e.key)) {
+        const optIdx = parseInt(e.key, 10) - 1;
+        if (currentQ.options && currentQ.options[optIdx]) {
+          e.preventDefault();
+          handleSelectOption(currentQ.options[optIdx].option_key);
         }
-      } catch (err) {
-        console.error('Error submitting quiz:', err);
-      } finally {
-        setIsEvaluating(false);
       }
+
+      // A-D Letter keys for instant option selection
+      const upperKey = e.key.toUpperCase();
+      if (['A', 'B', 'C', 'D'].includes(upperKey)) {
+        const found = currentQ.options?.find((o: any) => o.option_key.toUpperCase() === upperKey);
+        if (found) {
+          e.preventDefault();
+          handleSelectOption(found.option_key);
+        }
+      }
+
+      // Arrow navigation
+      if (e.key === 'ArrowRight') {
+        if (currentIndex < questions.length - 1) {
+          e.preventDefault();
+          handleNextQuestion();
+        }
+      } else if (e.key === 'ArrowLeft') {
+        if (currentIndex > 0) {
+          e.preventDefault();
+          handlePrevQuestion();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentQ, currentIndex, questions.length, finalResult, answers]);
+
+  // Execute quiz submission
+  const executeSubmitQuiz = async () => {
+    setIsEvaluating(true);
+    setShowSubmitConfirm(false);
+    const totalTime = Math.max(1, Math.floor((Date.now() - overallStartTime) / 1000));
+
+    // Record time spent on current question before submit
+    if (currentQ) {
+      const timeSpentNow = Math.max(1, Math.floor((Date.now() - questionStartTime) / 1000));
+      questionTimes[currentQ.id] = (questionTimes[currentQ.id] || 0) + timeSpentNow;
+    }
+
+    const formattedAnswers = questions.map(q => {
+      const chosen = answers[q.id] || '';
+      const timeSpent = questionTimes[q.id] || Math.max(1, Math.round(totalTime / questions.length));
+      return {
+        question_id: q.id,
+        answer: chosen,
+        time_spent: timeSpent
+      };
+    });
+
+    try {
+      const res = await api.submitQuiz(quizSession.session_id, formattedAnswers, totalTime);
+      if (res.success && res.result) {
+        setFinalResult(res.result);
+        await refreshUser(); // Update XP & streak in navbar
+
+        // Trigger festive confetti if passed
+        if (res.result.accuracy_rate >= 60) {
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error submitting quiz:', err);
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
+
+  const handleSubmitClick = () => {
+    if (answeredCount < totalQuestions) {
+      setShowSubmitConfirm(true);
+    } else {
+      executeSubmitQuiz();
     }
   };
 
@@ -733,7 +833,7 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
             {quizSession.mode === 'ADAPTIVE_DAILY' ? 'Adaptive Quiz' : 'Custom Quiz'}
           </span>
           <span className="text-xs font-semibold text-[var(--text-secondary)]">
-            Q{currentIndex + 1} / {questions.length}
+            Question {currentIndex + 1} of {totalQuestions}
           </span>
         </div>
 
@@ -756,8 +856,52 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
       <div className="w-full bg-[var(--surface-elevated)] h-1.5 rounded-full overflow-hidden border border-[var(--surface-border)]">
         <div
           className="bg-gradient-to-r from-indigo-500 via-sky-400 to-cyan-400 h-full transition-all duration-300"
-          style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
+          style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
         />
+      </div>
+
+      {/* Interactive Question Navigation Palette (Allows changing/jumping to any question) */}
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm space-y-2.5">
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[var(--text-primary)]">Question Palette</span>
+            <span className="text-[11px] text-[var(--text-muted)] hidden sm:inline">• Tap any question to jump or change answer</span>
+          </div>
+          <span className="font-semibold text-emerald-500 dark:text-emerald-400">
+            {answeredCount} of {totalQuestions} Answered
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          {questions.map((q, idx) => {
+            const isCurrent = idx === currentIndex;
+            const isAnswered = Boolean(answers[q.id]);
+            const chosenKey = answers[q.id];
+
+            return (
+              <button
+                key={q.id || idx}
+                type="button"
+                onClick={() => handleJumpToQuestion(idx)}
+                title={`Question ${idx + 1}: ${isAnswered ? `Answered (${chosenKey})` : 'Unanswered'}`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  isCurrent
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-2 ring-indigo-400 scale-105'
+                    : isAnswered
+                    ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] text-[var(--text-secondary)] border border-[var(--surface-border)]'
+                }`}
+              >
+                <span>Q{idx + 1}</span>
+                {isAnswered && !isCurrent && (
+                  <span className="text-[9px] px-1 rounded bg-emerald-500/20 text-emerald-300 font-extrabold">
+                    {chosenKey}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Question Card */}
@@ -801,69 +945,142 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
           {/* Options List */}
           <div className="space-y-3 pt-2">
             {currentQ.options.map((opt) => {
-              const isSelected = selectedOption === opt.option_key;
+              const isSelected = currentAnswer === opt.option_key;
 
               return (
                 <button
                   key={opt.option_key}
-                  disabled={submittedCurrent}
+                  type="button"
                   onClick={() => handleSelectOption(opt.option_key)}
-                  className={`w-full p-4 rounded-xl text-left border flex items-center gap-4 transition-all cursor-pointer ${
+                  className={`w-full p-4 rounded-xl text-left border flex items-center justify-between gap-4 transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-indigo-600/15 border-indigo-500 text-[var(--text-primary)] shadow-md ring-1 ring-indigo-500/30'
                       : 'bg-[var(--surface-elevated)] border-[var(--surface-border)] text-[var(--text-secondary)] hover:border-indigo-400 hover:bg-[var(--surface-hover)]'
                   }`}
                 >
-                  <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 ${
-                    isSelected
-                      ? 'bg-indigo-600 text-white font-extrabold shadow-sm'
-                      : 'bg-[var(--surface-card)] text-[var(--text-secondary)] border border-[var(--surface-border)]'
-                  }`}>
-                    {opt.option_key}
-                  </span>
-                  <span className="text-sm font-medium leading-relaxed text-[var(--text-primary)]">{opt.option_text}</span>
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 transition-colors ${
+                      isSelected
+                        ? 'bg-indigo-600 text-white font-extrabold shadow-sm'
+                        : 'bg-[var(--surface-card)] text-[var(--text-secondary)] border border-[var(--surface-border)]'
+                    }`}>
+                      {opt.option_key}
+                    </span>
+                    <span className="text-sm font-medium leading-relaxed text-[var(--text-primary)]">{opt.option_text}</span>
+                  </div>
+
+                  {isSelected && (
+                    <span className="flex-shrink-0 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1 animate-in fade-in">
+                      <CheckCircle2 size={11} /> Recorded
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
 
-          {/* Instant feedback review banner upon confirming */}
-          {submittedCurrent && (
-            <div className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-xs text-[var(--text-secondary)] space-y-2 animate-in fade-in">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-emerald-500 dark:text-emerald-400" />
-                <span className="font-bold text-emerald-500 dark:text-emerald-400">Answer recorded</span>
-              </div>
-              <p className="text-[var(--text-secondary)]">
-                Click <strong>Next Question</strong> to continue. A comprehensive conceptual review will be presented upon quiz completion.
-              </p>
+          {/* Auto-record live confirmation banner */}
+          {currentAnswer ? (
+            <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 animate-in fade-in">
+              <span className="flex items-center gap-2">
+                <CheckCircle2 size={15} className="text-emerald-400 flex-shrink-0" />
+                <span>
+                  Answer recorded: <strong>Option ({currentAnswer})</strong>. You can change your selection or navigate to other questions anytime.
+                </span>
+              </span>
+              <button
+                type="button"
+                onClick={() => handleClearAnswer(currentQ.id)}
+                className="text-[11px] text-slate-400 hover:text-rose-400 underline cursor-pointer ml-2 flex-shrink-0"
+              >
+                Clear
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-xs text-[var(--text-muted)]">
+              <HelpCircle size={14} className="flex-shrink-0" />
+              <span>Click any option above to automatically record your response for this question.</span>
             </div>
           )}
 
-          {/* Actions Bottom Bar */}
-          <div className="flex items-center justify-between pt-4 border-t border-[var(--surface-border)]">
-            <span className="text-xs text-[var(--text-muted)]">
-              Expected time: ~{currentQ.expected_time || 45} seconds
+          {/* Actions Bottom Bar: Previous / Next / Submit */}
+          <div className="flex items-center justify-between pt-4 border-t border-[var(--surface-border)] gap-2 sm:gap-3">
+            <button
+              type="button"
+              disabled={currentIndex === 0}
+              onClick={handlePrevQuestion}
+              className="px-4 sm:px-5 py-2.5 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] disabled:opacity-30 disabled:cursor-not-allowed text-[var(--text-primary)] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <ChevronLeft size={16} />
+              <span>Previous</span>
+            </button>
+
+            <span className="text-xs text-[var(--text-muted)] hidden sm:block">
+              Expected time: ~{currentQ.expected_time || 45}s
             </span>
 
-            {!submittedCurrent ? (
+            {!isLastQuestion ? (
               <button
-                disabled={!selectedOption}
-                onClick={handleConfirmAnswer}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+                type="button"
+                onClick={handleNextQuestion}
+                className="px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5 cursor-pointer"
               >
-                Submit Answer
+                <span>Next Question</span>
+                <ChevronRight size={16} />
               </button>
             ) : (
               <button
+                type="button"
                 disabled={isEvaluating}
-                onClick={handleNextOrFinish}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                onClick={handleSubmitClick}
+                className="px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-extrabold shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-60"
               >
-                <span>{currentIndex < questions.length - 1 ? 'Next Question' : isEvaluating ? 'Submitting...' : 'Finish & View Results'}</span>
-                <ArrowRight size={15} />
+                {isEvaluating ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    <span>Evaluating Quiz...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Submit Quiz</span>
+                    <CheckCircle2 size={15} />
+                  </>
+                )}
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Submit Confirmation Modal (if unanswered questions remain) */}
+      {showSubmitConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3 text-amber-400">
+              <AlertTriangle size={24} />
+              <h3 className="text-base font-bold text-white">Unanswered Questions Remaining</h3>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              You have answered <strong className="text-emerald-400">{answeredCount}</strong> of <strong className="text-white">{totalQuestions}</strong> questions.
+              {totalQuestions - answeredCount > 0 && ` There are ${totalQuestions - answeredCount} unanswered question(s) which will be marked as incorrect.`}
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowSubmitConfirm(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+              >
+                Review Questions
+              </button>
+              <button
+                type="button"
+                disabled={isEvaluating}
+                onClick={executeSubmitQuiz}
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md shadow-emerald-600/20"
+              >
+                {isEvaluating ? 'Submitting...' : 'Submit Anyway'}
+              </button>
+            </div>
           </div>
         </div>
       )}
