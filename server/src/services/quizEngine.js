@@ -73,7 +73,9 @@ export class QuizEngine {
       }
 
       // 3. Fill remaining slots from unattempted candidates with variety
-      const remainingUnattempted = unattemptedPool.filter(q => !selectedMap.has(q.id));
+      const remainingUnattempted = unattemptedPool
+        .filter(q => !selectedMap.has(q.id))
+        .sort(() => 0.5 - Math.random());
       for (const q of remainingUnattempted) {
         if (selectedMap.size >= questionCount) break;
         selectedMap.set(q.id, q);
@@ -739,7 +741,7 @@ export class QuizEngine {
   static getAssessmentCatalog() {
     const allQuestions = db.getAll('questions');
 
-    const coreCsSubjects = new Set(['sub-os', 'sub-dbms', 'sub-cn', 'sub-oop']);
+    const coreCsSubjects = new Set(['sub-os', 'sub-dbms', 'sub-cn', 'sub-oop', 'sub-dsa']);
     const coreCsAvail = allQuestions.filter(q => coreCsSubjects.has(q.subject_id)).length;
 
     const tcsAvail = allQuestions.filter(q =>
@@ -763,9 +765,9 @@ export class QuizEngine {
         availableQuestions: coreCsAvail,
         duration_minutes: 25,
         durationMinutes: 25,
-        description: 'Comprehensive 20-question evaluation across Operating Systems, DBMS Normalization, Computer Networks, and Object-Oriented Principles.',
+        description: 'Comprehensive 20-question evaluation across Data Structures & Algorithms, Operating Systems, DBMS Normalization, Computer Networks, and Object-Oriented Principles.',
         passingPercent: 65,
-        subjects: ['Operating Systems', 'Database Management Systems', 'Computer Networks', 'Object Oriented Programming']
+        subjects: ['Data Structures & Algorithms', 'Operating Systems', 'Database Management Systems', 'Computer Networks', 'Object Oriented Programming']
       },
       {
         id: 'asmt-tcs-nqt',
@@ -833,7 +835,7 @@ export class QuizEngine {
       durationMinutes = 25;
       assessmentTitle = 'Core Computer Science Comprehensive Assessment';
       category = 'Core Computer Science';
-      const coreSubjects = new Set(['sub-os', 'sub-dbms', 'sub-cn', 'sub-oop']);
+      const coreSubjects = new Set(['sub-os', 'sub-dbms', 'sub-cn', 'sub-oop', 'sub-dsa']);
       targetQuestions = allQuestions.filter(q => coreSubjects.has(q.subject_id));
       if (targetQuestions.length < requiredCount) {
         targetQuestions = allQuestions.filter(q => q.subject_id !== 'sub-aptitude');
@@ -885,7 +887,37 @@ export class QuizEngine {
     const countNeeded = Math.min(requiredCount, targetQuestions.length);
 
     if (unattempted.length >= countNeeded) {
-      selected = unattempted.slice(0, countNeeded);
+      if (normalizedType.includes('core')) {
+        // Balanced distribution across the 5 core disciplines (DSA, DBMS, OS, CN, OOP)
+        const coreSet = new Set(['sub-os', 'sub-dbms', 'sub-cn', 'sub-oop', 'sub-dsa']);
+        const bySubject = new Map();
+        for (const sId of coreSet) bySubject.set(sId, []);
+        unattempted.forEach(q => {
+          if (bySubject.has(q.subject_id)) bySubject.get(q.subject_id).push(q);
+        });
+
+        const targetPerSubject = Math.floor(countNeeded / coreSet.size); // 4 per subject for 20 questions
+        const pickedMap = new Map();
+
+        // 1. Pick target quota from each core subject (shuffled)
+        for (const [sId, list] of bySubject.entries()) {
+          list.sort(() => 0.5 - Math.random());
+          list.slice(0, targetPerSubject).forEach(q => pickedMap.set(q.id, q));
+        }
+
+        // 2. Fill any remaining slots with variety from unattempted core questions
+        const remainingCore = unattempted
+          .filter(q => !pickedMap.has(q.id))
+          .sort(() => 0.5 - Math.random());
+        for (const q of remainingCore) {
+          if (pickedMap.size >= countNeeded) break;
+          pickedMap.set(q.id, q);
+        }
+
+        selected = Array.from(pickedMap.values());
+      } else {
+        selected = unattempted.slice(0, countNeeded);
+      }
     } else {
       selected = [...unattempted];
       const remainderNeeded = countNeeded - selected.length;

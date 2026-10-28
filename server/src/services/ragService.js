@@ -5,6 +5,12 @@ import { calculateDepartmentMetrics } from '../routes/deanRoutes.js';
 import { CANONICAL_BRANCHES } from '../database/canonicalBranches.js';
 
 /**
+ * In-memory tracker of questions served via PrepPilot AI Assistant chat/voice
+ * Key: userId or session identifier -> Set of served question IDs
+ */
+export const chatServedQuestionTracker = new Map();
+
+/**
  * Text Vector & Similarity Utilities
  */
 const STOP_WORDS = new Set([
@@ -1102,10 +1108,21 @@ Here is how student access works on the PrepPilot platform:
       };
     }
 
-    // Intent 2: Question Serving ("give me five question", "give me questions", "practice questions", "ask me questions")
+    // Check if user specifically inquired about follow-up interview questions
+    const isFollowUpInterviewQuery = (
+      (qLower.includes('follow-up') || qLower.includes('follow up') || qLower.includes('followup')) &&
+      (qLower.includes('question') || qLower.includes('interview') || qLower.includes('ask'))
+    ) || (
+      qLower.includes('interview') && (qLower.includes('question could be asked') || qLower.includes('questions could be asked') || qLower.includes('what questions are asked') || qLower.includes('follow-up'))
+    );
+
+    // Intent 2: Question Serving ("give me five question", "give me questions", "practice questions", "ask me questions", "what follow-up interview questions could be asked")
     if (
-      (qLower.includes('question') || qLower.includes('questions')) &&
-      (qLower.includes('give') || qLower.includes('ask') || qLower.includes('show') || qLower.includes('provide') || qLower.includes('practice') || qLower.includes('five') || qLower.includes('5') || qLower.includes('10') || qLower.includes('mcq') || qLower.includes('test me'))
+      isFollowUpInterviewQuery ||
+      (
+        (qLower.includes('question') || qLower.includes('questions')) &&
+        (qLower.includes('give') || qLower.includes('ask') || qLower.includes('show') || qLower.includes('provide') || qLower.includes('practice') || qLower.includes('five') || qLower.includes('5') || qLower.includes('10') || qLower.includes('mcq') || qLower.includes('test me'))
+      )
     ) {
       let count = 5;
       if (qLower.includes('ten') || qLower.includes('10')) count = 10;
@@ -1115,27 +1132,136 @@ Here is how student access works on the PrepPilot platform:
       const allQuestions = db.getAll('questions') || [];
       const allOptions = db.getAll('questionOptions') || [];
 
-      // Filter by subject / company if specified in query
-      let matchedQuestions = allQuestions;
+      // 1. Gather all questions already attempted by the user in quizzes or tests
+      const userKey = studentProfile?.id || studentProfile?.email || 'guest_chat_session';
+      const optedIds = new Set();
+      if (studentProfile?.id) {
+        const userAttempts = db.find('attempts', a => a.user_id === studentProfile.id) || [];
+        const userSessions = db.find('quizSessions', s => s.user_id === studentProfile.id) || [];
+        const userSessionIds = new Set(userSessions.map(s => s.id));
+        const userQuizQuestions = db.find('quizQuestions', qq => userSessionIds.has(qq.session_id)) || [];
+        userAttempts.forEach(a => optedIds.add(a.question_id));
+        userQuizQuestions.forEach(qq => optedIds.add(qq.question_id));
+      }
+
+      // 2. Retrieve questions already served in this chat/voice session
+      if (!chatServedQuestionTracker.has(userKey)) {
+        chatServedQuestionTracker.set(userKey, new Set());
+      }
+      const servedSet = chatServedQuestionTracker.get(userKey);
+
+      // Combined set of questions to exclude from current selection
+      const excludedIds = new Set([...optedIds, ...servedSet]);
+
+      // Check if user specifically requested a subject or company
+      let targetSubjectId = null;
+      let targetCompanyId = null;
       if (qLower.includes('dbms') || qLower.includes('database') || qLower.includes('sql')) {
-        matchedQuestions = allQuestions.filter(qItem => qItem.subject_id === 'sub-dbms');
+        targetSubjectId = 'sub-dbms';
       } else if (qLower.includes('os') || qLower.includes('operating system')) {
-        matchedQuestions = allQuestions.filter(qItem => qItem.subject_id === 'sub-os');
+        targetSubjectId = 'sub-os';
       } else if (qLower.includes('dsa') || qLower.includes('data structure') || qLower.includes('algorithm')) {
-        matchedQuestions = allQuestions.filter(qItem => qItem.subject_id === 'sub-dsa');
+        targetSubjectId = 'sub-dsa';
       } else if (qLower.includes('network') || qLower.includes('cn')) {
-        matchedQuestions = allQuestions.filter(qItem => qItem.subject_id === 'sub-cn');
+        targetSubjectId = 'sub-cn';
+      } else if (qLower.includes('oop') || qLower.includes('oops') || qLower.includes('object oriented')) {
+        targetSubjectId = 'sub-oop';
+      } else if (qLower.includes('aptitude') || qLower.includes('quant') || qLower.includes('reasoning')) {
+        targetSubjectId = 'sub-aptitude';
       } else if (qLower.includes('tcs') || qLower.includes('ninja')) {
-        matchedQuestions = allQuestions.filter(qItem => qItem.company_id === 'comp-tcs');
+        targetCompanyId = 'comp-tcs';
       }
 
-      if (matchedQuestions.length < count) {
-        matchedQuestions = allQuestions;
+      let selectedQuestions = [];
+
+      if (targetSubjectId || targetCompanyId) {
+        // Filter candidate questions by requested subject / company
+        const filteredPool = allQuestions.filter(q => {
+          if (targetSubjectId && q.subject_id !== targetSubjectId) return false;
+          if (targetCompanyId && q.company_id !== targetCompanyId) return false;
+          return true;
+        });
+
+        // First pass: unattempted and unserved
+        let availablePool = filteredPool.filter(q => !excludedIds.has(q.id));
+        if (availablePool.length < count) {
+          // If strictly unserved questions are exhausted, fallback to questions not served in chat
+          availablePool = filteredPool.filter(q => !servedSet.has(q.id));
+        }
+        if (availablePool.length < count) {
+          // If still insufficient, reset servedSet for this user to allow continuous practice without crashing
+          servedSet.clear();
+          availablePool = [...filteredPool];
+        }
+
+        // Shuffle candidate pool
+        availablePool.sort(() => 0.5 - Math.random());
+        selectedQuestions = availablePool.slice(0, count);
+      } else {
+        // NO SPECIFIC SUBJECT: Diversify across core subjects with ZERO repetition!
+        // Sample 1 question from DSA, DBMS, OS, Networks, OOP/Aptitude
+        const coreSubjectSequence = ['sub-dsa', 'sub-dbms', 'sub-os', 'sub-cn', 'sub-oop', 'sub-aptitude'];
+        // Shuffle the sequence for dynamic variation
+        const shuffledSubjects = [...coreSubjectSequence].sort(() => 0.5 - Math.random());
+
+        // Fill slots by picking 1 fresh question from distinct subjects
+        for (const subjId of shuffledSubjects) {
+          if (selectedQuestions.length >= count) break;
+          const subjFresh = allQuestions.filter(q => q.subject_id === subjId && !excludedIds.has(q.id));
+          if (subjFresh.length > 0) {
+            const picked = subjFresh[Math.floor(Math.random() * subjFresh.length)];
+            selectedQuestions.push(picked);
+            excludedIds.add(picked.id);
+          }
+        }
+
+        // If more slots needed, draw from any remaining unserved questions across the bank
+        if (selectedQuestions.length < count) {
+          const generalFresh = allQuestions
+            .filter(q => !excludedIds.has(q.id))
+            .sort(() => 0.5 - Math.random());
+          for (const q of generalFresh) {
+            if (selectedQuestions.length >= count) break;
+            selectedQuestions.push(q);
+            excludedIds.add(q.id);
+          }
+        }
+
+        // If question bank is completely exhausted, recycle with shuffle
+        if (selectedQuestions.length < count) {
+          servedSet.clear();
+          const recycled = allQuestions
+            .filter(q => !selectedQuestions.some(sq => sq.id === q.id))
+            .sort(() => 0.5 - Math.random());
+          for (const q of recycled) {
+            if (selectedQuestions.length >= count) break;
+            selectedQuestions.push(q);
+          }
+        }
       }
 
-      const selectedQuestions = matchedQuestions.slice(0, count);
+      // Record selected questions in chat served tracker to prevent repetition in subsequent queries
+      selectedQuestions.forEach(q => servedSet.add(q.id));
 
-      let questionsFormatted = `### ${selectedQuestions.length} Practice Placement Questions\n\nHere are ${selectedQuestions.length} targeted questions from the PrepPilot question bank:\n\n`;
+      let questionsFormatted = '';
+      if (isFollowUpInterviewQuery) {
+        questionsFormatted += `### Technical Placement Interview: Follow-Up Questions Framework\n\n`;
+        questionsFormatted += `In technical screening and campus placement interviews (such as Google, Amazon, Microsoft, and TCS), interviewers ask follow-up questions to probe candidate depth across 4 critical engineering dimensions:\n\n`;
+        questionsFormatted += `1. **Algorithmic Edge Cases & Boundary Probes:**\n`;
+        questionsFormatted += `   - *"What happens if the array is empty, contains negative values, or exceeds memory limits?"*\n`;
+        questionsFormatted += `   - *"How does your solution handle duplicate keys, cyclic references, or integer overflow?"*\n\n`;
+        questionsFormatted += `2. **Space-Time Complexity & Optimization:**\n`;
+        questionsFormatted += `   - *"Can you optimize this from $O(N)$ auxiliary space down to $O(1)$ in-place pointers?"*\n`;
+        questionsFormatted += `   - *"What is the worst-case behavior if the input stream is already sorted or nearly sorted?"*\n\n`;
+        questionsFormatted += `3. **Concurrency, Thread-Safety & Scaling:**\n`;
+        questionsFormatted += `   - *"How would this execute concurrently across multiple threads without race conditions?"*\n`;
+        questionsFormatted += `   - *"What locking or isolation levels (e.g. 2PL, MVCC) would prevent deadlocks?"*\n\n`;
+        questionsFormatted += `4. **Failure Recovery & Data Consistency:**\n`;
+        questionsFormatted += `   - *"If the process crashes mid-operation, how do you ensure atomicity and idempotency (e.g. WAL, 2PC)?"*\n\n`;
+        questionsFormatted += `---\n\n`;
+      }
+
+      questionsFormatted += `### ${selectedQuestions.length} Practice Placement Questions\n\nHere are ${selectedQuestions.length} targeted questions from the PrepPilot question bank:\n\n`;
 
       selectedQuestions.forEach((qItem, idx) => {
         const options = allOptions.filter(o => o.question_id === qItem.id);
@@ -1163,15 +1289,20 @@ Here is how student access works on the PrepPilot platform:
 
       questionsFormatted += `> **Interview Tip:** Practice writing out the rationale for each option before selecting your answer in technical placement screenings.`;
 
+      const speechText = isFollowUpInterviewQuery
+        ? `Interviewers typically probe edge cases, space-time trade-offs, concurrency, and failure recovery. Here are ${selectedQuestions.length} targeted placement questions across core technical domains to practice answering these follow-ups.`
+        : `Here are ${selectedQuestions.length} targeted placement questions from our question bank covering core technical topics. Review each question and option to test your placement readiness.`;
+
       return {
         answer: questionsFormatted,
-        speechText: `Here are ${selectedQuestions.length} targeted placement questions from our question bank covering core technical topics. Review each question and option to test your placement readiness.`,
+        speechText,
         retrievedDocuments: [],
         sources: ['PrepPilot Question Bank'],
         model: validModel,
         isLiveApi: false
       };
     }
+
 
     // Intent 3: Placement Preparation Roadmap & Schedule (e.g. 20-day TCS Ninja plan)
     if (

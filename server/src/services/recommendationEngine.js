@@ -179,13 +179,62 @@ export class RecommendationEngine {
     if (filters.subject_id) filtered = filtered.filter(q => q.subject_id === filters.subject_id);
     if (filters.difficulty) filtered = filtered.filter(q => q.difficulty === filters.difficulty);
 
-    // Sort strictly: Fresh unattempted questions FIRST, then by highest recommendation score
+    // Sort strictly: Fresh unattempted questions FIRST, then by highest recommendation score with entropy tie-breaking
     filtered.sort((a, b) => {
       if (a.is_unattempted !== b.is_unattempted) {
         return a.is_unattempted ? -1 : 1;
       }
-      return b.recommendation_score - a.recommendation_score;
+      const diff = b.recommendation_score - a.recommendation_score;
+      if (Math.abs(diff) <= 2) {
+        return Math.random() - 0.5; // Break deterministic ties to rotate fresh questions
+      }
+      return diff;
     });
+
+    // If no single subject is requested, diversify across distinct subjects to prevent clustering in one topic
+    if (!filters.subject_id && !filters.topic_id && filtered.length > limit) {
+      const unattempted = filtered.filter(q => q.is_unattempted);
+      const attempted = filtered.filter(q => !q.is_unattempted);
+
+      const diversifyPool = (pool, targetCount) => {
+        const bySubject = new Map();
+        pool.forEach(q => {
+          const key = q.subject_id || 'other';
+          if (!bySubject.has(key)) bySubject.set(key, []);
+          bySubject.get(key).push(q);
+        });
+
+        // Shuffle subject groups order so different subjects take lead
+        const subjectKeys = [...bySubject.keys()].sort(() => 0.5 - Math.random());
+        const result = [];
+        let index = 0;
+        let addedInRound = true;
+
+        while (result.length < targetCount && addedInRound) {
+          addedInRound = false;
+          for (const key of subjectKeys) {
+            const list = bySubject.get(key);
+            if (index < list.length) {
+              result.push(list[index]);
+              addedInRound = true;
+              if (result.length >= targetCount) break;
+            }
+          }
+          index++;
+        }
+        return result;
+      };
+
+      if (unattempted.length >= limit) {
+        return diversifyPool(unattempted, limit);
+      } else {
+        const selected = diversifyPool(unattempted, unattempted.length);
+        const remainder = limit - selected.length;
+        const selectedIds = new Set(selected.map(q => q.id));
+        const remAttempted = attempted.filter(q => !selectedIds.has(q.id));
+        return [...selected, ...diversifyPool(remAttempted, remainder)];
+      }
+    }
 
     return filtered.slice(0, limit);
   }
