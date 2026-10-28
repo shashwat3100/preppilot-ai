@@ -505,16 +505,20 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
       process.env.SMTP_HOST || process.env.SENDGRID_API_KEY || process.env.EMAIL_TRANSPORT
     );
 
-    // Development diagnostic log only - NEVER returned in HTTP response
+    // Development diagnostic log
     if (process.env.NODE_ENV !== 'production') {
       console.log(`[AUTH NOTICE - DEV CONSOLE ONLY] Password reset code for ${cleanEmail}: ${resetCode} (Expires in 15m)`);
     }
+
+    // In environments without live outbound SMTP, supply preview_pin so candidate can complete reset
+    const previewPin = !isEmailConfigured ? resetCode : undefined;
 
     return res.json({
       success: true,
       message: isEmailConfigured
         ? `Password reset instructions have been dispatched to ${cleanEmail}.`
-        : `A password reset request has been processed. Note: Automated email delivery is not configured in this environment; please contact your campus administrator for verification code.`,
+        : `Verification PIN generated successfully: ${resetCode} (Valid for 15 minutes).`,
+      preview_pin: previewPin,
       email_delivery_configured: isEmailConfigured
     });
   } catch (err) {

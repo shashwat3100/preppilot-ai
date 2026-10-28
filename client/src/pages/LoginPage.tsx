@@ -293,6 +293,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
     try {
       const res = await api.forgotPassword(forgotEmail.trim());
       if (res.success) {
+        if (res.preview_pin) {
+          setGeneratedPin(res.preview_pin);
+          setInputPin(res.preview_pin);
+        }
         setForgotStep(2);
       } else {
         const errorMsg = res.message || 'Failed to verify email address.';
@@ -326,15 +330,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
 
     try {
       const res = await api.resetPassword({
-        email: forgotEmail,
-        verification_pin: inputPin,
+        email: forgotEmail.trim(),
+        verification_pin: inputPin.trim(),
         new_password: newPassword
       });
 
       if (res.success) {
         setShowForgotModal(false);
-        setEmail(forgotEmail);
+        setEmail(forgotEmail.trim());
         setPassword(newPassword);
+        setForgotStep(1);
+        setGeneratedPin('');
+        setInputPin('');
+        setNewPassword('');
         setSuccessMsg('Password has been successfully updated! You can now sign in.');
       } else {
         const errorMsg = res.message || 'Failed to reset password.';
@@ -1019,17 +1027,38 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onGoToRegister 
             ) : (
               /* Step 2: Enter PIN and New Password */
               <form onSubmit={handleResetPassword} className="space-y-4">
-                <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/30 flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold text-cyan-300 block">Verification Code Dispatched</span>
-                    <span className="text-[10px] text-slate-400 block">
-                      Enter the 6-digit PIN issued for {forgotEmail}
+                {generatedPin ? (
+                  <div className="p-3.5 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5">
+                        <KeyRound size={14} className="text-cyan-400" />
+                        <span>Reset Verification PIN</span>
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold">
+                        Expires in 15m
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-cyan-500/30">
+                      <span className="text-lg font-mono font-extrabold tracking-widest text-cyan-300">{generatedPin}</span>
+                      <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">✓ Auto-filled</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400">
+                      Use this 6-digit PIN to authorize your password update below.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/30 flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] font-bold text-cyan-300 block">Verification Code Dispatched</span>
+                      <span className="text-[10px] text-slate-400 block">
+                        Enter the 6-digit PIN issued for {forgotEmail}
+                      </span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold">
+                      15 Min Expiry
                     </span>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold">
-                    15 Min Expiry
-                  </span>
-                </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Enter 6-Digit PIN</label>
