@@ -45,10 +45,11 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
   // Per-question elapsed time tracking
   const [questionTimes, setQuestionTimes] = useState<Record<string, number>>({});
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
-  const [overallStartTime] = useState<number>(Date.now());
+  const [overallStartTime, setOverallStartTime] = useState<number>(Date.now());
   const [elapsedTimer, setElapsedTimer] = useState<number>(0);
 
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [finalResult, setFinalResult] = useState<QuizResult | null>(null);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
@@ -92,6 +93,23 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
   const totalQuestions = questions.length;
   const answeredCount = Object.keys(answers).filter(id => Boolean(answers[id])).length;
   const isLastQuestion = currentIndex === totalQuestions - 1;
+
+  // Reset all state cleanly when a new quiz session is started
+  useEffect(() => {
+    setCurrentIndex(0);
+    setAnswers({});
+    setQuestionTimes({});
+    setQuestionStartTime(Date.now());
+    setOverallStartTime(Date.now());
+    setElapsedTimer(0);
+    setIsEvaluating(false);
+    setSubmissionError(null);
+    setFinalResult(null);
+    setShowSubmitConfirm(false);
+    setVoiceDiagnostic(null);
+    setActiveVoiceQuestionIdx(null);
+    setActiveVoiceMistakeIdx(null);
+  }, [quizSession.session_id]);
 
   // Global quiz timer
   useEffect(() => {
@@ -227,6 +245,7 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
   // Execute quiz submission
   const executeSubmitQuiz = async () => {
     setIsEvaluating(true);
+    setSubmissionError(null);
     setShowSubmitConfirm(false);
     const totalTime = Math.max(1, Math.floor((Date.now() - overallStartTime) / 1000));
 
@@ -238,7 +257,7 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
 
     const formattedAnswers = questions.map(q => {
       const chosen = answers[q.id] || '';
-      const timeSpent = questionTimes[q.id] || Math.max(1, Math.round(totalTime / questions.length));
+      const timeSpent = questionTimes[q.id] || Math.max(1, Math.round(totalTime / Math.max(1, questions.length)));
       return {
         question_id: q.id,
         answer: chosen,
@@ -248,8 +267,9 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
 
     try {
       const res = await api.submitQuiz(quizSession.session_id, formattedAnswers, totalTime);
-      if (res.success && res.result) {
+      if (res && res.success && res.result) {
         setFinalResult(res.result);
+        setSubmissionError(null);
         await refreshUser(); // Update XP & streak in navbar
 
         // Trigger festive confetti if passed
@@ -260,9 +280,14 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
             origin: { y: 0.6 }
           });
         }
+      } else {
+        const errorMsg = res?.message || 'Server was unable to evaluate this quiz. Please click Retry Submission.';
+        console.error('Quiz submission error response:', errorMsg);
+        setSubmissionError(errorMsg);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error submitting quiz:', err);
+      setSubmissionError(err?.message || 'Network error submitting quiz. Please check your connection and click Retry.');
     } finally {
       setIsEvaluating(false);
     }
@@ -1000,6 +1025,27 @@ export const QuizPage: React.FC<QuizPageProps> = ({ quizSession, onFinish, onRet
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-xs text-[var(--text-muted)]">
               <HelpCircle size={14} className="flex-shrink-0" />
               <span>Click any option above to automatically record your response for this question.</span>
+            </div>
+          )}
+
+          {/* Submission Error Banner with Retry Action */}
+          {submissionError && (
+            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-400 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={18} className="text-rose-400 flex-shrink-0" />
+                <span>
+                  <strong>Submission Error:</strong> {submissionError}
+                </span>
+              </div>
+              <button
+                type="button"
+                disabled={isEvaluating}
+                onClick={executeSubmitQuiz}
+                className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <RotateCcw size={13} />
+                <span>Retry Submission</span>
+              </button>
             </div>
           )}
 

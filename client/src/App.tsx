@@ -247,14 +247,14 @@ const MainApp: React.FC = () => {
       {/* Routed Workspace Tab Rendering */}
       {currentTab === 'quiz_active' && activeQuizSession ? (
         <QuizPage
+          key={activeQuizSession.session_id}
           quizSession={activeQuizSession}
           onFinish={() => {
             setActiveQuizSession(null);
             handleSelectTab('dashboard');
           }}
-          onRetake={() => {
-            setActiveQuizSession(null);
-            handleLaunchAdaptiveDailyQuiz();
+          onRetake={async () => {
+            await handleLaunchAdaptiveDailyQuiz();
           }}
         />
       ) : currentTab === 'dashboard' ? (

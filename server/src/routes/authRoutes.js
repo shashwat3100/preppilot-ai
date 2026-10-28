@@ -176,7 +176,11 @@ router.post('/login', authLimiter, async (req, res) => {
     // If local cached hash failed, check PostgreSQL in case password was updated in another container
     if (!isMatch && isPostgresConfigured()) {
       const freshUser = await queryPostgresUserByEmail(cleanEmail);
-      if (freshUser && freshUser.password_hash !== user.password_hash) {
+      if (
+        freshUser &&
+        freshUser.password_hash !== user.password_hash &&
+        new Date(freshUser.updated_at || 0).getTime() > new Date(user.updated_at || 0).getTime()
+      ) {
         const freshMatch = await bcrypt.compare(password, freshUser.password_hash);
         if (freshMatch) {
           user = freshUser;

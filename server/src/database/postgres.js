@@ -30,7 +30,7 @@ export const getPgPool = () => {
     ssl: isLocalhost ? false : { rejectUnauthorized: false },
     max: 10,
     idleTimeoutMillis: 5000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 3000,
     allowExitOnIdle: true // Ensures test suites and lambdas can exit cleanly
   });
 
