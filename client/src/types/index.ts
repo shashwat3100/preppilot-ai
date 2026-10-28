@@ -231,11 +231,13 @@ export interface AnalyticsData {
       current_coding_solved: number;
       status: 'ELIGIBLE' | 'BORDERLINE' | 'NEEDS_PREPARATION';
       match_score: number;
+      stage?: string;
+      verdict?: string;
     }>;
   };
   subject_accuracy: Array<{ name: string; fullName: string; attempted: number; accuracy: number }>;
   topic_accuracy: Array<{ name: string; attempted: number; accuracy: number }>;
-  company_accuracy: Array<{ name: string; attempted: number; available: number; accuracy: number }>;
+  company_accuracy: Array<{ name: string; attempted: number; available: number; accuracy: number | null; correct?: number; id?: string }>;
   difficulty_accuracy: Array<{ difficulty: string; attempted: number; correct: number; accuracy: number }>;
   weekly_progress: Array<{
     date: string;
@@ -247,8 +249,8 @@ export interface AnalyticsData {
     cumulativeAccuracy?: number;
     hasActivity?: boolean;
   }>;
-  weakest_topics: Array<{ topic: string; subject: string; accuracy: number; weakness: number }>;
-  strongest_topics: Array<{ topic: string; subject: string; accuracy: number; strength: number }>;
+  weakest_topics: Array<{ topic: string; subject: string; accuracy: number; weakness: number; attempted?: number; correct?: number }>;
+  strongest_topics: Array<{ topic: string; subject: string; accuracy: number; strength: number; attempted?: number; correct?: number }>;
   coding?: {
     total_submissions: number;
     accepted_submissions: number;

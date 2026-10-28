@@ -9,7 +9,6 @@ router.get('/', authenticate, (req, res) => {
   try {
     const userId = req.user.id;
     const attempts = db.find('attempts', a => a.user_id === userId);
-    const performance = db.find('studentPerformance', p => p.user_id === userId);
     const streak = db.findOne('streaks', s => s.user_id === userId);
     const allQuestions = db.getAll('questions');
     const allSubjects = db.getAll('subjects');
@@ -70,7 +69,7 @@ router.get('/', authenticate, (req, res) => {
 
     // Accuracy by Company
     const companyMap = new Map();
-    allCompanies.forEach(c => companyMap.set(c.id, { name: c.name, attempted: 0, correct: 0, total_available: 0 }));
+    allCompanies.forEach(c => companyMap.set(c.id, { id: c.id, name: c.name, attempted: 0, correct: 0, total_available: 0 }));
 
     allQuestions.forEach(q => {
       if (q.company_id && companyMap.has(q.company_id)) {
@@ -87,14 +86,21 @@ router.get('/', authenticate, (req, res) => {
       }
     });
 
+    // Sort company practice with attempted companies first, then by available count
     const companyAccuracy = Array.from(companyMap.values())
       .filter(c => c.total_available > 0)
       .map(c => ({
+        id: c.id,
         name: c.name,
         attempted: c.attempted,
+        correct: c.correct,
         available: c.total_available,
-        accuracy: c.attempted > 0 ? Math.round((c.correct / c.attempted) * 100) : 0
-      }));
+        accuracy: c.attempted > 0 ? Math.round((c.correct / c.attempted) * 100) : null
+      }))
+      .sort((a, b) => {
+        if (b.attempted !== a.attempted) return b.attempted - a.attempted;
+        return (b.accuracy || 0) - (a.accuracy || 0);
+      });
 
     // Accuracy by Difficulty
     const difficultyAccuracy = [
@@ -121,8 +127,6 @@ router.get('/', authenticate, (req, res) => {
     // Weekly Trend (Past 7 days)
     const weeklyProgress = [];
     const now = new Date();
-
-    // Chronologically sorted attempts for cumulative tracking
     const sortedAttempts = [...attempts].sort((a, b) => {
       const ta = new Date(a.attempted_at || a.created_at || 0).getTime();
       const tb = new Date(b.attempted_at || b.created_at || 0).getTime();
@@ -144,7 +148,6 @@ router.get('/', authenticate, (req, res) => {
         ? Math.round((dayCorrect / dayAttempts.length) * 100) 
         : null;
 
-      // Cumulative accuracy up to and including this day
       const cutoffTime = new Date(`${dateString}T23:59:59.999Z`).getTime();
       const attemptsUpToDay = sortedAttempts.filter(a => {
         const ts = new Date(a.attempted_at || a.created_at || 0).getTime();
@@ -160,7 +163,6 @@ router.get('/', authenticate, (req, res) => {
         day: dayLabel,
         questionsAttempted: dayAttempts.length,
         correctCount: dayCorrect,
-        // If the day had practice, reflect that day's accuracy; if rest day, preserve ongoing baseline instead of falsely plunging to 0%
         accuracy: dayAccuracy !== null ? dayAccuracy : cumulativeAccuracy,
         dailyAccuracy: dayAccuracy,
         cumulativeAccuracy: cumulativeAccuracy,
@@ -168,34 +170,93 @@ router.get('/', authenticate, (req, res) => {
       });
     }
 
-    // Weakest & Strongest Topics
-    const weakList = performance
-      .filter(p => p.weakness_score >= 0.5)
-      .map(p => {
-        const top = allTopics.find(t => t.id === p.topic_id);
-        const sub = allSubjects.find(s => s.id === p.subject_id);
-        return {
-          topic: top?.name || 'Concept',
+    // Dynamic Topic Performance computed directly from all user attempts
+    const topicPerfMap = new Map();
+    attempts.forEach(a => {
+      const q = allQuestions.find(item => item.id === a.question_id);
+      if (!q) return;
+      const topicId = q.topic_id || 'unknown';
+      if (!topicPerfMap.has(topicId)) {
+        const top = allTopics.find(t => t.id === topicId);
+        const sub = allSubjects.find(s => s.id === q.subject_id);
+        topicPerfMap.set(topicId, {
+          topic_id: topicId,
+          subject_id: q.subject_id,
+          topic: top?.name || 'Topic',
           subject: sub?.name || 'Core',
-          accuracy: Math.round(p.accuracy_rate),
-          weakness: p.weakness_score
-        };
-      })
-      .sort((a, b) => b.weakness - a.weakness);
+          attempted: 0,
+          correct: 0
+        });
+      }
+      const item = topicPerfMap.get(topicId);
+      item.attempted += 1;
+      if (a.is_correct) item.correct += 1;
+    });
 
-    const strongList = performance
-      .filter(p => p.weakness_score < 0.5)
-      .map(p => {
-        const top = allTopics.find(t => t.id === p.topic_id);
-        const sub = allSubjects.find(s => s.id === p.subject_id);
-        return {
-          topic: top?.name || 'Concept',
-          subject: sub?.name || 'Core',
-          accuracy: Math.round(p.accuracy_rate),
-          strength: 1.0 - p.weakness_score
-        };
+    const dynamicTopicList = Array.from(topicPerfMap.values()).map(t => {
+      const acc = Math.round((t.correct / t.attempted) * 100);
+      const weakness = Number(((t.attempted - t.correct) / t.attempted).toFixed(2));
+      return {
+        topic: t.topic,
+        subject: t.subject,
+        topic_id: t.topic_id,
+        subject_id: t.subject_id,
+        attempted: t.attempted,
+        correct: t.correct,
+        accuracy: acc,
+        weakness: weakness,
+        strength: Number((1.0 - weakness).toFixed(2))
+      };
+    });
+
+    // Keep studentPerformance in DB safely synced with live attempts without removing existing data
+    try {
+      dynamicTopicList.forEach(t => {
+        if (t.topic_id && t.topic_id !== 'unknown') {
+          const existing = db.findOne('studentPerformance', p => p.user_id === userId && p.topic_id === t.topic_id);
+          if (existing) {
+            db.update('studentPerformance', existing.id, {
+              accuracy_rate: t.accuracy,
+              weakness_score: t.weakness,
+              total_attempts: t.attempted,
+              correct_answers: t.correct,
+              updated_at: new Date().toISOString()
+            });
+          } else {
+            db.insert('studentPerformance', {
+              id: `perf-${userId}-${t.topic_id}`,
+              user_id: userId,
+              topic_id: t.topic_id,
+              subject_id: t.subject_id,
+              accuracy_rate: t.accuracy,
+              weakness_score: t.weakness,
+              total_attempts: t.attempted,
+              correct_answers: t.correct,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+          }
+        }
+      });
+    } catch (syncErr) {
+      console.warn('[Analytics Performance Sync Notice]:', syncErr?.message || syncErr);
+    }
+
+    const weakList = dynamicTopicList
+      .filter(t => t.accuracy < 70)
+      .sort((a, b) => {
+        if (a.accuracy !== b.accuracy) return a.accuracy - b.accuracy;
+        return b.attempted - a.attempted;
       })
-      .sort((a, b) => b.strength - a.strength);
+      .slice(0, 6);
+
+    const strongList = dynamicTopicList
+      .filter(t => t.accuracy >= 70)
+      .sort((a, b) => {
+        if (b.accuracy !== a.accuracy) return b.accuracy - a.accuracy;
+        return b.attempted - a.attempted;
+      })
+      .slice(0, 6);
 
     // Coding Arena Analytics
     const codingSubmissions = db.find('codingSubmissions', s => s.user_id === userId) || [];
@@ -264,65 +325,92 @@ router.get('/', authenticate, (req, res) => {
 
     // Placement Readiness & Company Eligibility Diagnostics
     const codingSolvedCount = solvedProblemIds.size;
-    const hasActivity = totalAttempted > 0 || codingSolvedCount > 0;
+    const hasActivity = totalAttempted > 0 || totalSubmissions > 0;
 
     let readinessScore = 0;
     let cohortPercentile = 0;
     let tierFit = 'Diagnostic Assessment Required';
 
     if (hasActivity) {
-      const accuracyWeight = (overallAccuracy || 0) * 0.40;
-      const codingWeight = Math.min(100, (codingSolvedCount / 8) * 100) * 0.35;
-      const consistencyWeight = Math.min(100, ((streak?.current_streak || 0) * 12) + (avgTimePerQuestion <= 50 ? 30 : 15)) * 0.25;
-      readinessScore = Math.min(99, Math.max(5, Math.round(accuracyWeight + codingWeight + consistencyWeight)));
-      cohortPercentile = Math.min(99, Math.max(5, Math.round(50 + (readinessScore - 50) * 0.85)));
-      tierFit = readinessScore >= 80 ? 'Tier-1 Product & Super Dream' : readinessScore >= 65 ? 'Premium IT & Consulting' : 'Mass IT & Services';
+      if (totalSubmissions === 0) {
+        // Phase 1 Placement Screening Assessment (MCQ & CS Core Mastery)
+        const accScore = overallAccuracy * 0.50; // up to 50 pts
+        const velScore = avgTimePerQuestion <= 30 ? 20 : avgTimePerQuestion <= 45 ? 16 : avgTimePerQuestion <= 60 ? 12 : 6; // up to 20 pts
+        const volScore = Math.min(15, Math.round((totalAttempted / 50) * 15)); // up to 15 pts
+        const conScore = 8 + Math.min(7, (streak?.current_streak || 1) * 2); // up to 15 pts
+        readinessScore = Math.min(99, Math.max(15, Math.round(accScore + velScore + volScore + conScore)));
+      } else {
+        // Blended Phase 1 (Screening) + Phase 2 (Technical Coding Arena)
+        const accScore = overallAccuracy * 0.30;
+        const codingScore = Math.min(30, (codingSolvedCount / 8) * 30);
+        const acceptanceScore = (codingAcceptanceRate || 0) * 0.15;
+        const velScore = avgTimePerQuestion <= 30 ? 15 : avgTimePerQuestion <= 45 ? 12 : avgTimePerQuestion <= 60 ? 8 : 4;
+        const consistencyScore = Math.min(10, ((streak?.current_streak || 0) * 3) + Math.min(5, Math.round((totalAttempted / 50) * 5)));
+        readinessScore = Math.min(99, Math.max(15, Math.round(accScore + codingScore + acceptanceScore + velScore + consistencyScore)));
+      }
+
+      cohortPercentile = Math.min(99, Math.max(10, Math.round(readinessScore * 0.95 + 4)));
+      tierFit = readinessScore >= 80 
+        ? 'Tier-1 Product & Super Dream' 
+        : readinessScore >= 70 
+        ? 'Premium IT & Consulting' 
+        : readinessScore >= 55 
+        ? 'Mass IT & Services' 
+        : 'Foundation Building';
     }
 
     const recruiterBenchmarks = [
       {
+        company_id: 'comp-tcs',
         company_name: 'TCS (NQT Ninja / Digital / Prime)',
         cutoff_accuracy: 60,
         min_coding_solved: 2,
         tier: 'Service / Digital IT'
       },
       {
+        company_id: 'comp-infosys',
         company_name: 'Infosys (SE / DSE / SP)',
         cutoff_accuracy: 65,
         min_coding_solved: 2,
         tier: 'Service / Digital IT'
       },
       {
+        company_id: 'comp-accenture',
         company_name: 'Accenture (ASE / Cloud Associate)',
         cutoff_accuracy: 65,
         min_coding_solved: 2,
         tier: 'Consulting & IT'
       },
       {
+        company_id: 'comp-wipro',
         company_name: 'Wipro (Elite NTH / Turbo)',
         cutoff_accuracy: 60,
         min_coding_solved: 2,
         tier: 'IT Services'
       },
       {
+        company_id: 'comp-deloitte',
         company_name: 'Deloitte (Technology Analyst)',
         cutoff_accuracy: 72,
         min_coding_solved: 3,
         tier: 'Consulting'
       },
       {
+        company_id: 'comp-amazon',
         company_name: 'Amazon (SDE-1 Campus)',
         cutoff_accuracy: 80,
         min_coding_solved: 5,
         tier: 'Product (Tier-1)'
       },
       {
+        company_id: 'comp-microsoft',
         company_name: 'Microsoft (Software Engineer)',
         cutoff_accuracy: 82,
         min_coding_solved: 5,
         tier: 'Product (Tier-1)'
       },
       {
+        company_id: 'comp-google',
         company_name: 'Google (Software Engineer L3)',
         cutoff_accuracy: 85,
         min_coding_solved: 6,
@@ -340,24 +428,56 @@ router.get('/', authenticate, (req, res) => {
           current_accuracy: 0,
           current_coding_solved: 0,
           status: 'NEEDS_PREPARATION',
-          match_score: 0
+          match_score: 0,
+          stage: 'Pending Assessment',
+          verdict: 'Complete initial diagnostic assessment to evaluate recruiter cutoffs.'
         };
       }
 
-      const meetsAccuracy = overallAccuracy >= bm.cutoff_accuracy;
+      // Check if candidate practiced this specific company's pattern
+      const specific = companyAccuracy.find(c => c.id === bm.company_id || c.name.toLowerCase().includes(bm.company_name.split(' ')[0].toLowerCase()));
+      const effectiveAccuracy = (specific && specific.attempted >= 3 && specific.accuracy !== null)
+        ? Math.max(overallAccuracy, specific.accuracy)
+        : overallAccuracy;
+
+      const meetsAccuracy = effectiveAccuracy >= bm.cutoff_accuracy;
       const meetsCoding = codingSolvedCount >= bm.min_coding_solved;
+
       let status = 'NEEDS_PREPARATION';
       let matchScore = 0;
+      let stage = 'Prep Needed';
+      let verdict = '';
 
       if (meetsAccuracy && meetsCoding) {
         status = 'ELIGIBLE';
-        matchScore = Math.min(98, 70 + (overallAccuracy - bm.cutoff_accuracy) + (codingSolvedCount - bm.min_coding_solved) * 5);
-      } else if (meetsAccuracy || meetsCoding || overallAccuracy >= (bm.cutoff_accuracy - 10)) {
+        stage = 'Comprehensive Qualified';
+        matchScore = Math.min(98, 75 + (effectiveAccuracy - bm.cutoff_accuracy) + (codingSolvedCount - bm.min_coding_solved) * 4);
+        verdict = 'Cleared all online aptitude and coding thresholds for campus shortlisting.';
+      } else if (meetsAccuracy) {
+        // If aptitude cutoff is cleared:
+        // Service / IT consulting companies: eligible for screening round!
+        if (bm.tier.includes('Service') || bm.tier.includes('Consulting') || bm.tier.includes('IT')) {
+          status = 'ELIGIBLE';
+          stage = 'Screening Round Qualified';
+          matchScore = Math.min(92, 72 + (effectiveAccuracy - bm.cutoff_accuracy) * 2);
+          verdict = `Screening cutoff cleared (${effectiveAccuracy}% vs ${bm.cutoff_accuracy}% cutoff). Solve coding problems for higher salary band upgrades.`;
+        } else {
+          // Tier-1 Product:
+          status = 'BORDERLINE';
+          stage = 'Aptitude Qualified · Coding Pending';
+          matchScore = Math.min(68, 55 + (effectiveAccuracy - bm.cutoff_accuracy));
+          verdict = `Online screening profile strong (${effectiveAccuracy}%). Requires ${bm.min_coding_solved} DSA solutions for Tier-1 coding round.`;
+        }
+      } else if (effectiveAccuracy >= bm.cutoff_accuracy - 8) {
         status = 'BORDERLINE';
-        matchScore = Math.max(45, Math.min(69, 50 + (overallAccuracy - bm.cutoff_accuracy)));
+        stage = 'Near Cutoff';
+        matchScore = Math.max(48, Math.min(68, 55 - (bm.cutoff_accuracy - effectiveAccuracy) * 2));
+        verdict = `Close to cutoff (${effectiveAccuracy}% vs ${bm.cutoff_accuracy}% required). Focus on priority remediation topics to qualify.`;
       } else {
         status = 'NEEDS_PREPARATION';
-        matchScore = Math.max(20, Math.min(44, 30 + (overallAccuracy - bm.cutoff_accuracy)));
+        stage = 'Core Prep Needed';
+        matchScore = Math.max(20, Math.min(45, 35 - (bm.cutoff_accuracy - effectiveAccuracy)));
+        verdict = `Requires concept revision in core topics to bridge the ${(bm.cutoff_accuracy - effectiveAccuracy)}% gap.`;
       }
 
       return {
@@ -365,10 +485,12 @@ router.get('/', authenticate, (req, res) => {
         tier: bm.tier,
         cutoff_accuracy: bm.cutoff_accuracy,
         min_coding_solved: bm.min_coding_solved,
-        current_accuracy: overallAccuracy,
+        current_accuracy: effectiveAccuracy,
         current_coding_solved: codingSolvedCount,
         status,
-        match_score: Math.round(matchScore)
+        match_score: Math.round(matchScore),
+        stage,
+        verdict
       };
     });
 

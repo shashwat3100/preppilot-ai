@@ -412,7 +412,16 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                     : 'bg-[var(--surface-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--surface-border)]'
                 }`}
               >
-                {tab === 'ALL' ? 'All (8)' : tab === 'ELIGIBLE' ? 'Eligible' : tab === 'BORDERLINE' ? 'Borderline' : 'Needs Prep'}
+                {(() => {
+                  const eligibleCount = readiness?.company_eligibility?.filter(c => c.status === 'ELIGIBLE').length || 0;
+                  const borderlineCount = readiness?.company_eligibility?.filter(c => c.status === 'BORDERLINE').length || 0;
+                  const needsPrepCount = readiness?.company_eligibility?.filter(c => c.status === 'NEEDS_PREPARATION').length || 0;
+                  const totalCount = readiness?.company_eligibility?.length || 8;
+                  if (tab === 'ALL') return `All (${totalCount})`;
+                  if (tab === 'ELIGIBLE') return `Eligible (${eligibleCount})`;
+                  if (tab === 'BORDERLINE') return `Borderline (${borderlineCount})`;
+                  return `Needs Prep (${needsPrepCount})`;
+                })()}
               </button>
             ))}
           </div>
@@ -449,6 +458,13 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                   <span className="text-[10px] text-[var(--text-muted)] font-medium block">
                     {c.tier}
                   </span>
+                  {c.stage && (
+                    <div className="pt-0.5">
+                      <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                        {c.stage}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="space-y-1.5 pt-2 border-t border-[var(--surface-border)] text-[11px]">
                     <div className="flex justify-between">
@@ -476,6 +492,11 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                     />
                   </div>
                 </div>
+                {c.verdict && (
+                  <p className="text-[10px] text-[var(--text-muted)] leading-relaxed pt-1.5 border-t border-[var(--surface-border)]/70">
+                    {c.verdict}
+                  </p>
+                )}
               </div>
             );
           })}
@@ -501,7 +522,15 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
             <Clock size={16} className="text-cyan-500" />
           </div>
           <span className="text-2xl sm:text-3xl font-extrabold text-cyan-500">{summary?.avg_time_per_question || 45}s</span>
-          <span className="text-xs text-[var(--text-muted)] block mt-1">Target benchmark: 45s/item</span>
+          <span className="text-xs text-[var(--text-muted)] block mt-1">
+            {(summary?.avg_time_per_question || 45) < 45 ? (
+              <span className="text-emerald-400 font-semibold">
+                {Math.round(((45 - (summary?.avg_time_per_question || 45)) / 45) * 100)}% faster than 45s target benchmark
+              </span>
+            ) : (
+              'Target benchmark: 45s/item'
+            )}
+          </span>
         </div>
 
         <div className="p-5 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm">
@@ -649,22 +678,40 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
 
         {/* Company Readiness Progression */}
         <div className="p-5 sm:p-6 rounded-2xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-sm space-y-4">
-          <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">Company Pattern Practice Volume</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">Company Pattern Practice Volume</h3>
+            <span className="text-[11px] text-[var(--text-muted)]">Practiced patterns first</span>
+          </div>
           <div className="space-y-3">
-            {data?.company_accuracy.slice(0, 5).map((c, i) => (
-              <div key={i} className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="font-semibold text-[var(--text-secondary)]">{c.name}</span>
-                  <span className="text-indigo-400 font-bold">{c.accuracy}% ({c.attempted} solved)</span>
+            {data?.company_accuracy.slice(0, 6).map((c, i) => {
+              const hasPracticed = c.attempted > 0;
+              return (
+                <div key={i} className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-semibold text-[var(--text-secondary)]">{c.name}</span>
+                    {hasPracticed ? (
+                      <span className="text-indigo-400 font-bold">
+                        {c.accuracy}% ({c.correct !== undefined ? `${c.correct}/${c.attempted} correct` : `${c.attempted} solved`})
+                      </span>
+                    ) : (
+                      <span className="text-[var(--text-muted)] font-medium text-[11px]">
+                        Pending Practice ({c.available} available)
+                      </span>
+                    )}
+                  </div>
+                  <div className="w-full bg-[var(--surface-elevated)] h-2.5 rounded-full overflow-hidden border border-[var(--surface-border)]">
+                    {hasPracticed ? (
+                      <div
+                        className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full"
+                        style={{ width: `${c.accuracy}%` }}
+                      />
+                    ) : (
+                      <div className="h-full bg-slate-700/20 rounded-full" style={{ width: '0%' }} />
+                    )}
+                  </div>
                 </div>
-                <div className="w-full bg-[var(--surface-elevated)] h-2.5 rounded-full overflow-hidden border border-[var(--surface-border)]">
-                  <div
-                    className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full"
-                    style={{ width: `${c.accuracy}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -683,8 +730,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                   <span className="font-bold text-[var(--text-primary)] block">{t.topic}</span>
                   <span className="text-[var(--text-muted)] text-[10px]">{t.subject}</span>
                 </div>
-                <span className="px-2.5 py-1 rounded bg-amber-500/10 text-amber-500 font-bold">
-                  {t.accuracy}% acc
+                <span className="px-2.5 py-1 rounded bg-amber-500/10 text-amber-500 font-bold whitespace-nowrap">
+                  {t.accuracy}% acc {t.attempted !== undefined ? `(${t.correct ?? 0}/${t.attempted})` : ''}
                 </span>
               </div>
             ))}
@@ -703,8 +750,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                   <span className="font-bold text-[var(--text-primary)] block">{t.topic}</span>
                   <span className="text-[var(--text-muted)] text-[10px]">{t.subject}</span>
                 </div>
-                <span className="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-500 font-bold">
-                  {t.accuracy}% acc
+                <span className="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 font-bold whitespace-nowrap">
+                  {t.accuracy}% acc {t.attempted !== undefined ? `(${t.correct ?? t.attempted}/${t.attempted})` : ''}
                 </span>
               </div>
             ))}
@@ -760,10 +807,12 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                 Acceptance Rate
               </span>
               <span className="text-2xl font-extrabold text-emerald-400">
-                {data.coding.acceptance_rate}%
+                {data.coding.total_submissions > 0 ? `${data.coding.acceptance_rate}%` : 'N/A'}
               </span>
               <span className="text-[11px] text-[var(--text-muted)] block mt-0.5">
-                {data.coding.accepted_submissions} of {data.coding.total_submissions} submissions
+                {data.coding.total_submissions > 0 
+                  ? `${data.coding.accepted_submissions} of ${data.coding.total_submissions} submissions`
+                  : 'Pending first code submission'}
               </span>
             </div>
 
@@ -788,9 +837,14 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                 <span className="text-lg font-bold text-[var(--text-primary)] capitalize">
                   {Object.keys(data.coding.language_breakdown).length > 0
                     ? Object.entries(data.coding.language_breakdown).sort((a, b) => b[1] - a[1])[0][0]
-                    : 'Python'}
+                    : 'None yet'}
                 </span>
               </div>
+              <span className="text-[11px] text-[var(--text-muted)] block mt-0.5">
+                {Object.keys(data.coding.language_breakdown).length > 0
+                  ? `${data.coding.total_submissions} code executions`
+                  : 'Ready for first submission'}
+              </span>
             </div>
           </div>
 
@@ -866,9 +920,19 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                   ))}
                 </div>
               ) : (
-                <div className="p-6 text-center rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-xs text-[var(--text-muted)]">
-                  <CheckCircle2 size={24} className="mx-auto mb-2 text-emerald-400" />
-                  All attempted problems are passing cleanly! Keep up the momentum.
+                <div className="p-6 text-center rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] text-xs text-[var(--text-muted)] space-y-1">
+                  {data.coding.total_submissions === 0 ? (
+                    <>
+                      <Code2 size={24} className="mx-auto mb-1 text-purple-400" />
+                      <span className="font-semibold text-[var(--text-primary)] block">No Coding Problems Attempted Yet</span>
+                      <span>Jump into the Coding Arena to start solving LeetCode-style interview challenges in C, C++, Java, or Python!</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={24} className="mx-auto mb-2 text-emerald-400" />
+                      All attempted problems are passing cleanly! Keep up the momentum.
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -947,7 +1011,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] print:border-slate-300 print:bg-slate-50">
                 <div>
                   <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] print:text-slate-500">Candidate Name</div>
-                  <div className="text-sm font-bold text-[var(--text-primary)] print:text-slate-900 mt-0.5">{user?.name || 'Aditya Sharma'}</div>
+                  <div className="text-sm font-bold text-[var(--text-primary)] print:text-slate-900 mt-0.5">{user?.name || 'Student Candidate'}</div>
                 </div>
                 <div>
                   <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] print:text-slate-500">Email Address</div>
@@ -956,13 +1020,13 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                 <div>
                   <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] print:text-slate-500">Branch & Cohort</div>
                   <div className="text-sm font-semibold text-[var(--text-primary)] print:text-slate-900 mt-0.5">
-                    {user?.branch_name || 'CSE'} (Class of {user?.graduation_year || 2026})
+                    {user?.branch_name || 'Engineering'} (Class of {user?.graduation_year || 2026})
                   </div>
                 </div>
                 <div>
                   <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] print:text-slate-500">Preparation XP / Level</div>
                   <div className="text-sm font-semibold text-indigo-400 print:text-indigo-800 mt-0.5">
-                    Level {user?.current_level || 3} ({user?.total_xp || 605} XP)
+                    Level {user?.current_level || 1} ({user?.total_xp || 0} XP)
                   </div>
                 </div>
               </div>
@@ -975,7 +1039,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                     <Percent size={16} />
                   </div>
                   <div className="text-3xl font-black mt-2 text-[var(--text-primary)] print:text-slate-900">
-                    {readiness?.score || 74}<span className="text-sm font-normal text-[var(--text-muted)] print:text-slate-500">/100</span>
+                    {readiness?.score ?? 0}<span className="text-sm font-normal text-[var(--text-muted)] print:text-slate-500">/100</span>
                   </div>
                   <p className="text-[11px] text-[var(--text-muted)] print:text-slate-600 mt-1">
                     Weighted across technical MCQs, core CS, and algorithm execution.
@@ -988,10 +1052,10 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                     <Award size={16} />
                   </div>
                   <div className="text-3xl font-black mt-2 text-[var(--text-primary)] print:text-slate-900">
-                    {readiness?.percentile || 76}<span className="text-sm font-normal text-[var(--text-muted)] print:text-slate-500">th %ile</span>
+                    {readiness?.percentile ?? 0}<span className="text-sm font-normal text-[var(--text-muted)] print:text-slate-500">th %ile</span>
                   </div>
                   <p className="text-[11px] text-[var(--text-muted)] print:text-slate-600 mt-1">
-                    Ranked among top 24% of graduating engineering candidates.
+                    Ranked among top {Math.max(1, 100 - (readiness?.percentile ?? 50))}% of engineering candidates.
                   </p>
                 </div>
 
@@ -1001,7 +1065,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                     <Building2 size={16} />
                   </div>
                   <div className="text-lg font-extrabold mt-2 text-[var(--text-primary)] print:text-slate-900 truncate">
-                    {readiness?.tier_fit || 'Tier-1 Product & Tech'}
+                    {readiness?.tier_fit || 'Diagnostic Required'}
                   </div>
                   <p className="text-[11px] text-[var(--text-muted)] print:text-slate-600 mt-1">
                     Eligible for product engineering and high-growth technology roles.
@@ -1133,7 +1197,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                     Coding Problems Solved
                   </div>
                   <div className="text-base font-bold text-[var(--text-primary)] print:text-slate-900">
-                    {data?.coding?.problems_solved || 12} Problems Verified
+                    {data?.coding?.problems_solved ?? 0} Problems Verified
                   </div>
                 </div>
                 <div>
@@ -1141,7 +1205,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                     Acceptance Ratio
                   </div>
                   <div className="text-base font-bold text-emerald-400 print:text-emerald-700">
-                    {data?.coding?.acceptance_rate || 80}% Accuracy
+                    {(data?.coding?.total_submissions ?? 0) > 0 ? `${data?.coding?.acceptance_rate}% Accuracy` : 'Pending Arena Practice'}
                   </div>
                 </div>
                 <div>
@@ -1149,7 +1213,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                     Active Streak
                   </div>
                   <div className="text-base font-bold text-orange-400 print:text-orange-700">
-                    {summary?.current_streak || 3} Consecutive Days
+                    {summary?.current_streak ?? 1} Consecutive Days
                   </div>
                 </div>
               </div>
@@ -1159,7 +1223,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                 <div className="space-y-4">
                   <div className="h-10 border-b border-dashed border-[var(--surface-border)] print:border-slate-400 flex items-end justify-center pb-1">
                     <span className="font-serif italic text-xs text-[var(--text-secondary)] print:text-slate-700">
-                      {user?.name || 'Aditya Sharma'}
+                      {user?.name || 'Verified Candidate'}
                     </span>
                   </div>
                   <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] print:text-slate-500">
