@@ -150,7 +150,10 @@ export interface JobRole {
 
 export interface DashboardStats {
   preparation_score: number;
+  placement_readiness?: any;
   total_questions_attempted: number;
+  correct_answers?: number;
+  incorrect_answers?: number;
   accuracy_percentage: number;
   total_xp: number;
   current_level: number;

@@ -396,11 +396,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               {stats?.accuracy_percentage || 0}%
             </span>
             <span className="text-xs text-[var(--text-muted)]">
-              ({stats?.total_questions_attempted || 0} solved)
+              ({stats?.correct_answers ?? Math.round(((stats?.accuracy_percentage || 0) * (stats?.total_questions_attempted || 0)) / 100)} correct of {stats?.total_questions_attempted || 0})
             </span>
           </div>
-          <p className="text-[11px] text-[var(--text-muted)] mt-2">
-            Across DBMS, DSA, Operating Systems, Networks
+          <p className="text-[11px] text-[var(--text-muted)] mt-2 truncate" title={stats?.subject_progress?.filter((s: any) => s.attempted > 0).map((s: any) => s.name).join(', ') || 'Across syllabus topics'}>
+            {stats?.subject_progress && stats.subject_progress.filter((s: any) => s.attempted > 0).length > 0
+              ? `Across ${stats.subject_progress.filter((s: any) => s.attempted > 0).map((s: any) => s.name.split(' ')[0]).slice(0, 4).join(', ')}`
+              : 'Across core syllabus subjects'}
           </p>
         </div>
 
@@ -670,20 +672,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
             <div className="space-y-3 text-xs text-[var(--text-secondary)] leading-relaxed">
               <p>
-                Your Placement Readiness score ({prepScore}%) is computed from three weighted pillars:
+                Your Placement Readiness score ({prepScore}%) is calibrated from multi-factor placement diagnostics matching official campus benchmarks:
               </p>
               <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--surface-border)] space-y-2">
                 <div className="flex justify-between font-semibold text-[var(--text-primary)]">
                   <span>1. Assessment & Quiz Accuracy</span>
-                  <span className="text-indigo-400">40% Weight</span>
+                  <span className="text-indigo-400">Up to 50 Pts</span>
                 </div>
                 <div className="flex justify-between font-semibold text-[var(--text-primary)]">
-                  <span>2. Practice Consistency & Streak</span>
-                  <span className="text-indigo-400">30% Weight</span>
+                  <span>2. Velocity & Question Speed (s/item)</span>
+                  <span className="text-indigo-400">Up to 20 Pts</span>
                 </div>
                 <div className="flex justify-between font-semibold text-[var(--text-primary)]">
-                  <span>3. Syllabus Topic Coverage</span>
-                  <span className="text-indigo-400">30% Weight</span>
+                  <span>3. Practice Volume & Syllabus Depth</span>
+                  <span className="text-indigo-400">Up to 15 Pts</span>
+                </div>
+                <div className="flex justify-between font-semibold text-[var(--text-primary)]">
+                  <span>4. Study Streak & Active Consistency</span>
+                  <span className="text-indigo-400">Up to 15 Pts</span>
                 </div>
               </div>
               <p className="text-[11px] text-[var(--text-muted)] italic">

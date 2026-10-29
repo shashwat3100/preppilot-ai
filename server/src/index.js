@@ -136,6 +136,48 @@ app.use('/api/dean', deanRoutes);
 app.use('/api/coding', codingRoutes);
 app.use('/api/aptitude', aptitudeRoutes);
 
+// Video Stream & Download Endpoints for Walkthrough Video
+app.get('/api/video/stream', (req, res) => {
+  const videoPath = path.resolve(__dirname, '../../recordings/PrepPilot_AI_Full_Platform_Walkthrough.webm');
+  if (!fs.existsSync(videoPath)) {
+    return res.status(404).json({ success: false, message: 'Walkthrough video file not found.' });
+  }
+  const stat = fs.statSync(videoPath);
+  const fileSize = stat.size;
+  const range = req.headers.range;
+
+  if (range) {
+    const parts = range.replace(/bytes=/, '').split('-');
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+    const chunksize = (end - start) + 1;
+    const file = fs.createReadStream(videoPath, { start, end });
+    const head = {
+      'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': chunksize,
+      'Content-Type': 'video/webm',
+    };
+    res.writeHead(206, head);
+    file.pipe(res);
+  } else {
+    const head = {
+      'Content-Length': fileSize,
+      'Content-Type': 'video/webm',
+    };
+    res.writeHead(200, head);
+    fs.createReadStream(videoPath).pipe(res);
+  }
+});
+
+app.get('/api/video/download', (req, res) => {
+  const videoPath = path.resolve(__dirname, '../../recordings/PrepPilot_AI_Full_Platform_Walkthrough.webm');
+  if (!fs.existsSync(videoPath)) {
+    return res.status(404).json({ success: false, message: 'Walkthrough video file not found.' });
+  }
+  res.download(videoPath, 'PrepPilot_AI_Full_Platform_Walkthrough.webm');
+});
+
 // Serve static frontend build if present (for Go Live, production, or unified port 5000 access)
 if (fs.existsSync(clientDist)) {
   app.use(express.static(clientDist, {

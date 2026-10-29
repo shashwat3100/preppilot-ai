@@ -606,7 +606,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onNavigateToCoding
                         </div>
                         <div className="text-xs space-y-1">
                           <div className="flex items-center justify-between gap-4">
-                            <span className="text-[var(--text-muted)]">Questions Solved:</span>
+                            <span className="text-[var(--text-muted)]">Questions Attempted:</span>
                             <span className="font-bold text-cyan-400">{item.questionsAttempted || 0}</span>
                           </div>
                           <div className="flex items-center justify-between gap-4">

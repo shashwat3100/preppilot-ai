@@ -1,5 +1,6 @@
 import express from 'express';
 import db from '../database/db.js';
+import { calculatePlacementReadiness } from '../services/placementReadinessService.js';
 import { authenticate, requireDeanOrAdmin } from '../middleware/auth.js';
 import { savePostgresUser } from '../database/postgres.js';
 
@@ -79,7 +80,12 @@ export function calculateDepartmentMetrics() {
       : 0;
 
     // Total and Average XP
-    const totalXp = deptStudents.reduce((sum, s) => sum + (s.total_xp || 0), 0);
+    const allAttemptsList = db.getAll('attempts') || [];
+    const totalXp = deptStudents.reduce((sum, s) => {
+      const sAttempts = allAttemptsList.filter(a => a.user_id === s.id);
+      const sXp = sAttempts.reduce((acc, a) => acc + (a.xp_gained || 0), 0);
+      return sum + Math.max(s.total_xp || 0, sXp);
+    }, 0);
     const avgXp = deptStudents.length > 0 ? Math.round(totalXp / deptStudents.length) : 0;
 
     // Subject Mastery & Strengths for this branch
@@ -459,9 +465,14 @@ router.get('/performance', (req, res) => {
     const branches = db.getAll('branches') || [];
     const branchesMap = new Map(branches.map(b => [b.id, b.name]));
 
+    // Live data collections for accurate student metrics
+    const attempts = db.getAll('attempts') || [];
+    const streaks = db.getAll('streaks') || [];
+
     // Map each student to enriched academic profile
     let list = students.map(s => {
       const studentSessions = sessions.filter(sess => sess.user_id === s.id && sess.status === 'COMPLETED');
+      const studentAttempts = attempts.filter(a => a.user_id === s.id);
       const studentCoding = codingSubmissions.filter(c => c.user_id === s.id);
       const studentAccepted = studentCoding.filter(c => c.status === 'ACCEPTED');
 
@@ -477,8 +488,27 @@ router.get('/performance', (req, res) => {
         })
         .filter(sc => sc !== undefined && sc !== null && !isNaN(sc));
 
-      const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+      let avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+      if (avgScore === null && studentAttempts.length > 0) {
+        const correctCount = studentAttempts.filter(a => a.is_correct).length;
+        avgScore = Math.round((correctCount / studentAttempts.length) * 100);
+      }
+
       const codingSolved = new Set(studentAccepted.map(c => c.problem_id)).size;
+
+      // Experience Points & Streak Sync
+      const attemptsXp = studentAttempts.reduce((acc, a) => acc + (a.xp_gained || 0), 0);
+      const actualXp = Math.max(s.total_xp || 0, attemptsXp);
+      const userStreak = streaks.find(st => st.user_id === s.id);
+      const currentStreak = userStreak?.current_streak || s.current_streak || (studentAttempts.length > 0 ? 1 : 0);
+
+      // Last active date from attempts or user record
+      let lastActive = s.last_active_date || null;
+      if (!lastActive && studentAttempts.length > 0) {
+        const sorted = [...studentAttempts].sort((a, b) => new Date(b.attempted_at || 0) - new Date(a.attempted_at || 0));
+        lastActive = sorted[0]?.attempted_at?.split('T')[0] || 'Recently';
+      }
+      if (!lastActive) lastActive = 'N/A';
 
       // Determine performance tier
       let tier = 'Needs Practice';
@@ -500,9 +530,9 @@ router.get('/performance', (req, res) => {
         branch_name: branchesMap.get(s.branch_id) || s.branch_id || 'Computer Science',
         year: s.year || '4th Year',
         skill_level: s.skill_level || 'Intermediate',
-        total_xp: s.total_xp || 0,
-        current_streak: s.current_streak || 0,
-        assessments_completed: studentSessions.length,
+        total_xp: actualXp,
+        current_streak: currentStreak,
+        assessments_completed: studentSessions.length || (studentAttempts.length > 0 ? Math.ceil(studentAttempts.length / 5) : 0),
         average_score: avgScore,
         coding_solved: codingSolved,
         performance_tier: tier,
@@ -511,7 +541,7 @@ router.get('/performance', (req, res) => {
         placed_company: s.placed_company || null,
         placement_package: s.placement_package || null,
         placed_date: s.placed_date || null,
-        last_active: s.last_active_date || 'N/A'
+        last_active: lastActive
       };
     });
 
@@ -655,7 +685,26 @@ router.get('/performance/:id', (req, res) => {
 
     const { password_hash, ...safeStudent } = student;
 
-    // Clean topic breakdown
+    const attempts = db.getAll('attempts') || [];
+    const streaks = db.getAll('streaks') || [];
+    const studentAttempts = attempts.filter(a => a.user_id === student.id);
+    const studentXp = studentAttempts.reduce((acc, a) => acc + (a.xp_gained || 0), 0);
+    const actualXp = Math.max(student.total_xp || 0, studentXp);
+    const userStreak = streaks.find(st => st.user_id === student.id);
+    const currentStreak = userStreak?.current_streak || student.current_streak || (studentAttempts.length > 0 ? 1 : 0);
+
+    const placementData = calculatePlacementReadiness({
+      attempts: studentAttempts,
+      currentStreak,
+      codingSubmissions
+    });
+
+    safeStudent.total_xp = actualXp;
+    safeStudent.current_streak = currentStreak;
+    safeStudent.readiness_score = placementData.score;
+    safeStudent.tier_fit = placementData.tier_fit;
+
+    // Clean topic breakdown with live attempt counts
     const topicBreakdown = performance.map(p => {
       const topic = topics.find(t => t.id === p.topic_id);
       const subject = subjects.find(s => s.id === p.subject_id);
@@ -663,7 +712,7 @@ router.get('/performance/:id', (req, res) => {
         topic_name: topic ? topic.name : p.topic_id,
         subject_name: subject ? subject.name : 'Core CS',
         accuracy_rate: p.accuracy_rate,
-        attempts: p.attempts_count,
+        attempts: p.total_attempts || p.attempts_count || 1,
         weakness_score: p.weakness_score
       };
     });

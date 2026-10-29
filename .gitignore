@@ -64,3 +64,9 @@ careerprep_data.json
 .idea/
 *.suo
 *.sw?
+
+
+# Large media & screen recordings (stored locally, excluded from git)
+recordings/
+*.webm
+*.mp4

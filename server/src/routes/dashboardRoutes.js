@@ -2,6 +2,7 @@ import express from 'express';
 import db from '../database/db.js';
 import { authenticate } from '../middleware/auth.js';
 import RecommendationEngine from '../services/recommendationEngine.js';
+import { calculatePlacementReadiness } from '../services/placementReadinessService.js';
 
 const router = express.Router();
 
@@ -24,44 +25,82 @@ router.get('/stats', authenticate, (req, res) => {
       ? Math.round((correctAttempts / totalQuestionsAttempted) * 100)
       : 0;
 
-    // Preparation Readiness Score (Composite of accuracy, consistency, topics covered, and difficulty)
-    const distinctTopicsAttempted = new Set(attempts.map(a => {
+    // Coding submissions for blended readiness calculation
+    const codingSubmissions = db.find('codingSubmissions', s => s.user_id === userId) || [];
+
+    // Unified Canonical Placement Readiness Score (Pillars: Accuracy, Velocity, Volume, Consistency, Coding)
+    const currentStreakCount = streak?.current_streak || user?.current_streak || 0;
+    const placementReadiness = calculatePlacementReadiness({
+      attempts,
+      currentStreak: currentStreakCount,
+      codingSubmissions
+    });
+    const preparationScore = placementReadiness.score;
+
+    // Experience Points & Level Sync
+    const attemptsXp = attempts.reduce((acc, a) => acc + (a.xp_gained || 0), 0);
+    const userTotalXp = Math.max(user.total_xp || 0, attemptsXp);
+    const userLevel = Math.floor(userTotalXp / 250) + 1;
+    if (user.total_xp !== userTotalXp || user.current_level !== userLevel) {
+      db.update('users', userId, {
+        total_xp: userTotalXp,
+        current_level: userLevel
+      });
+      user.total_xp = userTotalXp;
+      user.current_level = userLevel;
+    }
+
+    // Dynamic Topic Performance computed directly from live user attempts (100% synchronized with Analytics)
+    const topicPerfMap = new Map();
+    attempts.forEach(a => {
       const q = allQuestions.find(item => item.id === a.question_id);
-      return q?.topic_id;
-    })).size;
+      if (!q) return;
+      const topicId = q.topic_id || 'unknown';
+      if (!topicPerfMap.has(topicId)) {
+        const top = allTopics.find(t => t.id === topicId);
+        const sub = allSubjects.find(s => s.id === q.subject_id);
+        topicPerfMap.set(topicId, {
+          topic_id: topicId,
+          topic_name: top?.name || 'General',
+          subject_name: sub?.name || 'Core',
+          attempts: 0,
+          correct: 0
+        });
+      }
+      const item = topicPerfMap.get(topicId);
+      item.attempts += 1;
+      if (a.is_correct) item.correct += 1;
+    });
 
-    const topicCoverageRate = allTopics.length > 0 ? (distinctTopicsAttempted / allTopics.length) * 100 : 0;
-    const preparationScore = Math.min(100, Math.round(
-      (overallAccuracy * 0.45) +
-      (Math.min(user.current_streak, 14) / 14 * 25) +
-      (topicCoverageRate * 0.30)
-    ));
-
-    // Weak and Strong topics
     const weakTopics = [];
     const strongTopics = [];
 
-    performance.forEach(p => {
-      const topic = allTopics.find(t => t.id === p.topic_id);
-      const subject = allSubjects.find(s => s.id === p.subject_id);
-      const item = {
-        topic_id: p.topic_id,
-        topic_name: topic?.name || 'General',
-        subject_name: subject?.name || 'Core',
-        attempts: p.attempts_count,
-        accuracy: Math.round(p.accuracy_rate),
-        weakness_score: p.weakness_score
+    topicPerfMap.forEach(item => {
+      const acc = item.attempts > 0 ? Math.round((item.correct / item.attempts) * 100) : 0;
+      const weakness = Number(((item.attempts - item.correct) / item.attempts).toFixed(2));
+      const entry = {
+        topic_id: item.topic_id,
+        topic_name: item.topic_name,
+        subject_name: item.subject_name,
+        attempts: item.attempts,
+        accuracy: acc,
+        weakness_score: weakness
       };
-
-      if (p.weakness_score >= 0.5) {
-        weakTopics.push(item);
+      if (acc < 70) {
+        weakTopics.push(entry);
       } else {
-        strongTopics.push(item);
+        strongTopics.push(entry);
       }
     });
 
-    weakTopics.sort((a, b) => b.weakness_score - a.weakness_score);
-    strongTopics.sort((a, b) => a.weakness_score - b.weakness_score);
+    weakTopics.sort((a, b) => {
+      if (a.accuracy !== b.accuracy) return a.accuracy - b.accuracy;
+      return b.attempts - a.attempts;
+    });
+    strongTopics.sort((a, b) => {
+      if (b.accuracy !== a.accuracy) return b.accuracy - a.accuracy;
+      return b.attempts - a.attempts;
+    });
 
     // Subject progress breakdown
     const subjectProgress = allSubjects.map(sub => {
@@ -154,10 +193,13 @@ router.get('/stats', authenticate, (req, res) => {
       success: true,
       stats: {
         preparation_score: preparationScore,
+        placement_readiness: placementReadiness,
         total_questions_attempted: totalQuestionsAttempted,
+        correct_answers: correctAttempts,
+        incorrect_answers: totalQuestionsAttempted - correctAttempts,
         accuracy_percentage: overallAccuracy,
-        total_xp: user.total_xp || 0,
-        current_level: user.current_level || 1,
+        total_xp: userTotalXp,
+        current_level: userLevel,
         current_streak: streak?.current_streak || user.current_streak || 0,
         longest_streak: streak?.longest_streak || user.longest_streak || 0,
         weak_topics: weakTopics.slice(0, 5),

@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import db from '../database/db.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { getPostgresAccessStats, isPostgresConfigured, savePostgresUser } from '../database/postgres.js';
+import { calculatePlacementReadiness } from '../services/placementReadinessService.js';
 
 const router = express.Router();
 
@@ -174,6 +175,8 @@ router.get('/students', (req, res) => {
         const totalAttempted = studentAttempts.length;
         const correctAttempts = studentAttempts.filter(a => a.is_correct).length;
         const accuracy = totalAttempted > 0 ? Math.round((correctAttempts / totalAttempted) * 100) : null;
+        const studentXp = studentAttempts.reduce((acc, a) => acc + (a.xp_gained || 0), 0);
+        const totalXp = Math.max(u.total_xp || 0, studentXp);
 
         // Registration timestamp fallback
         const createdAt = u.created_at || new Date(Date.now() - 3 * 86400000).toISOString();
@@ -190,6 +193,7 @@ router.get('/students', (req, res) => {
           total_correct: correctAttempts,
           accuracy: accuracy !== null ? accuracy : 0,
           accuracy_rate: accuracy,
+          total_xp: totalXp,
           is_blocked: isBlocked,
           status: isBlocked ? 'BLOCKED' : 'ACTIVE',
           placement_status: placementStatus,
@@ -290,17 +294,14 @@ router.get('/students/:id/progress', (req, res) => {
     const totalTimeSpent = attempts.reduce((acc, a) => acc + (a.time_spent_seconds || 0), 0);
     const avgTimePerQuestion = totalAttempted > 0 ? Math.round(totalTimeSpent / totalAttempted) : 45;
 
-    // Placement Readiness Composite Score (0-100)
-    const distinctTopics = new Set(attempts.map(a => {
-      const q = allQuestions.find(item => item.id === a.question_id);
-      return q?.topic_id;
-    })).size;
-    const coverageRate = allTopics.length > 0 ? (distinctTopics / allTopics.length) * 100 : 0;
-    const readinessScore = Math.min(100, Math.round(
-      (overallAccuracy * 0.45) +
-      (Math.min(student.current_streak || 1, 14) / 14 * 25) +
-      (coverageRate * 0.30)
-    ));
+    // Unified Canonical Placement Readiness Score (0-100)
+    const studentCodingSubs = db.find('codingSubmissions', s => s.user_id === student.id) || [];
+    const placementReadiness = calculatePlacementReadiness({
+      attempts,
+      currentStreak: student.current_streak || streak?.current_streak || 0,
+      codingSubmissions: studentCodingSubs
+    });
+    const readinessScore = placementReadiness.score;
 
     // Subject Breakdown
     const subjectBreakdown = allSubjects.map(sub => {
@@ -409,6 +410,7 @@ router.get('/students/:id/progress', (req, res) => {
       progress: {
         student: {
           ...safeStudent,
+          total_xp: Math.max(student.total_xp || 0, attempts.reduce((acc, a) => acc + (a.xp_gained || 0), 0)),
           branch_name: branch?.name || 'B.Tech Core',
           job_role_title: role?.title || 'Software Development Engineer',
           current_streak: streak?.current_streak || student.current_streak || 1,

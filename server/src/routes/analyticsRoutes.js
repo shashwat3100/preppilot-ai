@@ -1,6 +1,7 @@
 import express from 'express';
 import db from '../database/db.js';
 import { authenticate } from '../middleware/auth.js';
+import { calculatePlacementReadiness } from '../services/placementReadinessService.js';
 
 const router = express.Router();
 
@@ -323,176 +324,31 @@ router.get('/', authenticate, (req, res) => {
       }
     });
 
-    // Placement Readiness & Company Eligibility Diagnostics
-    const codingSolvedCount = solvedProblemIds.size;
-    const hasActivity = totalAttempted > 0 || totalSubmissions > 0;
-
-    let readinessScore = 0;
-    let cohortPercentile = 0;
-    let tierFit = 'Diagnostic Assessment Required';
-
-    if (hasActivity) {
-      if (totalSubmissions === 0) {
-        // Phase 1 Placement Screening Assessment (MCQ & CS Core Mastery)
-        const accScore = overallAccuracy * 0.50; // up to 50 pts
-        const velScore = avgTimePerQuestion <= 30 ? 20 : avgTimePerQuestion <= 45 ? 16 : avgTimePerQuestion <= 60 ? 12 : 6; // up to 20 pts
-        const volScore = Math.min(15, Math.round((totalAttempted / 50) * 15)); // up to 15 pts
-        const conScore = 8 + Math.min(7, (streak?.current_streak || 1) * 2); // up to 15 pts
-        readinessScore = Math.min(99, Math.max(15, Math.round(accScore + velScore + volScore + conScore)));
-      } else {
-        // Blended Phase 1 (Screening) + Phase 2 (Technical Coding Arena)
-        const accScore = overallAccuracy * 0.30;
-        const codingScore = Math.min(30, (codingSolvedCount / 8) * 30);
-        const acceptanceScore = (codingAcceptanceRate || 0) * 0.15;
-        const velScore = avgTimePerQuestion <= 30 ? 15 : avgTimePerQuestion <= 45 ? 12 : avgTimePerQuestion <= 60 ? 8 : 4;
-        const consistencyScore = Math.min(10, ((streak?.current_streak || 0) * 3) + Math.min(5, Math.round((totalAttempted / 50) * 5)));
-        readinessScore = Math.min(99, Math.max(15, Math.round(accScore + codingScore + acceptanceScore + velScore + consistencyScore)));
-      }
-
-      cohortPercentile = Math.min(99, Math.max(10, Math.round(readinessScore * 0.95 + 4)));
-      tierFit = readinessScore >= 80 
-        ? 'Tier-1 Product & Super Dream' 
-        : readinessScore >= 70 
-        ? 'Premium IT & Consulting' 
-        : readinessScore >= 55 
-        ? 'Mass IT & Services' 
-        : 'Foundation Building';
-    }
-
-    const recruiterBenchmarks = [
-      {
-        company_id: 'comp-tcs',
-        company_name: 'TCS (NQT Ninja / Digital / Prime)',
-        cutoff_accuracy: 60,
-        min_coding_solved: 2,
-        tier: 'Service / Digital IT'
-      },
-      {
-        company_id: 'comp-infosys',
-        company_name: 'Infosys (SE / DSE / SP)',
-        cutoff_accuracy: 65,
-        min_coding_solved: 2,
-        tier: 'Service / Digital IT'
-      },
-      {
-        company_id: 'comp-accenture',
-        company_name: 'Accenture (ASE / Cloud Associate)',
-        cutoff_accuracy: 65,
-        min_coding_solved: 2,
-        tier: 'Consulting & IT'
-      },
-      {
-        company_id: 'comp-wipro',
-        company_name: 'Wipro (Elite NTH / Turbo)',
-        cutoff_accuracy: 60,
-        min_coding_solved: 2,
-        tier: 'IT Services'
-      },
-      {
-        company_id: 'comp-deloitte',
-        company_name: 'Deloitte (Technology Analyst)',
-        cutoff_accuracy: 72,
-        min_coding_solved: 3,
-        tier: 'Consulting'
-      },
-      {
-        company_id: 'comp-amazon',
-        company_name: 'Amazon (SDE-1 Campus)',
-        cutoff_accuracy: 80,
-        min_coding_solved: 5,
-        tier: 'Product (Tier-1)'
-      },
-      {
-        company_id: 'comp-microsoft',
-        company_name: 'Microsoft (Software Engineer)',
-        cutoff_accuracy: 82,
-        min_coding_solved: 5,
-        tier: 'Product (Tier-1)'
-      },
-      {
-        company_id: 'comp-google',
-        company_name: 'Google (Software Engineer L3)',
-        cutoff_accuracy: 85,
-        min_coding_solved: 6,
-        tier: 'Product (Tier-1)'
-      }
-    ];
-
-    const companyEligibility = recruiterBenchmarks.map(bm => {
-      if (!hasActivity) {
-        return {
-          company_name: bm.company_name,
-          tier: bm.tier,
-          cutoff_accuracy: bm.cutoff_accuracy,
-          min_coding_solved: bm.min_coding_solved,
-          current_accuracy: 0,
-          current_coding_solved: 0,
-          status: 'NEEDS_PREPARATION',
-          match_score: 0,
-          stage: 'Pending Assessment',
-          verdict: 'Complete initial diagnostic assessment to evaluate recruiter cutoffs.'
-        };
-      }
-
-      // Check if candidate practiced this specific company's pattern
-      const specific = companyAccuracy.find(c => c.id === bm.company_id || c.name.toLowerCase().includes(bm.company_name.split(' ')[0].toLowerCase()));
-      const effectiveAccuracy = (specific && specific.attempted >= 3 && specific.accuracy !== null)
-        ? Math.max(overallAccuracy, specific.accuracy)
-        : overallAccuracy;
-
-      const meetsAccuracy = effectiveAccuracy >= bm.cutoff_accuracy;
-      const meetsCoding = codingSolvedCount >= bm.min_coding_solved;
-
-      let status = 'NEEDS_PREPARATION';
-      let matchScore = 0;
-      let stage = 'Prep Needed';
-      let verdict = '';
-
-      if (meetsAccuracy && meetsCoding) {
-        status = 'ELIGIBLE';
-        stage = 'Comprehensive Qualified';
-        matchScore = Math.min(98, 75 + (effectiveAccuracy - bm.cutoff_accuracy) + (codingSolvedCount - bm.min_coding_solved) * 4);
-        verdict = 'Cleared all online aptitude and coding thresholds for campus shortlisting.';
-      } else if (meetsAccuracy) {
-        // If aptitude cutoff is cleared:
-        // Service / IT consulting companies: eligible for screening round!
-        if (bm.tier.includes('Service') || bm.tier.includes('Consulting') || bm.tier.includes('IT')) {
-          status = 'ELIGIBLE';
-          stage = 'Screening Round Qualified';
-          matchScore = Math.min(92, 72 + (effectiveAccuracy - bm.cutoff_accuracy) * 2);
-          verdict = `Screening cutoff cleared (${effectiveAccuracy}% vs ${bm.cutoff_accuracy}% cutoff). Solve coding problems for higher salary band upgrades.`;
-        } else {
-          // Tier-1 Product:
-          status = 'BORDERLINE';
-          stage = 'Aptitude Qualified · Coding Pending';
-          matchScore = Math.min(68, 55 + (effectiveAccuracy - bm.cutoff_accuracy));
-          verdict = `Online screening profile strong (${effectiveAccuracy}%). Requires ${bm.min_coding_solved} DSA solutions for Tier-1 coding round.`;
-        }
-      } else if (effectiveAccuracy >= bm.cutoff_accuracy - 8) {
-        status = 'BORDERLINE';
-        stage = 'Near Cutoff';
-        matchScore = Math.max(48, Math.min(68, 55 - (bm.cutoff_accuracy - effectiveAccuracy) * 2));
-        verdict = `Close to cutoff (${effectiveAccuracy}% vs ${bm.cutoff_accuracy}% required). Focus on priority remediation topics to qualify.`;
-      } else {
-        status = 'NEEDS_PREPARATION';
-        stage = 'Core Prep Needed';
-        matchScore = Math.max(20, Math.min(45, 35 - (bm.cutoff_accuracy - effectiveAccuracy)));
-        verdict = `Requires concept revision in core topics to bridge the ${(bm.cutoff_accuracy - effectiveAccuracy)}% gap.`;
-      }
-
-      return {
-        company_name: bm.company_name,
-        tier: bm.tier,
-        cutoff_accuracy: bm.cutoff_accuracy,
-        min_coding_solved: bm.min_coding_solved,
-        current_accuracy: effectiveAccuracy,
-        current_coding_solved: codingSolvedCount,
-        status,
-        match_score: Math.round(matchScore),
-        stage,
-        verdict
-      };
+    // Unified Placement Readiness & Company Eligibility Diagnostics
+    const readiness = calculatePlacementReadiness({
+      attempts,
+      currentStreak: streak?.current_streak || 0,
+      codingSubmissions,
+      companyAccuracy
     });
+
+    const readinessScore = readiness.score;
+    const cohortPercentile = readiness.percentile;
+    const tierFit = readiness.tier_fit;
+    const companyEligibility = readiness.company_eligibility;
+    const hasActivity = readiness.has_activity;
+
+    // Experience Points & Level Sync
+    const user = db.get('users', userId);
+    const attemptsXp = attempts.reduce((acc, a) => acc + (a.xp_gained || 0), 0);
+    const userTotalXp = Math.max(user?.total_xp || 0, attemptsXp);
+    const userLevel = Math.floor(userTotalXp / 250) + 1;
+    if (user && (user.total_xp !== userTotalXp || user.current_level !== userLevel)) {
+      db.update('users', userId, {
+        total_xp: userTotalXp,
+        current_level: userLevel
+      });
+    }
 
     const summaryData = {
       total_attempted: totalAttempted,
@@ -501,7 +357,9 @@ router.get('/', authenticate, (req, res) => {
       overall_accuracy: overallAccuracy,
       avg_time_per_question: avgTimePerQuestion,
       current_streak: streak?.current_streak || 0,
-      longest_streak: streak?.longest_streak || 0
+      longest_streak: streak?.longest_streak || 0,
+      total_xp: userTotalXp,
+      current_level: userLevel
     };
 
     const placementData = {
